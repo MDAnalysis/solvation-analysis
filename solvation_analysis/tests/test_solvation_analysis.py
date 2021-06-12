@@ -4,9 +4,44 @@ Unit and regression test for the solvation_analysis package.
 
 # Import package, test suite, and other packages as needed
 import solvation_analysis
+import MDAnalysis as mda
 import pytest
 import sys
+import os
+import pathlib
+import numpy as np
+from solvation_analysis.tests.datafiles import bn_fec_data, bn_fec_dcd
+
+
+
+@pytest.fixture
+def u_real():
+    return mda.Universe(bn_fec_data, bn_fec_dcd)
+
+
+@pytest.fixture
+def u_grid():
+    n_grid = 6
+    n_frames = 10
+    n_particles = n_grid ** 3  # 3D grid
+    residue_size = 3  # must be factor of n_particles
+    n_residues = n_particles // residue_size
+    atom_residues = np.array(range(0, n_particles)) // residue_size
+
+    grid = np.mgrid[0:n_grid, 0:n_grid, 0:n_grid]  # make the grid
+    frame = grid.reshape([3, n_particles]).T  # make it the right shape
+
+    traj = np.empty([n_frames, n_particles, 3])
+    for i in range(n_frames):
+        traj[i, :, :] = frame  # copy the coordinates to 10 frames
+    u2 = mda.Universe.empty(n_particles, n_residues=n_residues, atom_resindex=atom_residues)  # jam it into a universe
+    return u2
+
 
 def test_solvation_analysis_imported():
     """Sample test, will always pass so long as import statement worked"""
     assert "solvation_analysis" in sys.modules
+
+
+def test_solvation_analysis():
+    return 1
