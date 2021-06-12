@@ -1,2 +1,4 @@
 setuptools~=49.6.0
 numpy~=1.20.3
+mdanalysis~=2.0.0.dev0
+pytest~=6.2.4
