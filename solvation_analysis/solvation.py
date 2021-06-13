@@ -21,7 +21,7 @@ import nglview as nv
 
 def visualize(selection):
     mda_view = nv.show_mdanalysis(selection)
-    mda_view.add_representation('licorice', selection='Li', color='blue')
+    mda_view.add_representation("licorice", selection="Li", color="blue")
     return mda_view.display()
 
 
@@ -40,15 +40,19 @@ def get_atom_group(u, selection):
         AtomGroup
 
     """
-    assert isinstance(selection, (mda.core.groups.Residue,
-                                  mda.core.groups.ResidueGroup,
-                                  mda.core.groups.Atom,
-                                  mda.core.groups.AtomGroup)), \
-        "central_species must be one of the preceding types"
+    assert isinstance(
+        selection,
+        (
+            mda.core.groups.Residue,
+            mda.core.groups.ResidueGroup,
+            mda.core.groups.Atom,
+            mda.core.groups.AtomGroup,
+        ),
+    ), "central_species must be one of the preceding types"
     if isinstance(selection, (mda.core.groups.Residue, mda.core.groups.ResidueGroup)):
         selection = selection.atoms
     if isinstance(selection, mda.core.groups.Atom):
-        selection = u.select_atoms(f'index {selection.index}')
+        selection = u.select_atoms(f"index {selection.index}")
     return selection
 
 
@@ -78,10 +82,10 @@ def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
 
     """
     if n_shell > 3:
-        warnings.warn('get_n_shells scales factorially, very slow')
+        warnings.warn("get_n_shells scales factorially, very slow")
     central_species = get_atom_group(u, central_species)
     if not ignore_atoms:
-        ignore_atoms = u.select_atoms('')
+        ignore_atoms = u.select_atoms("")
 
 
 def get_closest_n_mol(u, central_species, n_mol=5, radius=3):
@@ -107,16 +111,20 @@ def get_closest_n_mol(u, central_species, n_mol=5, radius=3):
     central_species = get_atom_group(u, central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
-    partial_shell = u.select_atoms(f'point {str_coords} {radius}')
+    partial_shell = u.select_atoms(f"point {str_coords} {radius}")
     shell_resids = partial_shell.resids
     if len(np.unique(shell_resids)) < n_mol + 1:
         return get_closest_n_mol(u, central_species, n_mol, radius + 1)
-    radii = distances.distance_array(coords, partial_shell.positions, box=u.dimensions)[0]
+    radii = distances.distance_array(coords, partial_shell.positions, box=u.dimensions)[
+        0
+    ]
     ordering = np.argsort(radii)
     ordered_resids = shell_resids[ordering]
-    closest_n_resix = np.sort(np.unique(ordered_resids, return_index=True)[1])[0:n_mol + 1]
+    closest_n_resix = np.sort(np.unique(ordered_resids, return_index=True)[1])[
+        0 : n_mol + 1
+    ]
     str_resids = " ".join(str(resid) for resid in ordered_resids[closest_n_resix])
-    full_shell = u.select_atoms(f'resid {str_resids}')
+    full_shell = u.select_atoms(f"resid {str_resids}")
     return full_shell, ordered_resids[closest_n_resix], radii[ordering][closest_n_resix]
 
 
@@ -141,7 +149,6 @@ def get_radial_shell(u, central_species, radius):
     central_species = get_atom_group(u, central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
-    partial_shell = u.select_atoms(f'point {str_coords} {radius}')
+    partial_shell = u.select_atoms(f"point {str_coords} {radius}")
     full_shell = partial_shell.residues.atoms
     return full_shell
-
