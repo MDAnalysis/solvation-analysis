@@ -13,11 +13,6 @@ import numpy as np
 from solvation_analysis.tests.datafiles import bn_fec_data, bn_fec_dcd
 
 
-@pytest.fixture
-def u_real():
-    return mda.Universe(bn_fec_data, bn_fec_dcd)
-
-
 def make_grid_universe(n_grid, residue_size, n_frames=10):
     n_particles = n_grid ** 3
     assert (
@@ -46,6 +41,9 @@ def u_grid_3():
 def u_grid_1():
     return make_grid_universe(6, 1)
 
+@pytest.fixture
+def u_real():
+    return mda.Universe(bn_fec_data, bn_fec_dcd)
 
 def test_solvation_analysis_imported():
     """Sample test, will always pass so long as import statement worked"""
