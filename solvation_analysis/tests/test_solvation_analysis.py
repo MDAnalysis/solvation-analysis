@@ -2,15 +2,20 @@
 Unit and regression test for the solvation_analysis package.
 """
 
-# Import package, test suite, and other packages as needed
-import solvation_analysis
-import MDAnalysis as mda
-import pytest
 import sys
-import os
-import pathlib
+
+# Import package, test suite, and other packages as needed
+import MDAnalysis as mda
 import numpy as np
-from solvation_analysis.tests.datafiles import bn_fec_data, bn_fec_dcd
+import pytest
+
+from MDAnalysis.topology.tables import masses
+from solvation_analysis.tests.datafiles import (
+    bn_fec_data,
+    bn_fec_dcd_wrap,
+    bn_fec_dcd_unwrap,
+    bn_fec_atom_types,
+)
 
 
 def make_grid_universe(n_grid, residue_size, n_frames=10):
@@ -45,7 +50,31 @@ def u_grid_1():
 
 @pytest.fixture
 def u_real():
-    return mda.Universe(bn_fec_data, bn_fec_dcd)
+    return mda.Universe(bn_fec_data, bn_fec_dcd_wrap)
+
+
+@pytest.fixture
+def u_real_named(u_real):
+    def mass_to_element(atom_mw, tol=0.01):
+        mass_id_dict = {mw: element for element, mw in masses.items()}
+        for mw in mass_id_dict.keys():
+            if abs(mw - atom_mw) < tol:
+                return mass_id_dict[mw]
+
+    types = np.loadtxt(bn_fec_atom_types, dtype=str)
+    u_real.add_TopologyAttr("name", values=types)
+    resnames = ["BN"] * 363 + ["FEC"] * 237 + ["PF6"] * 49 + ["Li"] * 49
+    u_real.add_TopologyAttr("resnames", values=resnames)
+    return u_real
+
+
+@pytest.fixture
+def atom_groups(u_real):
+    li_atoms = u_real.atoms.select
+    pf6_atoms = u_real.atoms.select
+    bn_atoms = u_real.atoms.select
+    fec_atoms = u_real.atoms.select_atoms()
+    atom_groups = {"li": li_atoms, "pf6": pf6_atoms, "bn": bn_atoms, "fec": fec_atoms}
 
 
 def test_solvation_analysis_imported():
@@ -53,9 +82,8 @@ def test_solvation_analysis_imported():
     assert "solvation_analysis" in sys.modules
 
 
-def test_get_atom_groupÎ(u_real):
-    print(1)
-    print('hello')
+def test_get_atom_group(u_real_named):
+    return
 
 
 def test_get_closest_n_mol():
