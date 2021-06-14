@@ -55,12 +55,6 @@ def u_real():
 
 @pytest.fixture
 def u_real_named(u_real):
-    def mass_to_element(atom_mw, tol=0.01):
-        mass_id_dict = {mw: element for element, mw in masses.items()}
-        for mw in mass_id_dict.keys():
-            if abs(mw - atom_mw) < tol:
-                return mass_id_dict[mw]
-
     types = np.loadtxt(bn_fec_atom_types, dtype=str)
     u_real.add_TopologyAttr("name", values=types)
     resnames = ["BN"] * 363 + ["FEC"] * 237 + ["PF6"] * 49 + ["Li"] * 49
