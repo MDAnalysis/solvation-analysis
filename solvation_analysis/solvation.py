@@ -88,7 +88,9 @@ def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
         ignore_atoms = u.select_atoms("")
 
 
-def get_closest_n_mol(u, central_species, n_mol=5, radius=3):
+def get_closest_n_mol(
+    u, central_species, n_mol=5, radius=3, return_resids=False, return_radii=False
+):
     """
     Returns the closest n molecules to the central species, an array of their resids,
     and an array of the distance of the closest atom in each molecule.
@@ -114,7 +116,14 @@ def get_closest_n_mol(u, central_species, n_mol=5, radius=3):
     partial_shell = u.select_atoms(f"point {str_coords} {radius}")
     shell_resids = partial_shell.resids
     if len(np.unique(shell_resids)) < n_mol + 1:
-        return get_closest_n_mol(u, central_species, n_mol, radius + 1)
+        return get_closest_n_mol(
+            u,
+            central_species,
+            n_mol,
+            radius + 1,
+            return_resids=return_resids,
+            return_radii=return_radii,
+        )
     radii = distances.distance_array(coords, partial_shell.positions, box=u.dimensions)[
         0
     ]
@@ -125,7 +134,18 @@ def get_closest_n_mol(u, central_species, n_mol=5, radius=3):
     ]
     str_resids = " ".join(str(resid) for resid in ordered_resids[closest_n_resix])
     full_shell = u.select_atoms(f"resid {str_resids}")
-    return full_shell, ordered_resids[closest_n_resix], radii[ordering][closest_n_resix]
+    if return_resids and return_radii:
+        return (
+            full_shell,
+            ordered_resids[closest_n_resix],
+            radii[ordering][closest_n_resix],
+        )
+    elif return_resids:
+        return full_shell, ordered_resids[closest_n_resix]
+    elif return_radii:
+        return full_shell, radii[ordering][closest_n_resix]
+    else:
+        return full_shell
 
 
 def get_radial_shell(u, central_species, radius):
