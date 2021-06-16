@@ -1,13 +1,15 @@
 name: docs
 channels:
+  - conda-forge
+  - defaults
 dependencies:
     # Base depends
   - python
   - pip
   - numpy
   - pytest
-  - MDanalysis
-
+  - mdanalysis
+  - nglview
 
 
     # Pip-only installs
