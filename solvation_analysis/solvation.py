@@ -120,13 +120,10 @@ def get_closest_n_mol(
     partial_shell = u.atoms[pairs[:, 1]]
     shell_resids = partial_shell.resids
     if len(np.unique(shell_resids)) < n_mol + 1:
-        return get_closest_n_mol(
-            central_species,
-            n_mol,
-            radius + 2,
-            return_ordered_resids=return_ordered_resids,
-            return_radii=return_radii,
-        )
+        return get_closest_n_mol(u, central_species, n_mol, radius + 1)
+    radii = distances.distance_array(coords, partial_shell.positions, box=u.dimensions)[
+        0
+    ]
     ordering = np.argsort(radii)
     ordered_resids = shell_resids[ordering]
     closest_n_resix = np.sort(np.unique(ordered_resids, return_index=True)[1])[
