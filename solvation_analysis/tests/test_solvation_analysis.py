@@ -19,6 +19,19 @@ from solvation_analysis.tests.datafiles import (
 
 
 def make_grid_universe(n_grid, residue_size, n_frames=10):
+    """
+    Will make a universe of atoms with specified attributes.
+
+    Parameters
+    ----------
+    n_grid - dimension of grid sides
+    residue_size - size of mda residues
+    n_frames - number of frames
+
+    Returns
+    -------
+    A constructed MDanalysis.Universe
+    """
     n_particles = n_grid ** 3
     assert (
         n_particles % residue_size == 0
