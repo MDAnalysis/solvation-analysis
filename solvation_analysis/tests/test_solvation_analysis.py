@@ -17,6 +17,12 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_atom_types,
 )
 
+from solvation_analysis.solvation import (
+    get_atom_group,
+    get_closest_n_mol,
+    get_radial_shell,
+)
+
 
 def make_grid_universe(n_grid, residue_size, n_frames=10):
     """
@@ -46,8 +52,10 @@ def make_grid_universe(n_grid, residue_size, n_frames=10):
     for i in range(n_frames):
         traj[i, :, :] = frame  # copy the coordinates to 10 frames
     u = mda.Universe.empty(
-        n_particles, n_residues=n_residues, atom_resindex=atom_residues
+        n_particles, n_residues=n_residues, atom_resindex=atom_residues, trajectory=True
     )  # jam it into a universe
+    u.add_TopologyAttr("masses", np.ones(n_particles))
+    u.add_TopologyAttr("resid")
     return u
 
 
@@ -77,11 +85,12 @@ def u_real_named(u_real):
 
 @pytest.fixture
 def atom_groups(u_real):
-    li_atoms = u_real.atoms.select
-    pf6_atoms = u_real.atoms.select
-    bn_atoms = u_real.atoms.select
-    fec_atoms = u_real.atoms.select_atoms()
+    li_atoms = u_real.atoms.select_atoms("type 22")
+    pf6_atoms = u_real.atoms.select_atoms("type 20").residues.atoms
+    bn_atoms = u_real.atoms.select_atoms("type 5").residues.atoms
+    fec_atoms = u_real.atoms.select_atoms("type 21").residues.atoms
     atom_groups = {"li": li_atoms, "pf6": pf6_atoms, "bn": bn_atoms, "fec": fec_atoms}
+    return atom_groups
 
 
 def test_solvation_analysis_imported():
@@ -90,11 +99,40 @@ def test_solvation_analysis_imported():
 
 
 def test_get_atom_group(u_real_named):
-    return
+    u = u_real_named
+    res_group = u.residues[1:5]
+    atom_group = u.atoms[1:5]
+    res = u.residues[1]
+    atom = u.atoms[1]
+    groups = [res_group, atom_group, res, atom]
+    for group in groups:
+        assert isinstance(get_atom_group(u, group), mda.core.groups.AtomGroup)
 
 
-def test_get_closest_n_mol():
-    return
+def test_get_closest_n_mol(u_grid_1, u_real, atom_groups):
+    # TODO: fix grid trajectory
+    # TODO: use grid trajectory to test atom closeness / res picking
+    # u = u_grid_1
+    # test_atom = u.atoms[42]
+    # atoms = get_closest_n_mol(u, test_atom)
+    # assert len(atoms) == 5
+    li = atom_groups["li"][0]
+    shell_sizes = range(2, 8)
+    for size in shell_sizes:
+        shell = get_closest_n_mol(u_real, li, n_mol=size)
+        assert len(shell.residues) == size + 1
+
+    radii_range = range(0, 5)
+    default_shell, default_resids, default_radii = get_closest_n_mol(
+        u_real, li, return_resids=True, return_radii=True
+    )
+    for rad in radii_range:
+        shell, resids, radii = get_closest_n_mol(
+            u_real, li, radius=rad, return_resids=True, return_radii=True
+        )
+        assert shell == default_shell
+        np.testing.assert_equal(resids, default_resids)
+        np.testing.assert_equal(radii, default_radii)
 
 
 def test_get_radial_shell():
