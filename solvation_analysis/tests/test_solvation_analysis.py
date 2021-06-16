@@ -93,11 +93,6 @@ def atom_groups(u_real):
     return atom_groups
 
 
-def test_solvation_analysis_imported():
-    """Sample test, will always pass so long as import statement worked"""
-    assert "solvation_analysis" in sys.modules
-
-
 def test_get_atom_group(u_real_named):
     u = u_real_named
     res_group = u.residues[1:5]
@@ -116,27 +111,36 @@ def test_get_closest_n_mol(u_grid_1, u_real, atom_groups):
     # test_atom = u.atoms[42]
     # atoms = get_closest_n_mol(u, test_atom)
     # assert len(atoms) == 5
-    li = atom_groups["li"][0]
+    test_li = atom_groups["li"][0]
     shell_sizes = range(2, 8)
     for size in shell_sizes:
-        shell = get_closest_n_mol(u_real, li, n_mol=size)
+        shell = get_closest_n_mol(u_real, test_li, n_mol=size)
         assert len(shell.residues) == size + 1
 
     radii_range = range(0, 5)
     default_shell, default_resids, default_radii = get_closest_n_mol(
-        u_real, li, return_resids=True, return_radii=True
+        u_real, test_li, return_resids=True, return_radii=True
     )
     for rad in radii_range:
         shell, resids, radii = get_closest_n_mol(
-            u_real, li, radius=rad, return_resids=True, return_radii=True
+            u_real, test_li, radius=rad, return_resids=True, return_radii=True
         )
         assert shell == default_shell
         np.testing.assert_equal(resids, default_resids)
         np.testing.assert_equal(radii, default_radii)
 
 
-def test_get_radial_shell():
-    return
+def test_get_radial_shell(u_grid_1, u_real, atom_groups):
+    test_li = atom_groups["li"][0]
+    radii_range = range(2, 8)
+    shell_sizes = [1, 59, 81, 123, 142, 191]
+    for rad, size in zip(radii_range, shell_sizes):
+        assert size == len(get_radial_shell(u_real, test_li, radius=rad))
+
+    assert len(get_radial_shell(u_real, test_li, radius=100)) == len(u_real.atoms)
+
+
+
 
 
 def test_identify_rdf_minimum():
