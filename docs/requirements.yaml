@@ -4,6 +4,9 @@ dependencies:
     # Base depends
   - python
   - pip
+  - numpy
+  - nglview
+  - pytest
 
 
 
