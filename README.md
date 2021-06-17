@@ -23,12 +23,10 @@ electrolyte simulations. The core of the solvation module will be a set of
 functions for easily working with ionic solvation shells. Building from that core 
 functionality, the module will implement several analysis methods for analyzing 
 ion pairing, ion speciation, residence times, and shell association and dissociation.
+
+Main development by @orioncohen, with mentorship from @richardjgowers, @IAlibay, and 
+@hmacdope.
 ---
-### Copyright
-
-Copyright (c) 2021, Orion Cohen
-
-
 #### Acknowledgements
  
 Project based on the 
