@@ -113,20 +113,20 @@ def get_closest_n_mol(
     central_species = get_atom_group(u, central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
-    partial_shell = u.select_atoms(f"point {str_coords} {radius}")
+    pairs, radii = mda.lib.distances.capped_distance(
+        coords, u.atoms.positions, radius, return_distances=True, box=u.dimensions
+    )
+    partial_shell = u.atoms[pairs[:, 1]]
     shell_resids = partial_shell.resids
     if len(np.unique(shell_resids)) < n_mol + 1:
         return get_closest_n_mol(
             u,
             central_species,
             n_mol,
-            radius + 1,
+            radius + 2,
             return_resids=return_resids,
             return_radii=return_radii,
         )
-    radii = distances.distance_array(coords, partial_shell.positions, box=u.dimensions)[
-        0
-    ]
     ordering = np.argsort(radii)
     ordered_resids = shell_resids[ordering]
     closest_n_resix = np.sort(np.unique(ordered_resids, return_index=True)[1])[
