@@ -54,6 +54,7 @@ def make_grid_universe(n_grid, residue_size, n_frames=10):
     u = mda.Universe.empty(
         n_particles, n_residues=n_residues, atom_resindex=atom_residues, trajectory=True
     )  # jam it into a universe
+    u.load_new(traj)
     u.add_TopologyAttr("masses", np.ones(n_particles))
     u.add_TopologyAttr("resid")
     return u
@@ -104,13 +105,15 @@ def test_get_atom_group(u_real_named):
         assert isinstance(get_atom_group(u, group), mda.core.groups.AtomGroup)
 
 
-def test_get_closest_n_mol(u_grid_1, u_real, atom_groups):
-    # TODO: fix grid trajectory
-    # TODO: use grid trajectory to test atom closeness / res picking
-    # u = u_grid_1
-    # test_atom = u.atoms[42]
-    # atoms = get_closest_n_mol(u, test_atom)
-    # assert len(atoms) == 5
+def test_get_closest_n_mol_grid(u_grid_1):
+    u = u_grid_1
+    test_atoms = u.atoms[[0, 5, 10, 16, 42]]
+    for test_atom in test_atoms:
+        atoms = get_closest_n_mol(u, test_atom)
+        assert len(atoms) == 6
+
+
+def test_get_closest_n_mol_real(u_real, atom_groups):
     test_li = atom_groups["li"][0]
     shell_sizes = range(2, 8)
     for size in shell_sizes:
@@ -126,11 +129,24 @@ def test_get_closest_n_mol(u_grid_1, u_real, atom_groups):
             u_real, test_li, radius=rad, return_resids=True, return_radii=True
         )
         assert shell == default_shell
-        np.testing.assert_equal(resids, default_resids)
-        np.testing.assert_equal(radii, default_radii)
+        np.testing.assert_allclose(resids, default_resids)
+        np.testing.assert_allclose(radii, default_radii)
 
 
-def test_get_radial_shell(u_grid_1, u_real, atom_groups):
+def test_get_radial_shell_grid(u_grid_1):
+    u = u_grid_1
+    test_atoms = u.atoms[[0, 3, 10, 44]]  # corner, edge, side, center
+    distances = [0.95, 1.05, 1.45]
+    expected_shell_sizes = {0.95: [1, 1, 1, 1],
+                            1.05: [4, 5, 6, 7],
+                            1.45: [7, 10, 14, 19]}
+    for distance in distances:
+        expected_sizes = expected_shell_sizes[distance]
+        shell_sizes = [len(get_radial_shell(u, atom, distance)) for atom in test_atoms]
+        np.testing.assert_allclose(expected_sizes, shell_sizes)
+
+
+def test_get_radial_shell_real(u_real, atom_groups):
     test_li = atom_groups["li"][0]
     radii_range = range(2, 8)
     shell_sizes = [1, 59, 81, 123, 142, 191]
