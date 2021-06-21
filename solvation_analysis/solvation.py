@@ -56,7 +56,6 @@ def get_atom_group(u, selection):
     return selection
 
 
-# test this
 def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
     """
     A list containing the nth shell at the nth index. Note that the shells have 0 intersection.

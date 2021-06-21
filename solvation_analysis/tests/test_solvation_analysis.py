@@ -49,7 +49,7 @@ def make_grid_universe(n_grid, residue_size, n_frames=10):
 
     traj = np.empty([n_frames, n_particles, 3])
     for i in range(n_frames):
-        traj[i, :, :] = frame  # copy the coordinates to 10 frames
+        traj[i, :, :] = frame  # copy the coordinates to n frames
     u = mda.Universe.empty(
         n_particles, n_residues=n_residues, atom_resindex=atom_residues, trajectory=True
     )  # jam it into a universe
@@ -60,7 +60,7 @@ def make_grid_universe(n_grid, residue_size, n_frames=10):
 
 
 @pytest.fixture
-def u_grid_3(hi):
+def u_grid_3():
     return make_grid_universe(6, 3)
 
 
