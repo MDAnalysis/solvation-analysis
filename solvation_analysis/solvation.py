@@ -104,6 +104,10 @@ def get_closest_n_mol(
             The number of molecules to return
         radius : float or int
             an initial search radius to look for closest n mol
+        return_resids : if True, will return the resids of the closest n molecules,
+            ordered by radius
+        return_radii : if True, will return the distance of the closest atom of each
+            of the n molecules
 
     Returns
     -------
