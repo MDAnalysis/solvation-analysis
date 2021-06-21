@@ -136,9 +136,11 @@ def test_get_radial_shell_grid(u_grid_1):
     u = u_grid_1
     test_atoms = u.atoms[[0, 3, 10, 44]]  # corner, edge, side, center
     distances = [0.95, 1.05, 1.45]
-    expected_shell_sizes = {0.95: [1, 1, 1, 1],
-                            1.05: [4, 5, 6, 7],
-                            1.45: [7, 10, 14, 19]}
+    expected_shell_sizes = {
+        0.95: [1, 1, 1, 1],
+        1.05: [4, 5, 6, 7],
+        1.45: [7, 10, 14, 19],
+    }
     for distance in distances:
         expected_sizes = expected_shell_sizes[distance]
         shell_sizes = [len(get_radial_shell(u, atom, distance)) for atom in test_atoms]
@@ -153,9 +155,6 @@ def test_get_radial_shell_real(u_real, atom_groups):
         assert size == len(get_radial_shell(u_real, test_li, radius=rad))
 
     assert len(get_radial_shell(u_real, test_li, radius=100)) == len(u_real.atoms)
-
-
-
 
 
 def test_identify_rdf_minimum():
