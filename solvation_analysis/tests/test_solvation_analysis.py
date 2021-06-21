@@ -86,9 +86,9 @@ def u_real_named(u_real):
 @pytest.fixture
 def atom_groups(u_real):
     li_atoms = u_real.atoms.select_atoms("type 22")
-    pf6_atoms = u_real.atoms.select_atoms("type 20").residues.atoms
-    bn_atoms = u_real.atoms.select_atoms("type 5").residues.atoms
-    fec_atoms = u_real.atoms.select_atoms("type 21").residues.atoms
+    pf6_atoms = u_real.atoms.select_atoms("byres type 20")
+    bn_atoms = u_real.atoms.select_atoms("byres type 5")
+    fec_atoms = u_real.atoms.select_atoms("byres type 21")
     atom_groups = {"li": li_atoms, "pf6": pf6_atoms, "bn": bn_atoms, "fec": fec_atoms}
     return atom_groups
 
