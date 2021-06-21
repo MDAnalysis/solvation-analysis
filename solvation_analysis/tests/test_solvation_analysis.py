@@ -2,7 +2,6 @@
 Unit and regression test for the solvation_analysis package.
 """
 
-import sys
 
 # Import package, test suite, and other packages as needed
 import MDAnalysis as mda
