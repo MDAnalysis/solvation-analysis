@@ -113,15 +113,13 @@ def test_get_closest_n_mol_grid(u_grid_1):
         assert len(atoms) == 6
     # test that specific correct atoms are being returned
     expected_shell_ids = {10: [5, 10, 11, 12, 17, 47],
-                         16: [11, 16, 17, 18, 23, 53],
-                         42: [7, 37, 43, 44, 49, 79]}
+                          16: [11, 16, 17, 18, 23, 53],
+                          42: [7, 37, 43, 44, 49, 79]}
     test_atoms = u.atoms[[10, 16, 42]]  # only atoms on side of box
     for test_atom in test_atoms:
         expected_ids = expected_shell_ids[test_atom.ix]
         shell_ids = get_closest_n_mol(u_grid_1, test_atom, n_mol=5).resids
         np.testing.assert_array_equal(shell_ids, expected_ids)
-
-
 
 
 def test_get_closest_n_mol_real(u_real, atom_groups):
@@ -162,8 +160,8 @@ def test_get_radial_shell_grid(u_grid_1):
         np.testing.assert_allclose(expected_sizes, shell_sizes)
     # test that specific correct atoms are returned
     expected_shell_ids = {10: [5, 10, 11, 12, 17, 47],
-                         16: [11, 16, 17, 18, 23, 53],
-                         42: [7, 37, 43, 44, 49, 79]}
+                          16: [11, 16, 17, 18, 23, 53],
+                          42: [7, 37, 43, 44, 49, 79]}
     test_atoms = u.atoms[[10, 16, 42]]  # only atoms on side of box
     for test_atom in test_atoms:
         expected_ids = expected_shell_ids[test_atom.ix]

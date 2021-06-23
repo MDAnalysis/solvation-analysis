@@ -133,7 +133,7 @@ def get_closest_n_mol(
     ordering = np.argsort(radii)
     ordered_resids = shell_resids[ordering]
     closest_n_resix = np.sort(np.unique(ordered_resids,
-                                        return_index=True)[1])[0 : n_mol + 1]
+                                        return_index=True)[1])[0: n_mol + 1]
     str_resids = " ".join(str(resid) for resid in ordered_resids[closest_n_resix])
     full_shell = u.select_atoms(f"resid {str_resids}")
     if return_resids and return_radii:
