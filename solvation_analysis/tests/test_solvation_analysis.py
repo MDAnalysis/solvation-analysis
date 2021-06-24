@@ -120,6 +120,7 @@ def test_get_closest_n_mol_correct_number(u_grid_1, u_real, atom_groups):
         atoms = get_closest_n_mol(u_grid_1, test_atom, n_mol=5)
         assert len(atoms) == 6
 
+
 def test_get_closest_n_mol_correct_ids(u_grid_1, u_real):
     # test that the correct atoms are being returned
     # test on grid
@@ -131,6 +132,7 @@ def test_get_closest_n_mol_correct_ids(u_grid_1, u_real):
         expected_ids = expected_shell_ids[test_atom.ix]
         shell_ids = get_closest_n_mol(u_grid_1, test_atom, n_mol=5).resids
         np.testing.assert_array_equal(shell_ids, expected_ids)
+
 
 def test_get_closest_n_mol_radii_invariance(u_real, atom_groups):
     # test that the return_radii does not effect behavior
@@ -170,7 +172,6 @@ def test_get_radial_shell_correct_number(u_grid_1, u_real, atom_groups):
     for rad, size in zip(radii_range, shell_sizes):
         assert size == len(get_radial_shell(u_real, test_li, radius=rad))
     assert len(get_radial_shell(u_real, test_li, radius=100)) == len(u_real.atoms)
-
 
 
 def test_get_radial_shell_correct_ids(u_grid_1):
