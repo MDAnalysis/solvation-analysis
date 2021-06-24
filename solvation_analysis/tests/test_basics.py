@@ -11,10 +11,10 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_atom_types,
 )
 
+
 def test_solvation_analysis_imported():
     """Sample test, will always pass so long as import statement worked"""
     assert "solvation_analysis" in sys.modules
-
 
 
 def make_grid_universe(n_grid, residue_size, n_frames=10):
