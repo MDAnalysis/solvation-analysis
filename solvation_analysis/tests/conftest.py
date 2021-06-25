@@ -3,7 +3,6 @@ import MDAnalysis as mda
 import numpy as np
 import pytest
 
-from MDAnalysis.topology.tables import masses
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
@@ -55,21 +54,25 @@ def make_grid_universe(n_grid, residue_size, n_frames=10):
 
 @pytest.fixture
 def u_grid_3():
+    """Creates a 6x6x6 grid with residues containing 3 atoms"""
     return make_grid_universe(6, 3)
 
 
 @pytest.fixture
 def u_grid_1():
+    """Creates a 6x6x6 grid with residues containing 1 atom"""
     return make_grid_universe(6, 1)
 
 
 @pytest.fixture
 def u_real():
+    """Returns a universe of a BN FEC trajectory"""
     return mda.Universe(bn_fec_data, bn_fec_dcd_wrap)
 
 
 @pytest.fixture
 def u_real_named(u_real):
+    """Returns a universe of a BN FEC trajectory with residues and atoms named"""
     types = np.loadtxt(bn_fec_atom_types, dtype=str)
     u_real.add_TopologyAttr("name", values=types)
     resnames = ["BN"] * 363 + ["FEC"] * 237 + ["PF6"] * 49 + ["Li"] * 49
@@ -79,6 +82,7 @@ def u_real_named(u_real):
 
 @pytest.fixture
 def atom_groups(u_real):
+    """Returns pre-selected atom groups in the BN FEC universe"""
     li_atoms = u_real.atoms.select_atoms("type 22")
     pf6_atoms = u_real.atoms.select_atoms("byres type 20")
     bn_atoms = u_real.atoms.select_atoms("byres type 5")
