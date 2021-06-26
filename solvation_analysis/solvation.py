@@ -87,23 +87,19 @@ def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
         ignore_atoms = u.select_atoms("")
 
 
-def get_closest_n_mol(
-    u, central_species, n_mol=5, radius=3, return_resids=False, return_radii=False
-):
+def get_closest_n_mol(central_species, n_mol, radius=3, return_ordered_resids=False, return_radii=False):
     """
     Returns the closest n molecules to the central species, an array of their resids,
     and an array of the distance of the closest atom in each molecule.
 
     Parameters
     ----------
-        u : Universe
-            universe that contains central species
         central_species : Atom, AtomGroup, Residue, or ResidueGroup
         n_mol : int
             The number of molecules to return
         radius : float or int
             an initial search radius to look for closest n mol
-        return_resids : if True, will return the resids of the closest n molecules,
+        return_ordered_resids : if True, will return the resids of the closest n molecules,
             ordered by radius
         return_radii : if True, will return the distance of the closest atom of each
             of the n molecules
@@ -113,6 +109,7 @@ def get_closest_n_mol(
         AtomGroup (molecules), np.Array (resids), np.Array (distances)
 
     """
+    u = central_species.universe
     central_species = get_atom_group(u, central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
@@ -122,27 +119,21 @@ def get_closest_n_mol(
     partial_shell = u.atoms[pairs[:, 1]]
     shell_resids = partial_shell.resids
     if len(np.unique(shell_resids)) < n_mol + 1:
-        return get_closest_n_mol(
-            u,
-            central_species,
-            n_mol,
-            radius + 2,
-            return_resids=return_resids,
-            return_radii=return_radii,
-        )
+        return get_closest_n_mol(central_species, n_mol, radius + 2, return_ordered_resids=return_ordered_resids,
+                                 return_radii=return_radii)
     ordering = np.argsort(radii)
     ordered_resids = shell_resids[ordering]
     closest_n_resix = np.sort(np.unique(ordered_resids,
                                         return_index=True)[1])[0: n_mol + 1]
     str_resids = " ".join(str(resid) for resid in ordered_resids[closest_n_resix])
     full_shell = u.select_atoms(f"resid {str_resids}")
-    if return_resids and return_radii:
+    if return_ordered_resids and return_radii:
         return (
             full_shell,
             ordered_resids[closest_n_resix],
             radii[ordering][closest_n_resix],
         )
-    elif return_resids:
+    elif return_ordered_resids:
         return full_shell, ordered_resids[closest_n_resix]
     elif return_radii:
         return full_shell, radii[ordering][closest_n_resix]
@@ -150,15 +141,13 @@ def get_closest_n_mol(
         return full_shell
 
 
-def get_radial_shell(u, central_species, radius):
+def get_radial_shell(central_species, radius):
     """
     Returns all molecules with atoms within the radius of the central species. (specifically, within the radius
     of the COM of central species).
 
     Parameters
     ----------
-        u : Universe
-            universe that contains central species
         central_species : Atom, AtomGroup, Residue, or ResidueGroup
         radius : float or int
             radius used for atom selection
@@ -168,6 +157,7 @@ def get_radial_shell(u, central_species, radius):
         full_shell : AtomGroup
 
     """
+    u = central_species.universe
     central_species = get_atom_group(u, central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)

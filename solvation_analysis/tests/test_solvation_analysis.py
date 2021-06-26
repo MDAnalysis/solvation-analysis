@@ -31,7 +31,7 @@ def test_get_atom_group(u_real_named):
 def test_get_closest_n_mol_correct_number_real(shell_size, u_real, atom_groups):
     # test that the correct number of residues are being returned, on real system
     test_li = atom_groups["li"][0]
-    shell = get_closest_n_mol(u_real, test_li, n_mol=shell_size)
+    shell = get_closest_n_mol(test_li, n_mol=shell_size)
     assert len(shell.residues) == shell_size + 1
 
 
@@ -39,7 +39,7 @@ def test_get_closest_n_mol_correct_number_real(shell_size, u_real, atom_groups):
 def test_get_closest_n_mol_correct_number_grid(test_id, u_grid_1):
     # test that the correct number of residues are being returned, on grid system
     test_atom = u_grid_1.atoms[test_id]
-    atoms = get_closest_n_mol(u_grid_1, test_atom, n_mol=5)
+    atoms = get_closest_n_mol(test_atom, n_mol=5)
     assert len(atoms) == 6
 
 
@@ -50,7 +50,7 @@ def test_get_closest_n_mol_correct_number_grid(test_id, u_grid_1):
 def test_get_closest_n_mol_correct_ids(center_id, expected_ids, u_grid_1):
     # test that the correct atoms are being returned, on grid system
     test_atom = u_grid_1.atoms[center_id]  # only atoms on side of box
-    shell_ids = get_closest_n_mol(u_grid_1, test_atom, n_mol=5).resids
+    shell_ids = get_closest_n_mol(test_atom, n_mol=5).resids
     np.testing.assert_array_equal(shell_ids, expected_ids)
 
 
@@ -58,12 +58,9 @@ def test_get_closest_n_mol_correct_ids(center_id, expected_ids, u_grid_1):
 def test_get_closest_n_mol_radii_invariance(radius, u_real, atom_groups):
     # test that the return_radii does not effect behavior, on real system
     test_li = atom_groups["li"][0]
-    default_shell, default_resids, default_radii = get_closest_n_mol(
-        u_real, test_li, return_resids=True, return_radii=True
-    )
-    shell, resids, radii = get_closest_n_mol(
-        u_real, test_li, radius=radius, return_resids=True, return_radii=True
-    )
+    default_shell, default_resids, default_radii = get_closest_n_mol(test_li, 5, return_ordered_resids=True,
+                                                                     return_radii=True)
+    shell, resids, radii = get_closest_n_mol(test_li, 5, radius=radius, return_ordered_resids=True, return_radii=True)
     assert shell == default_shell
     np.testing.assert_allclose(resids, default_resids)
     np.testing.assert_allclose(radii, default_radii)
@@ -76,7 +73,7 @@ def test_get_closest_n_mol_radii_invariance(radius, u_real, atom_groups):
 def test_get_radial_shell_correct_number_grid(distance, expected_sizes, u_grid_1):
     # test that the correct ids are being returned, on grid system
     test_atoms = u_grid_1.atoms[[0, 3, 10, 44]]  # corner, edge, side, center
-    shell_sizes = [len(get_radial_shell(u_grid_1, atom, distance)) for atom in test_atoms]
+    shell_sizes = [len(get_radial_shell(atom, distance)) for atom in test_atoms]
     np.testing.assert_allclose(expected_sizes, shell_sizes)
 
 
@@ -85,8 +82,8 @@ def test_get_radial_shell_correct_number_grid(distance, expected_sizes, u_grid_1
 def test_get_radial_shell_correct_number_real(radius, shell_size, u_real, atom_groups):
     # test that the correct ids are being returned, on real system
     test_li = atom_groups["li"][0]
-    assert shell_size == len(get_radial_shell(u_real, test_li, radius=radius))
-    assert len(get_radial_shell(u_real, test_li, radius=100)) == len(u_real.atoms)
+    assert shell_size == len(get_radial_shell(test_li, radius=radius))
+    assert len(get_radial_shell(test_li, radius=100)) == len(u_real.atoms)
 
 
 @pytest.mark.parametrize("center_id, expected_ids",
@@ -96,5 +93,5 @@ def test_get_radial_shell_correct_number_real(radius, shell_size, u_real, atom_g
 def test_get_radial_shell_correct_ids_grid(center_id, expected_ids, u_grid_1):
     # test that the correct ids are being returned, on grid system
     test_atom = u_grid_1.atoms[center_id]
-    shell_ids = get_radial_shell(u_grid_1, test_atom, 1.05).resids
+    shell_ids = get_radial_shell(test_atom, 1.05).resids
     np.testing.assert_array_equal(shell_ids, expected_ids)
