@@ -25,14 +25,12 @@ def visualize(selection):
     return mda_view.display()
 
 
-def get_atom_group(u, selection):
+def get_atom_group(selection):
     """
     Casts an Atom, AtomGroup, Residue, or ResidueGroup to AtomGroup.
 
     Parameters
     ----------
-        u : Universe
-            universe that contains central species
         selection: Atom, AtomGroup, Residue, or ResidueGroup
 
     Returns
@@ -49,6 +47,7 @@ def get_atom_group(u, selection):
             mda.core.groups.AtomGroup,
         ),
     ), "central_species must be one of the preceding types"
+    u = selection.universe
     if isinstance(selection, (mda.core.groups.Residue, mda.core.groups.ResidueGroup)):
         selection = selection.atoms
     if isinstance(selection, mda.core.groups.Atom):
@@ -56,7 +55,7 @@ def get_atom_group(u, selection):
     return selection
 
 
-def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
+def get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
     """
     A list containing the nth shell at the nth index. Note that the shells
     have 0 intersection. For example, calling get_n_shells with n_shell = 2
@@ -65,8 +64,6 @@ def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
 
     Parameters
     ----------
-        u : Universe
-            universe that contains central species
         central_species : Atom, AtomGroup, Residue, or ResidueGroup
         n_shell : int
             number of shells to return
@@ -81,9 +78,10 @@ def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
             List of n shells
 
     """
+    u = central_species.universe
     if n_shell > 3:
         warnings.warn("get_n_shells scales factorially, very slow")
-    central_species = get_atom_group(u, central_species)
+    central_species = get_atom_group(central_species)
     if not ignore_atoms:
         ignore_atoms = u.select_atoms("")
 
@@ -113,7 +111,7 @@ def get_closest_n_mol(
 
     """
     u = central_species.universe
-    central_species = get_atom_group(u, central_species)
+    central_species = get_atom_group(central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
     pairs, radii = mda.lib.distances.capped_distance(
@@ -167,7 +165,7 @@ def get_radial_shell(central_species, radius):
 
     """
     u = central_species.universe
-    central_species = get_atom_group(u, central_species)
+    central_species = get_atom_group(central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
     partial_shell = u.select_atoms(f"point {str_coords} {radius}")

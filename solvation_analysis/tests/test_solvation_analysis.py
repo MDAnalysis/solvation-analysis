@@ -24,7 +24,7 @@ def test_get_atom_group(u_real_named):
     atom = u.atoms[1]
     groups = [res_group, atom_group, res, atom]
     for group in groups:
-        assert isinstance(get_atom_group(u, group), mda.core.groups.AtomGroup)
+        assert isinstance(get_atom_group(group), mda.core.groups.AtomGroup)
 
 
 @pytest.mark.parametrize("shell_size", [2, 3, 4, 5, 6, 7])
