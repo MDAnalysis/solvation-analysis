@@ -58,9 +58,10 @@ def get_atom_group(u, selection):
 
 def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
     """
-    A list containing the nth shell at the nth index. Note that the shells have 0 intersection.
-    For example, calling get_n_shells with n_shell = 2 would return: [central_species, first_shell, second_shell].
-    This scales factorially so probably don't go over n_shell = 3
+    A list containing the nth shell at the nth index. Note that the shells
+    have 0 intersection. For example, calling get_n_shells with n_shell = 2
+    would return: [central_species, first_shell, second_shell]. This scales
+    factorially so probably don't go over n_shell = 3
 
     Parameters
     ----------
@@ -101,8 +102,8 @@ def get_closest_n_mol(
             The number of molecules to return
         radius : float or int
             an initial search radius to look for closest n mol
-        return_ordered_resids : if True, will return the resids of the closest n molecules,
-            ordered by radius
+        return_ordered_resids : if True, will return the resids of the closest n
+            molecules, ordered by radius
         return_radii : if True, will return the distance of the closest atom of each
             of the n molecules
 
@@ -151,8 +152,8 @@ def get_closest_n_mol(
 
 def get_radial_shell(central_species, radius):
     """
-    Returns all molecules with atoms within the radius of the central species. (specifically, within the radius
-    of the COM of central species).
+    Returns all molecules with atoms within the radius of the central species.
+    (specifically, within the radius of the COM of central species).
 
     Parameters
     ----------
