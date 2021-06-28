@@ -25,14 +25,12 @@ def visualize(selection):
     return mda_view.display()
 
 
-def get_atom_group(u, selection):
+def get_atom_group(selection):
     """
     Casts an Atom, AtomGroup, Residue, or ResidueGroup to AtomGroup.
 
     Parameters
     ----------
-        u : Universe
-            universe that contains central species
         selection: Atom, AtomGroup, Residue, or ResidueGroup
 
     Returns
@@ -49,6 +47,7 @@ def get_atom_group(u, selection):
             mda.core.groups.AtomGroup,
         ),
     ), "central_species must be one of the preceding types"
+    u = selection.universe
     if isinstance(selection, (mda.core.groups.Residue, mda.core.groups.ResidueGroup)):
         selection = selection.atoms
     if isinstance(selection, mda.core.groups.Atom):
@@ -56,17 +55,15 @@ def get_atom_group(u, selection):
     return selection
 
 
-# test this
-def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
+def get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
     """
-    A list containing the nth shell at the nth index. Note that the shells have 0 intersection.
-    For example, calling get_n_shells with n_shell = 2 would return: [central_species, first_shell, second_shell].
-    This scales factorially so probably don't go over n_shell = 3
+    A list containing the nth shell at the nth index. Note that the shells
+    have 0 intersection. For example, calling get_n_shells with n_shell = 2
+    would return: [central_species, first_shell, second_shell]. This scales
+    factorially so probably don't go over n_shell = 3
 
     Parameters
     ----------
-        u : Universe
-            universe that contains central species
         central_species : Atom, AtomGroup, Residue, or ResidueGroup
         n_shell : int
             number of shells to return
@@ -81,62 +78,83 @@ def get_n_shells(u, central_species, n_shell=2, radius=3, ignore_atoms=None):
             List of n shells
 
     """
+    u = central_species.universe
     if n_shell > 3:
         warnings.warn("get_n_shells scales factorially, very slow")
-    central_species = get_atom_group(u, central_species)
+    central_species = get_atom_group(central_species)
     if not ignore_atoms:
         ignore_atoms = u.select_atoms("")
 
 
-def get_closest_n_mol(u, central_species, n_mol=5, radius=3):
+def get_closest_n_mol(
+    central_species, n_mol, radius=3, return_ordered_resids=False, return_radii=False
+):
     """
     Returns the closest n molecules to the central species, an array of their resids,
     and an array of the distance of the closest atom in each molecule.
 
     Parameters
     ----------
-        u : Universe
-            universe that contains central species
         central_species : Atom, AtomGroup, Residue, or ResidueGroup
         n_mol : int
             The number of molecules to return
         radius : float or int
             an initial search radius to look for closest n mol
+        return_ordered_resids : if True, will return the resids of the closest n
+            molecules, ordered by radius
+        return_radii : if True, will return the distance of the closest atom of each
+            of the n molecules
 
     Returns
     -------
         AtomGroup (molecules), np.Array (resids), np.Array (distances)
 
     """
-    central_species = get_atom_group(u, central_species)
+    u = central_species.universe
+    central_species = get_atom_group(central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
-    partial_shell = u.select_atoms(f"point {str_coords} {radius}")
+    pairs, radii = mda.lib.distances.capped_distance(
+        coords, u.atoms.positions, radius, return_distances=True, box=u.dimensions
+    )
+    partial_shell = u.atoms[pairs[:, 1]]
     shell_resids = partial_shell.resids
     if len(np.unique(shell_resids)) < n_mol + 1:
-        return get_closest_n_mol(u, central_species, n_mol, radius + 1)
-    radii = distances.distance_array(coords, partial_shell.positions, box=u.dimensions)[
-        0
-    ]
+        return get_closest_n_mol(
+            central_species,
+            n_mol,
+            radius + 2,
+            return_ordered_resids=return_ordered_resids,
+            return_radii=return_radii,
+        )
     ordering = np.argsort(radii)
     ordered_resids = shell_resids[ordering]
     closest_n_resix = np.sort(np.unique(ordered_resids, return_index=True)[1])[
-        0 : n_mol + 1
+        0: n_mol + 1
     ]
     str_resids = " ".join(str(resid) for resid in ordered_resids[closest_n_resix])
     full_shell = u.select_atoms(f"resid {str_resids}")
-    return full_shell, ordered_resids[closest_n_resix], radii[ordering][closest_n_resix]
+    if return_ordered_resids and return_radii:
+        return (
+            full_shell,
+            ordered_resids[closest_n_resix],
+            radii[ordering][closest_n_resix],
+        )
+    elif return_ordered_resids:
+        return full_shell, ordered_resids[closest_n_resix]
+    elif return_radii:
+        return full_shell, radii[ordering][closest_n_resix]
+    else:
+        return full_shell
 
 
-def get_radial_shell(u, central_species, radius):
+def get_radial_shell(central_species, radius):
     """
-    Returns all molecules with atoms within the radius of the central species. (specifically, within the radius
-    of the COM of central species).
+    Returns all molecules with atoms within the radius of the central species.
+    (specifically, within the radius of the COM of central species).
 
     Parameters
     ----------
-        u : Universe
-            universe that contains central species
         central_species : Atom, AtomGroup, Residue, or ResidueGroup
         radius : float or int
             radius used for atom selection
@@ -146,7 +164,8 @@ def get_radial_shell(u, central_species, radius):
         full_shell : AtomGroup
 
     """
-    central_species = get_atom_group(u, central_species)
+    u = central_species.universe
+    central_species = get_atom_group(central_species)
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
     partial_shell = u.select_atoms(f"point {str_coords} {radius}")
