@@ -10,6 +10,25 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_atom_types,
 )
 
+from solvation_analysis.tests.datafiles import (
+    rdf_bn_all_atoms_bins,
+    rdf_bn_all_atoms_data,
+    rdf_bn_N_bins,
+    rdf_bn_N_data,
+    rdf_fec_all_atoms_bins,
+    rdf_fec_all_atoms_data,
+    rdf_fec_F_bins,
+    rdf_fec_F_data,
+    rdf_fec_O_bins,
+    rdf_fec_O_data,
+    rdf_pf6_all_atoms_bins,
+    rdf_pf6_all_atoms_data,
+    rdf_pf6_F_bins,
+    rdf_pf6_F_data,
+    rdf_universe_all_atoms_bins,
+    rdf_universe_all_atoms_data,
+)
+
 
 def test_solvation_analysis_imported():
     """Sample test, will always pass so long as import statement worked"""
@@ -89,3 +108,29 @@ def atom_groups(u_real):
     fec_atoms = u_real.atoms.select_atoms("byres type 21")
     atom_groups = {"li": li_atoms, "pf6": pf6_atoms, "bn": bn_atoms, "fec": fec_atoms}
     return atom_groups
+
+
+@pytest.fixture
+def rdf_bins():
+    rdf_bins = {'bn_all': rdf_bn_all_atoms_bins,
+                'bn_N': rdf_bn_N_bins,
+                'fec_all': rdf_fec_all_atoms_bins,
+                'fec_F': rdf_fec_F_bins,
+                'fec_O': rdf_fec_O_bins,
+                'pf6_all': rdf_pf6_all_atoms_bins,
+                'pf6_F': rdf_pf6_F_bins,
+                'universe_all': rdf_universe_all_atoms_bins}
+    return rdf_bins
+
+
+@pytest.fixture
+def rdf_data():
+    rdf_data = {'bn_all': rdf_bn_all_atoms_data,
+                'bn_N': rdf_bn_N_data,
+                'fec_all': rdf_fec_all_atoms_data,
+                'fec_F': rdf_fec_F_data,
+                'fec_O': rdf_fec_O_data,
+                'pf6_all': rdf_pf6_all_atoms_data,
+                'pf6_F': rdf_pf6_F_data,
+                'universe_all': rdf_universe_all_atoms_data}
+    return rdf_data
