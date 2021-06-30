@@ -1,8 +1,10 @@
 import numpy as np
 from scipy.interpolate import interp1d, UnivariateSpline
+import scipy
+import matplotlib.pyplot as plt
 
 
-def fit_data(bins, rdf, floor=0.05, cutoff=5):
+def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
     start = np.argmax(rdf > floor)  # will return first index > rdf
     end = np.argmax(bins > cutoff)  # will return first index > cutoff
     bounds = (bins[start], bins[end - 1])
@@ -10,15 +12,19 @@ def fit_data(bins, rdf, floor=0.05, cutoff=5):
     return f, bounds
 
 
-def array_of_fit(bins, rdf):
-    f, bounds = fit_data(bins, rdf)
-    x = np.linspace(bounds[0], bounds[1], num=100)
-    y = f(x)
-    return x, y
-
-
-def identify_minima(bins, rdf):
-    f, bounds= fit_data(bins, rdf)
+def identify_minima(f):
+    assert isinstance(f, scipy.interpolate.fitpack2.InterpolatedUnivariateSpline)
     cr_pts = f.derivative().roots()
     cr_vals = f(cr_pts)
     return cr_pts, cr_vals
+
+
+def plot_interpolation_fit(bins, rdf, floor=0.05, cutoff=5):
+    f, bounds = interpolate_rdf(bins, rdf)
+    x = np.linspace(bounds[0], bounds[1], num=100)
+    y = f(x)
+    pts, vals = identify_minima(f)
+    plt.plot(bins, rdf, "b-")
+    plt.plot(x, y, "r-")
+    plt.plot(pts, vals, "go")
+    plt.show()
