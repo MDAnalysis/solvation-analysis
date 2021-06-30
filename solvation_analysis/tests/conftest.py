@@ -144,3 +144,10 @@ def rdf_data():
         key: np.genfromtxt(csv, delimiter=", ") for key, csv in rdf_data_files.items()
     }
     return rdf_data
+
+
+@pytest.fixture
+def rdf_bins_and_data(rdf_data, rdf_bins):
+    shared_keys = set(rdf_data.keys()) & set(rdf_bins.keys())
+    rdf_bins_and_data = {key: (rdf_bins[key], rdf_data[key]) for key in shared_keys}
+    return rdf_bins_and_data
