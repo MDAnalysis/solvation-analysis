@@ -2,6 +2,7 @@ import numpy as np
 from scipy.interpolate import interp1d, UnivariateSpline
 import scipy
 import matplotlib.pyplot as plt
+import warnings
 
 
 def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
@@ -21,16 +22,36 @@ def identify_minima(f):
     return cr_pts, cr_vals
 
 
-def plot_interpolation_fit(bins, rdf, floor=0.05, cutoff=5):
-    f, bounds = interpolate_rdf(bins, rdf)
+def plot_interpolation_fit(bins, rdf, **kwargs):
+    f, bounds = interpolate_rdf(bins, rdf, **kwargs)
     x = np.linspace(bounds[0], bounds[1], num=100)
     y = f(x)
     pts, vals = identify_minima(f)
-    plt.plot(bins, rdf, "b-")
-    plt.plot(x, y, "r-")
-    plt.plot(pts, vals, "go")
+    plt.plot(bins, rdf, "b--", label="rdf")
+    plt.plot(x, y, "r-", label="interpolation")
+    plt.plot(pts, vals, "go", label="critical points")
+    plt.xlabel("Radial Distance (A)")
+    plt.ylabel("Probability Density")
+    plt.title("Interpolation of RDF with quartic spline")
+    plt.legend()
     plt.show()
 
 
-def identify_solvation_cutoff(bins, rdf):
-    return
+def identify_solvation_cutoff(
+    bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), **kwargs
+):
+    f, bounds = interpolate_rdf(bins, rdf, **kwargs)
+    cr_pts, cr_vals = identify_minima(f)
+    if (
+        len(cr_pts) < 2  # insufficient critical points
+        or cr_vals[0] < cr_vals[1]  # not a max and min
+        or not (cutoff_region[1] < cr_pts[1] < cutoff_region[4])  # min not in cutoff
+    ):
+        if failure_behavior == "silent":
+            return None
+        if failure_behavior == "warn":
+            warnings.warn("No solvation region detected.")
+            return None
+        if failure_behavior == "exception":
+            raise RuntimeError("No solvation region detected.")
+    return cr_pts[1]
