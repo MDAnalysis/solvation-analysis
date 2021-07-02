@@ -15,6 +15,8 @@ from solvation_analysis.tests.datafiles import (
     easy_rdf_data,
     hard_rdf_bins,
     hard_rdf_data,
+    non_solv_rdf_bins,
+    non_solv_rdf_data,
 )
 
 
@@ -99,23 +101,38 @@ def atom_groups(u_real):
 
 
 @pytest.fixture
-def rdf_bins():
+def rdf_bins_and_data_easy():
     rdf_bins = {
         key: np.genfromtxt(csv, delimiter=", ") for key, csv in easy_rdf_bins.items()
     }
-    return rdf_bins
-
-
-@pytest.fixture
-def rdf_data():
     rdf_data = {
         key: np.genfromtxt(csv, delimiter=", ") for key, csv in easy_rdf_data.items()
     }
-    return rdf_data
-
-
-@pytest.fixture
-def rdf_bins_and_data(rdf_data, rdf_bins):
     shared_keys = set(rdf_data.keys()) & set(rdf_bins.keys())
     rdf_bins_and_data = {key: (rdf_bins[key], rdf_data[key]) for key in shared_keys}
     return rdf_bins_and_data
+
+@pytest.fixture
+def rdf_bins_and_data_hard():
+    rdf_bins = {
+        key: np.genfromtxt(csv, delimiter=", ") for key, csv in hard_rdf_bins.items()
+    }
+    rdf_data = {
+        key: np.genfromtxt(csv, delimiter=", ") for key, csv in hard_rdf_data.items()
+    }
+    shared_keys = set(rdf_data.keys()) & set(rdf_bins.keys())
+    rdf_bins_and_data = {key: (rdf_bins[key], rdf_data[key]) for key in shared_keys}
+    return rdf_bins_and_data
+
+@pytest.fixture
+def rdf_bins_and_data_non_solv():
+    rdf_bins = {
+        key: np.genfromtxt(csv, delimiter=", ") for key, csv in non_solv_rdf_bins.items()
+    }
+    rdf_data = {
+        key: np.genfromtxt(csv, delimiter=", ") for key, csv in non_solv_rdf_data.items()
+    }
+    shared_keys = set(rdf_data.keys()) & set(rdf_bins.keys())
+    rdf_bins_and_data = {key: (rdf_bins[key], rdf_data[key]) for key in shared_keys}
+    return rdf_bins_and_data
+

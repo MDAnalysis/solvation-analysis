@@ -25,15 +25,27 @@ for rdf_path in easy_rdf_dir.glob('*data.csv'):
     easy_rdf_data[rdf_tag] = resource_filename(__name__, str(rdf_path))
 
 hard_rdf_bins = {}
-for rdf_path in easy_rdf_dir.glob('*bins.csv'):
+for rdf_path in hard_rdf_dir.glob('*bins.csv'):
     tag_list = rdf_path.stem.split('_')
     rdf_tag = f"{tag_list[1]}_{tag_list[2]}"
     hard_rdf_bins[rdf_tag] = resource_filename(__name__, str(rdf_path))
 
 hard_rdf_data = {}
-for rdf_path in easy_rdf_dir.glob('*data.csv'):
+for rdf_path in hard_rdf_dir.glob('*data.csv'):
     tag_list = rdf_path.stem.split('_')
     rdf_tag = f"{tag_list[1]}_{tag_list[2]}"
     hard_rdf_data[rdf_tag] = resource_filename(__name__, str(rdf_path))
+
+non_solv_rdf_bins = {}
+for rdf_path in fail_rdf_dir.glob('*data.csv'):
+    tag_list = rdf_path.stem.split('_')
+    rdf_tag = f"{tag_list[1]}_{tag_list[2]}"
+    non_solv_rdf_bins[rdf_tag] = resource_filename(__name__, str(rdf_path))
+
+non_solv_rdf_data = {}
+for rdf_path in fail_rdf_dir.glob('*data.csv'):
+    tag_list = rdf_path.stem.split('_')
+    rdf_tag = f"{tag_list[1]}_{tag_list[2]}"
+    non_solv_rdf_data[rdf_tag] = resource_filename(__name__, str(rdf_path))
 
 del resource_filename

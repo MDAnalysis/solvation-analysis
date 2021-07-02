@@ -7,6 +7,7 @@ from solvation_analysis.rdf_parser import (
     identify_minima,
     interpolate_rdf,
     plot_interpolation_fit,
+    identify_solvation_cutoff,
 )
 
 
@@ -25,10 +26,10 @@ rdf_minima = [
     "rdf_tag",
     ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"],
 )
-def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data):
+def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data_easy):
     """This is essentially a visually confirmed regression test to ensure
     behavior is approximately correct."""
-    bins, rdf = rdf_bins_and_data[rdf_tag]
+    bins, rdf = rdf_bins_and_data_easy[rdf_tag]
     plot_interpolation_fit(bins, rdf)
     # add code to save teh plot so that it can be easily viewed later
 
@@ -45,8 +46,8 @@ def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data):
         ("pf6_F", (0, 3)),
     ],  # the above values are not real
 )
-def test_interpolate_rdf(rdf_tag, bounds, rdf_bins_and_data):
-    bins, rdf = rdf_bins_and_data[rdf_tag]
+def test_interpolate_rdf(rdf_tag, bounds, rdf_bins_and_data_easy):
+    bins, rdf = rdf_bins_and_data_easy[rdf_tag]
     return
 
 
@@ -62,8 +63,8 @@ def test_interpolate_rdf(rdf_tag, bounds, rdf_bins_and_data):
         ("pf6_F", [1, 2, 3]),
     ],  # the above values are not real
 )
-def test_identify_minima(rdf_tag, minima, rdf_bins_and_data):
-    bins, rdf = rdf_bins_and_data[rdf_tag]
+def test_identify_minima(rdf_tag, minima, rdf_bins_and_data_easy):
+    bins, rdf = rdf_bins_and_data_easy[rdf_tag]
     return
 
 
@@ -79,6 +80,7 @@ def test_identify_minima(rdf_tag, minima, rdf_bins_and_data):
         ("pf6_F", 3),
     ],  # the above values are not real
 )
-def test_identify_solvation_cutoff(rdf_tag, cutoff, rdf_bins_and_data):
-    bins, rdf = rdf_bins_and_data[rdf_tag]
+def test_identify_solvation_cutoff(rdf_tag, cutoff, rdf_bins_and_data_easy):
+    bins, rdf = rdf_bins_and_data_easy[rdf_tag]
+    print(identify_solvation_cutoff(bins, rdf))
     return
