@@ -1,21 +1,30 @@
-# Sample Package Data
+# Data Generation Process
 
-This directory contains sample additional data you may want to include with your package.
-This is a place where non-code related additional information (such as data files, molecular structures,  etc.) can 
-go that you want to ship alongside your code.
+This README describes the data-generating process for the test data used in this package.
 
-Please note that it is not recommended to place large files in your git directory. If your project requires files larger
-than a few megabytes in size it is recommended to host these files elsewhere. This is especially true for binary files
-as the `git` structure is unable to correctly take updates to these files and will store a complete copy of every version
-in your `git` history which can quickly add up. As a note most `git` hosting services like GitHub have a 1 GB per repository
-cap.
+Molecular dynamics runs were performed on a simulated Li-ion battery electrolyte composed 
+of 363 Butryro-Nitride (BN), 49 Ethylene Carbonate (EC), and 49 Lithium Hexafluorophosphate (LiPF6<sub>6</sub>).
+The energy was minimized in PACKMOL and the trajectory was generated with LAMMPS. There is a 5 ns equilibration
+period followed by a 5 ns production run.
 
-## Including package data
+## Trajectory Files
 
-Modify your package's `setup.py` file and the `setup()` command. Include the 
-[`package_data`](http://setuptools.readthedocs.io/en/latest/setuptools.html#basic-use) keyword and point it at the 
-correct files.
+`bn_fec.data` was generated with the Pymatgen Python package using OPLS parameters downloaded
+from LigParGen.
+`bn_fec_short_wrap.dcd` is the wrapped trajectory file from LAMMPS
+`bn_fec_short_unwrap.dcd` is the unwrapped trajectory file from LAMMPS
+`bn_fec_elements.csv` is a csv file with the element name of every atom name in the 
+trajectory file. It is used to add names to the Universe.
 
-## Manifest
+## Radial Distribution Functions
 
-* `look_and_say.dat`: first entries of the "Look and Say" integer series, sequence [A005150](https://oeis.org/A005150)
+The radial distribution functions were generated with MDAnalysis.rdf.interRDF(). 
+
+The `rdf_vs_li_easy` and `rdf_vs_li_hard` directories contain RDFs of various molecular
+species against the Li ions, most of these are fairly well-defined RDFs. The `easy` RDFs are
+generated from 500 frames of the trajectory while the `hard` RDFs are generated from
+only 50 frames, so they are noisier.
+
+The `rdf_non_solvated` directory contains RDFs of non-Li molecular species against eachother.
+These RDFs have no clear structure and should not register a solvation shell. These are added
+to provide a negative test of the solvation shell identification kernel.
