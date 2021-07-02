@@ -11,22 +11,10 @@ from solvation_analysis.tests.datafiles import (
 )
 
 from solvation_analysis.tests.datafiles import (
-    rdf_bn_all_bins,
-    rdf_bn_all_data,
-    rdf_bn_N_bins,
-    rdf_bn_N_data,
-    rdf_fec_all_bins,
-    rdf_fec_all_data,
-    rdf_fec_F_bins,
-    rdf_fec_F_data,
-    rdf_fec_O_bins,
-    rdf_fec_O_data,
-    rdf_pf6_all_bins,
-    rdf_pf6_all_data,
-    rdf_pf6_F_bins,
-    rdf_pf6_F_data,
-    rdf_universe_all_bins,
-    rdf_universe_all_data,
+    easy_rdf_bins,
+    easy_rdf_data,
+    hard_rdf_bins,
+    hard_rdf_data,
 )
 
 
@@ -112,36 +100,16 @@ def atom_groups(u_real):
 
 @pytest.fixture
 def rdf_bins():
-    rdf_bin_files = {
-        "bn_all": rdf_bn_all_bins,
-        "bn_N": rdf_bn_N_bins,
-        "fec_all": rdf_fec_all_bins,
-        "fec_F": rdf_fec_F_bins,
-        "fec_O": rdf_fec_O_bins,
-        "pf6_all": rdf_pf6_all_bins,
-        "pf6_F": rdf_pf6_F_bins,
-        "universe_all": rdf_universe_all_bins,
-    }
     rdf_bins = {
-        key: np.genfromtxt(csv, delimiter=", ") for key, csv in rdf_bin_files.items()
+        key: np.genfromtxt(csv, delimiter=", ") for key, csv in easy_rdf_bins.items()
     }
     return rdf_bins
 
 
 @pytest.fixture
 def rdf_data():
-    rdf_data_files = {
-        "bn_all": rdf_bn_all_data,
-        "bn_N": rdf_bn_N_data,
-        "fec_all": rdf_fec_all_data,
-        "fec_F": rdf_fec_F_data,
-        "fec_O": rdf_fec_O_data,
-        "pf6_all": rdf_pf6_all_data,
-        "pf6_F": rdf_pf6_F_data,
-        "universe_all": rdf_universe_all_data,
-    }
     rdf_data = {
-        key: np.genfromtxt(csv, delimiter=", ") for key, csv in rdf_data_files.items()
+        key: np.genfromtxt(csv, delimiter=", ") for key, csv in easy_rdf_data.items()
     }
     return rdf_data
 
