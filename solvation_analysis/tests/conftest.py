@@ -102,10 +102,10 @@ def atom_groups(u_real):
 
 def rdf_loading_helper(bins_files, data_files):
     rdf_bins = {
-        key: np.load(npy) for key, npy in bins_files.items()
+        key: list(np.load(npz).values())[0] for key, npz in bins_files.items()
     }
     rdf_data = {
-        key: np.load(npy) for key, npy in data_files.items()
+        key: list(np.load(npz).values())[0] for key, npz in data_files.items()
     }
     shared_keys = set(rdf_data.keys()) & set(rdf_bins.keys())
     rdf_bins_and_data = {key: (rdf_bins[key], rdf_data[key]) for key in shared_keys}
