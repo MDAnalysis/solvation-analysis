@@ -13,13 +13,13 @@ hard_rdf_dir = data_dir / 'rdf_vs_li_hard'
 fail_rdf_dir = data_dir / 'rdf_non_solvated'
 
 easy_rdf_bins = {}
-for rdf_path in easy_rdf_dir.glob('*bins.csv'):
+for rdf_path in easy_rdf_dir.glob('*bins.npy'):
     tag_list = rdf_path.stem.split('_')
     rdf_tag = f"{tag_list[1]}_{tag_list[2]}"
     easy_rdf_bins[rdf_tag] = resource_filename(__name__, str(rdf_path))
 
 easy_rdf_data = {}
-for rdf_path in easy_rdf_dir.glob('*data.csv'):
+for rdf_path in easy_rdf_dir.glob('*data.npy'):
     tag_list = rdf_path.stem.split('_')
     rdf_tag = f"{tag_list[1]}_{tag_list[2]}"
     easy_rdf_data[rdf_tag] = resource_filename(__name__, str(rdf_path))

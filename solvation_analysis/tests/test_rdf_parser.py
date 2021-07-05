@@ -31,7 +31,6 @@ def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data_easy):
     behavior is approximately correct."""
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
     plot_interpolation_fit(bins, rdf)
-    # add code to save teh plot so that it can be easily viewed later
 
 
 @pytest.mark.parametrize(
