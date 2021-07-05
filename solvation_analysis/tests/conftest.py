@@ -99,6 +99,7 @@ def atom_groups(u_real):
     atom_groups = {"li": li_atoms, "pf6": pf6_atoms, "bn": bn_atoms, "fec": fec_atoms}
     return atom_groups
 
+
 def rdf_loading_helper(bins_files, data_files):
     rdf_bins = {
         key: np.load(npy) for key, npy in bins_files.items()
@@ -110,15 +111,17 @@ def rdf_loading_helper(bins_files, data_files):
     rdf_bins_and_data = {key: (rdf_bins[key], rdf_data[key]) for key in shared_keys}
     return rdf_bins_and_data
 
+
 @pytest.fixture
 def rdf_bins_and_data_easy():
     return rdf_loading_helper(easy_rdf_bins, easy_rdf_data)
+
 
 @pytest.fixture
 def rdf_bins_and_data_hard():
     return rdf_loading_helper(hard_rdf_bins, hard_rdf_data)
 
+
 @pytest.fixture
 def rdf_bins_and_data_non_solv():
     return rdf_loading_helper(non_solv_rdf_bins, non_solv_rdf_data)
-
