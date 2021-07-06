@@ -27,14 +27,15 @@ def plot_interpolation_fit(bins, rdf, **kwargs):
     x = np.linspace(bounds[0], bounds[1], num=100)
     y = f(x)
     pts, vals = identify_minima(f)
-    plt.plot(bins, rdf, "b--", label="rdf")
-    plt.plot(x, y, "r-", label="interpolation")
-    plt.plot(pts, vals, "go", label="critical points")
-    plt.xlabel("Radial Distance (A)")
-    plt.ylabel("Probability Density")
-    plt.title("Interpolation of RDF with quartic spline")
-    plt.legend()
-    plt.show()
+    fig, ax = plt.subplots()
+    ax.plot(bins, rdf, "b--", label="rdf")
+    ax.plot(x, y, "r-", label="interpolation")
+    ax.plot(pts, vals, "go", label="critical points")
+    ax.set_xlabel("Radial Distance (A)")
+    ax.set_ylabel("Probability Density")
+    ax.set_title("Interpolation of RDF with quartic spline")
+    ax.legend()
+    return fig, ax
 
 
 def identify_solvation_cutoff(

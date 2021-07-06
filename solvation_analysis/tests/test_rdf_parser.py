@@ -30,7 +30,8 @@ def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data_easy):
     """This is essentially a visually confirmed regression test to ensure
     behavior is approximately correct."""
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
-    plot_interpolation_fit(bins, rdf)
+    fig, ax = plot_interpolation_fit(bins, rdf)
+    plt.show()
 
 
 @pytest.mark.parametrize(
