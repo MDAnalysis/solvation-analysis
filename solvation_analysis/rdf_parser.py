@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.interpolate import interp1d, UnivariateSpline
+from scipy.interpolate import UnivariateSpline
 import scipy
 import matplotlib.pyplot as plt
 import warnings
@@ -38,21 +38,28 @@ def plot_interpolation_fit(bins, rdf, **kwargs):
     return fig, ax
 
 
-def identify_solvation_cutoff(
-    bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), **kwargs
-):
-    f, bounds = interpolate_rdf(bins, rdf, **kwargs)
-    cr_pts, cr_vals = identify_minima(f)
+def good_cutoff(f, cutoff_region, cr_pts, cr_vals):
     if (
         len(cr_pts) < 2  # insufficient critical points
         or cr_vals[0] < cr_vals[1]  # not a max and min
         or not (cutoff_region[1] < cr_pts[1] < cutoff_region[4])  # min not in cutoff
     ):
+        return False
+    else:
+        return True
+
+
+def identify_solvation_cutoff(
+    bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), **kwargs
+):
+    f, bounds = interpolate_rdf(bins, rdf, **kwargs)
+    cr_pts, cr_vals = identify_minima(f)
+    if not good_cutoff(f, cutoff_region, cr_pts, cr_vals):
         if failure_behavior == "silent":
             return None
         if failure_behavior == "warn":
-            warnings.warn("No solvation region detected.")
+            warnings.warn("No solvation shell detected.")
             return None
         if failure_behavior == "exception":
-            raise RuntimeError("No solvation region detected.")
+            raise RuntimeError("No solvation shell detected.")
     return cr_pts[1]
