@@ -6,6 +6,27 @@ import warnings
 
 
 def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
+    """
+    Fits a sciply.interpolate.UnivariateSpline to the starting region of
+    the rdf. The floor and cutoff control the region of the rdf that the
+    spline is fit to.
+
+    Parameters
+    ----------
+    bins : np.array
+        the x-axis bins of the rdf
+    rdf : np.array
+        rdf data matching the bins
+    floor : float
+        the interpolation region begins when the probablility density value exceeds
+        the floor
+    cutoff : float
+        the interpolation region ends when the bins values exceeds the cutoff
+    Returns
+    -------
+    f, bounds : the interpolated spline and the bounds of the interpolation region
+
+    """
     start = np.argmax(rdf > floor)  # will return first index > rdf
     end = np.argmax(bins > cutoff)  # will return first index > cutoff
     bounds = (bins[start], bins[end - 1])
@@ -14,6 +35,19 @@ def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
 
 
 def identify_minima(f):
+    """
+    Identifies the extrema of a interpolated polynomial.
+
+    Parameters
+    ----------
+    f : sciply.interpolate.UnivariateSpline
+
+    Returns
+    -------
+
+    cr_pts, cr_vals : the critical points and critical values of the extrema
+
+    """
     try:
         cr_pts = f.derivative().roots()
         cr_vals = f(cr_pts)
@@ -23,6 +57,24 @@ def identify_minima(f):
 
 
 def plot_interpolation_fit(bins, rdf, **kwargs):
+    """
+    Calls interpolate_rdf and identify_minima to identify the extrema of an rdf.
+    Plots the original rdf, the interpolated spline, and the extrema of the
+    interpolated spline.
+
+    Parameters
+    ----------
+    bins : np.array
+        the x-axis bins of the rdf
+    rdf : np.array
+        rdf data matching the bins
+    kwargs : passed to the interpolate_rdf function
+
+    Returns
+    -------
+    fig, ax : matplotlib pyplot Figure and Axis for the fit
+
+    """
     f, bounds = interpolate_rdf(bins, rdf, **kwargs)
     x = np.linspace(bounds[0], bounds[1], num=100)
     y = f(x)
@@ -39,10 +91,28 @@ def plot_interpolation_fit(bins, rdf, **kwargs):
 
 
 def good_cutoff(f, cutoff_region, cr_pts, cr_vals):
+    """
+    Identifies whether or not the interpolation method has identified a valid
+    solvation cutoff. This fail if there is no solvation shell.
+
+    Parameters
+    ----------
+    f : an interpolated rdf function
+    cutoff_region : tuple
+        boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
+    cr_pts : np.array
+        the x-axis value of the extrema
+    cr_vals : np.array
+        the y-axis values of the extrema
+    Returns
+    -------
+    boolean : True if good cutoff, False if bad cutoff
+
+    """
     if (
-        len(cr_pts) < 2  # insufficient critical points
-        or cr_vals[0] < cr_vals[1]  # not a max and min
-        or not (cutoff_region[1] < cr_pts[1] < cutoff_region[4])  # min not in cutoff
+            len(cr_pts) < 2  # insufficient critical points
+            or cr_vals[0] < cr_vals[1]  # not a max and min
+            or not (cutoff_region[1] < cr_pts[1] < cutoff_region[4])  # min not in cutoff
     ):
         return False
     else:
@@ -52,6 +122,26 @@ def good_cutoff(f, cutoff_region, cr_pts, cr_vals):
 def identify_solvation_cutoff(
     bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), **kwargs
 ):
+    """
+
+    Parameters
+    ----------
+    bins : np.array
+        the x-axis bins of the rdf
+    rdf : np.array
+        rdf data matching the bins
+    failure_behavior : str
+        specifies the behavior of the function if no solvation shell is found, can
+        be set to "silent", "warn", or "exception"
+    cutoff_region : tuple
+        boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
+    kwargs : passed to the interpolate_rdf function
+
+    Returns
+    -------
+    float : the first solvation cutoff
+
+    """
     f, bounds = interpolate_rdf(bins, rdf, **kwargs)
     cr_pts, cr_vals = identify_minima(f)
     if not good_cutoff(f, cutoff_region, cr_pts, cr_vals):
