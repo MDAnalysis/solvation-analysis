@@ -1,7 +1,8 @@
-setuptools~=49.6.0
-numpy~=1.20.3
-mdanalysis~=2.0.0.dev0
-pytest~=6.2.4
-matplotlib~=3.4.2
+setuptools
+numpy>=1.16.0
+mdanalysis>=2.0.0.dev0
+pytest
+pathlib
+matplotlib
 nglview~=3.0.3
-scipy~=1.7.0rc1
+scipy
