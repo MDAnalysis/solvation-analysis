@@ -50,35 +50,40 @@ def test_interpolate_rdf(rdf_tag, rdf_bins_and_data_easy):
 
 
 @pytest.mark.parametrize(
-    "rdf_tag, minima",
+    "rdf_tag, test_min",
     [
-        ("fec_F", [1, 2, 3]),
-        ("fec_O", [1, 2, 3]),
-        ("fec_all", [1, 2, 3]),
-        ("bn_all", [1, 2, 3]),
-        ("bn_N", [1, 2, 3]),
-        ("pf6_all", [1, 2, 3]),
-        ("pf6_F", [1, 2, 3]),
+        ("fec_O", 3.30),
+        ("fec_all", 2.74),
+        ("bn_all", 2.64),
+        ("pf6_all", 2.77),
+        ("pf6_F", 3.03),
     ],  # the above values are not real
 )
-def test_identify_minima(rdf_tag, minima, rdf_bins_and_data_easy):
+def test_identify_minima_first_min(rdf_tag, test_min, rdf_bins_and_data_easy):
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
-    return
+    f, bounds = interpolate_rdf(bins, rdf)
+    cr_pts, cr_vals = identify_minima(f)
+    min = cr_pts[1]
+    np.testing.assert_almost_equal(test_min, min, 2)
 
+
+def test_identify_minima_second_min(rdf_tag, minima, rdf_bins_and_data_easy):
+    # empty for now, add testing later
+    return
 
 @pytest.mark.parametrize(
     "rdf_tag, cutoff",
     [
-        ("fec_F", 2.8),
+        ("fec_F", 2.73),
         ("fec_O", 2.9),
-        ("fec_all", 2.9),
-        ("bn_all", 3),
+        ("fec_all", 2.74),
+        ("bn_all", 2.64),
         ("bn_N", 3),
-        ("pf6_all", 3),
+        ("pf6_all", 2.77),
         ("pf6_F", 3),
     ],  # the above values are not real
 )
 def test_identify_solvation_cutoff(rdf_tag, cutoff, rdf_bins_and_data_easy):
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
-    print(identify_solvation_cutoff(bins, rdf))
-    return
+    cutoff = identify_solvation_cutoff(bins, rdf, failure_behavior='exception')
+    print(cutoff)
