@@ -101,6 +101,9 @@ def atom_groups(u_real):
 
 
 def rdf_loading_helper(bins_files, data_files):
+    """
+    Creates dictionary of bin and data arrays with a rdf tag as key
+    """
     rdf_bins = {
         key: list(np.load(npz).values())[0] for key, npz in bins_files.items()
     }
