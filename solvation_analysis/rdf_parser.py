@@ -14,12 +14,12 @@ def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
 
 
 def identify_minima(f):
-    assert isinstance(
-        f, scipy.interpolate.fitpack2.InterpolatedUnivariateSpline
-    ), "this function is compatible with the scipy.interpolate package"
-    cr_pts = f.derivative().roots()
-    cr_vals = f(cr_pts)
-    return cr_pts, cr_vals
+    try:
+        cr_pts = f.derivative().roots()
+        cr_vals = f(cr_pts)
+        return cr_pts, cr_vals
+    except AttributeError:
+        print("f should be a scipy.interpolate.UnivariateSpline.")
 
 
 def plot_interpolation_fit(bins, rdf, **kwargs):
