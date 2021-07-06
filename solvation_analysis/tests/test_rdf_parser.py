@@ -9,7 +9,8 @@ from solvation_analysis.rdf_parser import (
     plot_interpolation_fit,
     identify_solvation_cutoff,
 )
-
+from scipy.interpolate import UnivariateSpline
+import scipy
 
 rdf_minima = [
     ("fec_F", []),
@@ -31,24 +32,21 @@ def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data_easy):
     behavior is approximately correct."""
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
     fig, ax = plot_interpolation_fit(bins, rdf)
+    ax.set_title(f"Interpolation of RDF: {rdf_tag}")
     plt.show()
 
 
 @pytest.mark.parametrize(
-    "rdf_tag, bounds",
-    [
-        ("fec_F", (0, 3)),
-        ("fec_O", (0, 3)),
-        ("fec_all", (0, 3)),
-        ("bn_all", (0, 3)),
-        ("bn_N", (0, 3)),
-        ("pf6_all", (0, 3)),
-        ("pf6_F", (0, 3)),
-    ],  # the above values are not real
+    "rdf_tag",
+    ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"]
 )
-def test_interpolate_rdf(rdf_tag, bounds, rdf_bins_and_data_easy):
+def test_interpolate_rdf(rdf_tag, rdf_bins_and_data_easy):
+    # this is difficult to test so only very basic checks are implemented
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
-    return
+    f, bounds = interpolate_rdf(bins, rdf)
+    assert bounds[0] > 0
+    assert bounds[1] <= 5
+    assert isinstance(f, scipy.interpolate.fitpack2.InterpolatedUnivariateSpline)
 
 
 @pytest.mark.parametrize(
