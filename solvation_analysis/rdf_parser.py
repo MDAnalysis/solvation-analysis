@@ -90,7 +90,7 @@ def plot_interpolation_fit(bins, rdf, **kwargs):
     return fig, ax
 
 
-def good_cutoff(f, cutoff_region, cr_pts, cr_vals):
+def good_cutoff(cutoff_region, cr_pts, cr_vals):
     """
     Identifies whether or not the interpolation method has identified a valid
     solvation cutoff. This fail if there is no solvation shell.
@@ -110,9 +110,9 @@ def good_cutoff(f, cutoff_region, cr_pts, cr_vals):
 
     """
     if (
-            len(cr_pts) < 2  # insufficient critical points
-            or cr_vals[0] < cr_vals[1]  # not a max and min
-            or not (cutoff_region[1] < cr_pts[1] < cutoff_region[4])  # min not in cutoff
+        len(cr_pts) < 2  # insufficient critical points
+        or cr_vals[0] < cr_vals[1]  # not a max and min
+        or not (cutoff_region[0] < cr_pts[1] < cutoff_region[1])  # min not in cutoff
     ):
         return False
     else:
