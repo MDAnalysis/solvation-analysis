@@ -8,6 +8,7 @@ from solvation_analysis.rdf_parser import (
     interpolate_rdf,
     plot_interpolation_fit,
     identify_solvation_cutoff,
+    good_cutoff,
 )
 from scipy.interpolate import UnivariateSpline
 import scipy
@@ -67,9 +68,23 @@ def test_identify_minima_first_min(rdf_tag, test_min, rdf_bins_and_data_easy):
     np.testing.assert_almost_equal(test_min, min, 2)
 
 
-def test_identify_minima_second_min(rdf_tag, minima, rdf_bins_and_data_easy):
-    # empty for now, add testing later
-    return
+# def test_identify_minima_second_min(rdf_tag, test_min, rdf_bins_and_data_easy):
+#     # later on this should test the identification of a second minimum
+#     return
+
+
+@pytest.mark.parametrize(
+    "cutoff_region, cr_pts, cr_vals, expected",
+    [
+        ((1, 4), [2], [2], False),
+        ((1, 4), [2, 3], [1.0, 1.1], False),
+        ((1, 1.5), [2, 3], [2, 1], False),
+        ((1.5, 4), [2, 3], [2, 1], True),
+    ],
+)
+def test_good_cutoff(cutoff_region, cr_pts, cr_vals, expected):
+    assert good_cutoff(cutoff_region, cr_pts, cr_vals) == expected
+
 
 @pytest.mark.parametrize(
     "rdf_tag, cutoff",
