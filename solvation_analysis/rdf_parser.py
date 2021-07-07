@@ -49,11 +49,14 @@ def identify_minima(f):
 
     """
     try:
-        cr_pts = f.derivative().roots()
-        cr_vals = f(cr_pts)
-        return cr_pts, cr_vals
-    except AttributeError:
-        print("f should be a scipy.interpolate.UnivariateSpline.")
+        isinstance(scipy.interpolate.UnivariateSpline)
+    except:
+        AttributeError("identify minima is designed to work with a" +
+                       "scipy.interpolate.UnivariateSpline output by" +
+                       "interpolate_rdf.")
+    cr_pts = f.derivative().roots()
+    cr_vals = f(cr_pts)
+    return cr_pts, cr_vals
 
 
 def plot_interpolation_fit(bins, rdf, **kwargs):
