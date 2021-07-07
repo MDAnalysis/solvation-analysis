@@ -147,7 +147,7 @@ def identify_solvation_cutoff(
     """
     f, bounds = interpolate_rdf(bins, rdf, **kwargs)
     cr_pts, cr_vals = identify_minima(f)
-    if not good_cutoff(f, cutoff_region, cr_pts, cr_vals):
+    if not good_cutoff(cutoff_region, cr_pts, cr_vals):
         if failure_behavior == "silent":
             return None
         if failure_behavior == "warn":

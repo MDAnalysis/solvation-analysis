@@ -100,5 +100,5 @@ def test_good_cutoff(cutoff_region, cr_pts, cr_vals, expected):
 )
 def test_identify_solvation_cutoff(rdf_tag, cutoff, rdf_bins_and_data_easy):
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
-    cutoff = identify_solvation_cutoff(bins, rdf, failure_behavior='exception')
+    cutoff = identify_solvation_cutoff(bins, rdf, failure_behavior='warn')
     print(cutoff)
