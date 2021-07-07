@@ -114,8 +114,9 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
     """
     if (
         len(cr_pts) < 2  # insufficient critical points
-        or cr_vals[0] < cr_vals[1]  # not a max and min
+        or cr_vals[0] < cr_vals[1]  # not a min and max
         or not (cutoff_region[0] < cr_pts[1] < cutoff_region[1])  # min not in cutoff
+        or abs(cr_vals[1] - cr_vals[0]) < 0.15  # peak too small TODO: improve this!
     ):
         return False
     else:
@@ -149,10 +150,10 @@ def identify_solvation_cutoff(
     cr_pts, cr_vals = identify_minima(f)
     if not good_cutoff(cutoff_region, cr_pts, cr_vals):
         if failure_behavior == "silent":
-            return None
+            return np.NaN
         if failure_behavior == "warn":
             warnings.warn("No solvation shell detected.")
-            return None
+            return np.NaN
         if failure_behavior == "exception":
             raise RuntimeError("No solvation shell detected.")
     return cr_pts[1]
