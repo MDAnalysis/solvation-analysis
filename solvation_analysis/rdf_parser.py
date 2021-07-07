@@ -49,11 +49,12 @@ def identify_minima(f):
 
     """
     try:
-        isinstance(scipy.interpolate.UnivariateSpline)
-    except:
-        AttributeError("identify minima is designed to work with a" +
-                       "scipy.interpolate.UnivariateSpline output by" +
-                       "interpolate_rdf.")
+        isinstance(f, scipy.interpolate.UnivariateSpline)
+    except AttributeError:
+        print(
+            "identify minima is designed to work with a",
+            " scipy.interpolate.UnivariateSpline output by interpolate_rdf.",
+        )
     cr_pts = f.derivative().roots()
     cr_vals = f(cr_pts)
     return cr_pts, cr_vals

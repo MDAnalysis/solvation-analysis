@@ -66,7 +66,6 @@ def test_identify_minima_first_min(rdf_tag, test_min, rdf_bins_and_data_easy):
     min = cr_pts[1]
     np.testing.assert_allclose(test_min, min, atol=0.01)
 
-
 # def test_identify_minima_second_min(rdf_tag, test_min, rdf_bins_and_data_easy):
 #     # later on this should test the identification of a second minimum
 #     return
