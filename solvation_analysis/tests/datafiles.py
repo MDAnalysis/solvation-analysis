@@ -13,39 +13,48 @@ hard_rdf_dir = data_dir / "rdf_vs_li_hard"
 fail_rdf_dir = data_dir / "rdf_non_solvated"
 
 
-def generate_tag(filename):
+def generate_short_tag(filename):
+    # generates a ad-hoc tag for the li-ion rdf data from the file name
     tag_list = filename.stem.split("_")
     rdf_tag = f"{tag_list[1]}_{tag_list[2]}"
     return rdf_tag
 
 
 easy_rdf_bins = {
-    generate_tag(rdf_path): resource_filename(__name__, str(rdf_path))
+    generate_short_tag(rdf_path): resource_filename(__name__, str(rdf_path))
     for rdf_path in easy_rdf_dir.glob("*bins.npz")
 }
 
 easy_rdf_data = {
-    generate_tag(rdf_path): resource_filename(__name__, str(rdf_path))
+    generate_short_tag(rdf_path): resource_filename(__name__, str(rdf_path))
     for rdf_path in easy_rdf_dir.glob("*data.npz")
 }
 
 hard_rdf_bins = {
-    generate_tag(rdf_path): resource_filename(__name__, str(rdf_path))
+    generate_short_tag(rdf_path): resource_filename(__name__, str(rdf_path))
     for rdf_path in hard_rdf_dir.glob("*bins.npz")
 }
 
 hard_rdf_data = {
-    generate_tag(rdf_path): resource_filename(__name__, str(rdf_path))
+    generate_short_tag(rdf_path): resource_filename(__name__, str(rdf_path))
     for rdf_path in hard_rdf_dir.glob("*data.npz")
 }
 
+
+def generate_long_tag(filename):
+    # generates a ad-hoc tag for the non-solv rdf data from the file name
+    tag_list = filename.stem.split("_")
+    rdf_tag = f"{'_'.join(tag_list[1:3])}_{'_'.join(tag_list[4:6])}"
+    return rdf_tag
+
+
 non_solv_rdf_bins = {
-    generate_tag(rdf_path): resource_filename(__name__, str(rdf_path))
+    generate_long_tag(rdf_path): resource_filename(__name__, str(rdf_path))
     for rdf_path in fail_rdf_dir.glob("*bins.npz")
 }
 
 non_solv_rdf_data = {
-    generate_tag(rdf_path): resource_filename(__name__, str(rdf_path))
+    generate_long_tag(rdf_path): resource_filename(__name__, str(rdf_path))
     for rdf_path in fail_rdf_dir.glob("*data.npz")
 }
 
