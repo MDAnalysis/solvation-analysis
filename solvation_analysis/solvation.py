@@ -87,7 +87,11 @@ def get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
 
 
 def get_closest_n_mol(
-    central_species, n_mol, radius=3, return_ordered_resids=False, return_radii=False
+    central_species,
+    n_mol,
+    guess_radius=3,
+    return_ordered_resids=False,
+    return_radii=False,
 ):
     """
     Returns the closest n molecules to the central species, an array of their resids,
@@ -98,7 +102,7 @@ def get_closest_n_mol(
         central_species : Atom, AtomGroup, Residue, or ResidueGroup
         n_mol : int
             The number of molecules to return
-        radius : float or int
+        guess_radius : float or int
             an initial search radius to look for closest n mol
         return_ordered_resids : if True, will return the resids of the closest n
             molecules, ordered by radius
@@ -115,19 +119,25 @@ def get_closest_n_mol(
     coords = central_species.center_of_mass()
     str_coords = " ".join(str(coord) for coord in coords)
     pairs, radii = mda.lib.distances.capped_distance(
-        coords, u.atoms.positions, radius, return_distances=True, box=u.dimensions
+        coords, u.atoms.positions, guess_radius, return_distances=True, box=u.dimensions
     )
     partial_shell = u.atoms[pairs[:, 1]]
     shell_resids = partial_shell.resids
     if len(np.unique(shell_resids)) < n_mol + 1:
-        return get_closest_n_mol(u, central_species, n_mol, radius + 1)
+        return get_closest_n_mol(
+            central_species,
+            n_mol,
+            guess_radius + 1,
+            return_ordered_resids=return_ordered_resids,
+            return_radii=return_radii
+        )
     radii = distances.distance_array(coords, partial_shell.positions, box=u.dimensions)[
         0
     ]
     ordering = np.argsort(radii)
     ordered_resids = shell_resids[ordering]
     closest_n_resix = np.sort(np.unique(ordered_resids, return_index=True)[1])[
-        0: n_mol + 1
+        0 : n_mol + 1
     ]
     str_resids = " ".join(str(resid) for resid in ordered_resids[closest_n_resix])
     full_shell = u.select_atoms(f"resid {str_resids}")

@@ -66,7 +66,7 @@ def test_get_closest_n_mol_radii_invariance(radius, u_real, atom_groups):
         test_li, 5, return_ordered_resids=True, return_radii=True
     )
     shell, resids, radii = get_closest_n_mol(
-        test_li, 5, radius=radius, return_ordered_resids=True, return_radii=True
+        test_li, 5, guess_radius=radius, return_ordered_resids=True, return_radii=True
     )
     assert shell == default_shell
     np.testing.assert_allclose(resids, default_resids)
