@@ -18,7 +18,7 @@ def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
     rdf : np.array
         rdf data matching the bins
     floor : float
-        the interpolation region begins when the probablility density value exceeds
+        the interpolation region begins when the probability density value exceeds
         the floor
     cutoff : float
         the interpolation region ends when the bins values exceeds the cutoff
@@ -97,7 +97,7 @@ def plot_interpolation_fit(bins, rdf, **kwargs):
 def good_cutoff(cutoff_region, cr_pts, cr_vals):
     """
     Identifies whether or not the interpolation method has identified a valid
-    solvation cutoff. This fail if there is no solvation shell.
+    solvation cutoff. This fails if there is no solvation shell.
 
     Parameters
     ----------
@@ -105,7 +105,7 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
     cutoff_region : tuple
         boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
     cr_pts : np.array
-        the x-axis value of the extrema
+        the x-axis values of the extrema
     cr_vals : np.array
         the y-axis values of the extrema
     Returns
