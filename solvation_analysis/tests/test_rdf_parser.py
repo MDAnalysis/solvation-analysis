@@ -13,29 +13,29 @@ from solvation_analysis.rdf_parser import (
 from scipy.interpolate import UnivariateSpline
 import scipy
 
-# rdf_minima = [
-#     ("fec_F", []),
-#     ("fec_O", [2.9]),
-#     ("fec_all", [2.9]),
-#     ("bn_all", []),
-#     ("bn_N", []),
-#     ("pf6_all", []),
-#     ("pf6_F", []),
-# ]
-#
-#
-# @pytest.mark.parametrize(
-#     "rdf_tag",
-#     ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"],
-# )
-# def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data_hard):
-#     """This is essentially a visually confirmed regression test to ensure
-#     behavior is approximately correct."""
-#     bins, rdf = rdf_bins_and_data_hard[rdf_tag]
-#     fig, ax = plot_interpolation_fit(bins, rdf)
-#     ax.set_title(f"Interpolation of RDF: {rdf_tag}")
-#     plt.show()
-#
+rdf_minima = [
+    ("fec_F", []),
+    ("fec_O", [2.9]),
+    ("fec_all", [2.9]),
+    ("bn_all", []),
+    ("bn_N", []),
+    ("pf6_all", []),
+    ("pf6_F", []),
+]
+
+
+@pytest.mark.parametrize(
+    "rdf_tag",
+    ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"],
+)
+def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data_hard):
+    """This is essentially a visually confirmed regression test to ensure
+    behavior is approximately correct."""
+    bins, rdf = rdf_bins_and_data_hard[rdf_tag]
+    fig, ax = plot_interpolation_fit(bins, rdf)
+    ax.set_title(f"Interpolation of RDF: {rdf_tag}")
+    plt.show()
+
 #
 # @pytest.mark.parametrize(
 #     "rdf_tag", ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"]
