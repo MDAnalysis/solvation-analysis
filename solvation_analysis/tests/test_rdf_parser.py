@@ -24,17 +24,17 @@ rdf_minima = [
 ]
 
 
-# @pytest.mark.parametrize(
-#     "rdf_tag",
-#     ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"],
-# )
-# def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data_hard):
-#     """This is essentially a visually confirmed regression test to ensure
-#     behavior is approximately correct."""
-#     bins, rdf = rdf_bins_and_data_hard[rdf_tag]
-#     fig, ax = plot_interpolation_fit(bins, rdf)
-#     ax.set_title(f"Interpolation of RDF: {rdf_tag}")
-#     plt.show()
+@pytest.mark.parametrize(
+    "rdf_tag",
+    ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"],
+)
+def test_plot_interpolation_fit(rdf_tag, rdf_bins_and_data_hard):
+    """This is essentially a visually confirmed regression test to ensure
+    behavior is approximately correct."""
+    bins, rdf = rdf_bins_and_data_hard[rdf_tag]
+    fig, ax = plot_interpolation_fit(bins, rdf)
+    ax.set_title(f"Interpolation of RDF: {rdf_tag}")
+    # plt.show()  # this should only be uncommented for local testing
 
 
 @pytest.mark.parametrize(
@@ -124,11 +124,6 @@ def test_identify_solvation_cutoff_hard(
     )
 
 
-# @pytest.mark.parametrize(
-#     "rdf_tag",
-# )
-# def test_identify_solvation_cutoff_fail(rdf_tag, rdf_bins_and_data_non_solv):
-#     return
 @pytest.mark.parametrize(
     "rdf_tag",
     [
