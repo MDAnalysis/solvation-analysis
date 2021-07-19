@@ -125,7 +125,7 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
 
 
 def identify_solvation_cutoff(
-    bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), **kwargs
+    bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), floor=0.05, cutoff=5
 ):
     """
 
@@ -140,14 +140,15 @@ def identify_solvation_cutoff(
         be set to "silent", "warn", or "exception"
     cutoff_region : tuple
         boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
-    kwargs : passed to the interpolate_rdf function
+    cutoff: passed to the interpolate_rdf function
+    floor:  passed to the interpolate_rdf function
 
     Returns
     -------
     float : the first solvation cutoff
 
     """
-    f, bounds = interpolate_rdf(bins, rdf, **kwargs)
+    f, bounds = interpolate_rdf(bins, rdf, floor=floor, cutoff=cutoff)
     cr_pts, cr_vals = identify_minima(f)
     if not good_cutoff(cutoff_region, cr_pts, cr_vals):
         if failure_behavior == "silent":
