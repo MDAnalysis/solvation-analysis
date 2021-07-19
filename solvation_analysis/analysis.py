@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
+from MDAnalysis.analysis import distances
 import numpy as np
 from solvation_analysis.rdf_parser import identify_solvation_cutoff
 
@@ -15,7 +16,7 @@ def some_function():
 
 class Solute(AnalysisBase):
     def __init__(
-        self, solute, solvents, radii=None, kernel=None, kernel_kwargs=None, **kwargs
+            self, solute, solvents, radii=None, kernel=None, kernel_kwargs=None, **kwargs
     ):
         super(Solute, self).__init__(solute.universe.trajectory, **kwargs)
         if radii is None:
@@ -27,7 +28,7 @@ class Solute(AnalysisBase):
 
         self.solute = solute
         self.solvents = solvents
-
+        self.u = self.solute.universe
         self.rdf_plots = {}
         self.rdf_data = {}
         self.ion_speciation = None
@@ -46,27 +47,44 @@ class Solute(AnalysisBase):
 
     def run_prepare(self):
         for name, solvent in self.solvents.items():
-            rdf = InterRDF(self.solute, solvent)  # TODO: specify start and stop args
+            # generate and save RDFs
+            rdf = InterRDF(self.solute, solvent, range=(0.0, 8.0))
+            # TODO: specify start and stop args
             rdf.run()
             bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[name] = (data, bins)
+            # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
             self.rdf_plots[name] = self._plot_solvation_radius(
                 bins, data, self.radii[name]
             )
 
-    def run(self):
-        # run all RDFs and store their results
-        rdfs = []
-        for solvent in self.solvents:
-            rdf = InterRDF(self.solute, solvent)
-            rdf.run()
-            rdfs.append(rdf)
-        self.rdfs = rdfs
-        self.ion_speciation = IonSpeciation(self.solute, self.solvents)
-        self.ion_pairing = IonPairing(self.solute, self.solvents)
-        self.coordination_numbers = CoordinationNumber(self.solute, self.solvents)
+    def _prepare(self):
+        assert self.solvents.keys() == self.radii.keys(), "Radii missing."
+
+    def _single_frame(self):
+        for name, solvent in self.solvents.items():
+            pairs, dist = distances.capped_distance(
+                self.solute.positions,
+                solvent.positions,
+                self.radii[name],
+                box=self.u.dimensions,
+            )
+
+        # REQUIRED
+        # Called after the trajectory is moved onto each new frame.
+        # store result of `some_function` for a single frame
+        # self.result.append(some_function(self._ag, self._parameter))
+
+    # def _conclude(self):
+    #     # OPTIONAL
+    #     # Called once iteration on the trajectory is finished.
+    #     # Apply normalisation and averaging to results here.
+    #     self.result = np.asarray(self.result) / np.sum(self.result)
+    #     self.ion_speciation = IonSpeciation(self.solute, self.solvents)
+    #     self.ion_pairing = IonPairing(self.solute, self.solvents)
+    #     self.coordination_numbers = CoordinationNumber(self.solute, self.solvents)
 
 
 class IonSpeciation(AnalysisBase):
