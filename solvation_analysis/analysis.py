@@ -7,6 +7,7 @@ from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.analysis import distances
 import numpy as np
+import xarray as xr
 from solvation_analysis.rdf_parser import identify_solvation_cutoff
 
 
@@ -19,12 +20,13 @@ class Solute(AnalysisBase):
             self, solute, solvents, radii=None, kernel=None, kernel_kwargs=None, **kwargs
     ):
         super(Solute, self).__init__(solute.universe.trajectory, **kwargs)
-        if radii is None:
-            self.radii = {}
-        if not kernel:
-            self.kernel = identify_solvation_cutoff
-        if not kernel_kwargs:
-            self.kernel_kwargs = {}
+        self.radii = {} if radii is None else radii
+        self.kernel = identify_solvation_cutoff if kernel is None else kernel
+        # if not kernel:
+        #     self.kernel = identify_solvation_cutoff
+        self.kernel_kwargs = {} if kernel_kwargs is None else radii
+        # if not kernel_kwargs:
+        #     self.kernel_kwargs = {}
 
         self.solute = solute
         self.solvents = solvents
@@ -56,12 +58,14 @@ class Solute(AnalysisBase):
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
-            self.rdf_plots[name] = self._plot_solvation_radius(
-                bins, data, self.radii[name]
-            )
+            fig, ax = self._plot_solvation_radius(bins, data, self.radii[name])
+            ax.set_title(f"Solvation distance of {name}")
+            self.rdf_plots[name] = fig, ax
 
     def _prepare(self):
         assert self.solvents.keys() == self.radii.keys(), "Radii missing."
+        # columns: solute #, atom id, distance, solvent name, res id
+
 
     def _single_frame(self):
         for name, solvent in self.solvents.items():
@@ -71,6 +75,8 @@ class Solute(AnalysisBase):
                 self.radii[name],
                 box=self.u.dimensions,
             )
+            print("hi")
+
 
         # REQUIRED
         # Called after the trajectory is moved onto each new frame.
