@@ -1,16 +1,60 @@
 # from abc import ABC
+from abc import ABC
 
+import matplotlib.pyplot as plt
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 import numpy as np
+from solvation_analysis.rdf_parser import identify_solvation_cutoff
 
 
-class Solute:
-    def __init__(self, solute, solvents, **kwargs):
+def some_function():
+    return
+
+
+class Solute(AnalysisBase):
+    def __init__(
+        self, solute, solvents, radii=None, kernel=None, kernel_kwargs=None, **kwargs
+    ):
         super(Solute, self).__init__(solute.universe.trajectory, **kwargs)
+        if radii is None:
+            self.radii = {}
+        if not kernel:
+            self.kernel = identify_solvation_cutoff
+        if not kernel_kwargs:
+            self.kernel_kwargs = {}
+
         self.solute = solute
         self.solvents = solvents
+
+        self.rdf_plots = {}
+        self.rdf_data = {}
+        self.ion_speciation = None
+        self.ion_pairing = None
+        self.coordination_numbers = None
+
+    @classmethod
+    def _plot_solvation_radius(cls, bins, data, radius):
+        fig, ax = plt.subplots()
+        ax.plot(bins, data, "b-", label="rdf")
+        ax.axvline(radius, color="r", label="solvation radius")
+        ax.set_xlabel("Radial Distance (A)")
+        ax.set_ylabel("Probability Density")
+        ax.legend()
+        return fig, ax
+
+    def run_prepare(self):
+        for name, solvent in self.solvents.items():
+            rdf = InterRDF(self.solute, solvent)  # TODO: specify start and stop args
+            rdf.run()
+            bins, data = rdf.results.bins, rdf.results.rdf
+            self.rdf_data[name] = (data, bins)
+            if name not in self.radii.keys():
+                self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
+            self.rdf_plots[name] = self._plot_solvation_radius(
+                bins, data, self.radii[name]
+            )
 
     def run(self):
         # run all RDFs and store their results
@@ -52,8 +96,7 @@ class IonSpeciation(AnalysisBase):
 
 class IonPairing(AnalysisBase):
     def __init__(self, solute, solvent, **kwargs):
-        super(IonPairing, self).__init__(solute.universe.trajectory,
-                                         **kwargs)
+        super(IonPairing, self).__init__(solute.universe.trajectory, **kwargs)
         self._parameter = solvent
         self._ag = solute
 
@@ -76,11 +119,9 @@ class IonPairing(AnalysisBase):
         self.result = np.asarray(self.result) / np.sum(self.result)
 
 
-
 class CoordinationNumber(AnalysisBase):
     def __init__(self, solute, solvent, **kwargs):
-        super(CoordinationNumber, self).__init__(solute.universe.trajectory,
-                                                 **kwargs)
+        super(CoordinationNumber, self).__init__(solute.universe.trajectory, **kwargs)
         self._parameter = solvent
         self._ag = solute
 
