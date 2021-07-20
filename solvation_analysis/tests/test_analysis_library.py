@@ -1,17 +1,22 @@
+import pytest
+
 from solvation_analysis.analysis_library import (
-    _calculate_ion_speciation,
-    _calculate_coordination_numbers,
-    _calculate_ion_pairing,
+    _IonSpeciation,
+    _CoordinationNumbers,
+    _IonPairing,
 )
 
 
-def test_calculate_ion_speciation():
-    return
 
 
-def test_calculate_coordination_numbers():
-    return
+
+def test_ion_speciation(solvation_results):
+    speciation = _IonSpeciation(solvation_results)
 
 
-def test_calculate_ion_pairing():
-    return
+def test_coordination_numbers(solvation_results):
+    coordination = _CoordinationNumbers(solvation_results)
+
+
+def test_ion_pairing(solvation_results):
+    pairing = _IonPairing(solvation_results)
