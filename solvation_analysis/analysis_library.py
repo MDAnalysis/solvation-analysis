@@ -2,12 +2,29 @@ import pandas as pd
 
 
 class _IonSpeciation:
+    """
+    A class for calculating and storing speciation information for solvents.
+    """
     def __init__(self, solvation_data):
+        """
+
+        Parameters
+        ----------
+        solvation_data: the solvation data frame output by Solute
+        """
         self.solvation_frames = solvation_data
 
 
 class _CoordinationNumbers:
+    """
+    A class for calculating and storing the coordination numbers of solvents.
+    """
     def __init__(self, solvation_data):
+        """
+        Parameters
+        ----------
+        solvation_data: the solvation data frame output by Solute
+        """
         self.solvation_data = solvation_data
         self.counts = self._accumulate_counts(self.solvation_data)
         self.average_dict = self._average(self.counts)
@@ -16,7 +33,6 @@ class _CoordinationNumbers:
     def _single_frame(cls, frame):
         frame = frame.drop_duplicates(["solvated_atom", "res_id"])
         counts = frame.groupby(["solvated_atom", "res_name"]).count()["res_id"]
-        averages = counts.groupby(["res_name"]).mean()
         return counts
 
     @classmethod
@@ -36,5 +52,14 @@ class _CoordinationNumbers:
 
 
 class _IonPairing:
+    """
+    A class for analyzing pairing between the solute and another species.
+    """
     def __init__(self, solvation_data):
+        """
+
+        Parameters
+        ----------
+        solvation_data: the solvation data frame output by Solute
+        """
         self.solvation_frames = solvation_data

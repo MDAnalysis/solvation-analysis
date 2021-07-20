@@ -21,12 +21,30 @@ def some_function():
 
 
 class Solute(AnalysisBase):
+    """
+    The core class of the solvation module.
+    """
+
     def __init__(
-        self, solute, solvents, radii=None, kernel=None, kernel_kwargs=None, **kwargs
+        self, solute, solvents, radii=None, rdf_kernel=None, kernel_kwargs=None, **kwargs
     ):
+        """
+        Parameters
+        ----------
+        solute (AtomGroup): an atom group  # TODO: force to atom group
+        solvents (dict): a dictionary of names and atom groups.
+            e.g. {"name_1": solvent_group_1, "name_2": solvent_group_2, ...}
+        radii (dict): an optional dictionary of solvation radii, any radii not
+            given will be calculated. e.g. {"name_2": radius_2, "name_5": radius_5}
+        rdf_kernel (func): this function must take rdf bins and data as input and return
+            a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
+            the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
+        kernel_kwargs: kwargs passed to rdf_kernel
+        kwargs: kwargs passed to AnalysisBase
+        """
         super(Solute, self).__init__(solute.universe.trajectory, **kwargs)
         self.radii = {} if radii is None else radii
-        self.kernel = identify_solvation_cutoff if kernel is None else kernel
+        self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
         # if not kernel:
         #     self.kernel = identify_solvation_cutoff
         self.kernel_kwargs = {} if kernel_kwargs is None else radii
