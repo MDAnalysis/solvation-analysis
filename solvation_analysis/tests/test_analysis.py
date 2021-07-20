@@ -51,6 +51,6 @@ def test_run_prepare(default_solute):
 
 
 def test_run(prepared_solute):
-    prepared_solute.run()
+    prepared_solute.run(step=1)
 
-
+# should test what happens when the solute is included as a solvent
