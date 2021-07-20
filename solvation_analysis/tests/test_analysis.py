@@ -6,20 +6,6 @@ from copy import deepcopy
 from solvation_analysis.analysis import Solute
 import numpy as np
 
-@pytest.fixture
-def default_solute(atom_groups):
-    li = atom_groups['li']
-    pf6 = atom_groups['pf6']
-    bn = atom_groups['bn']
-    fec = atom_groups['fec']
-    return Solute(li, {'pf6': pf6, 'bn': bn, 'fec': fec}, radii={'pf6': 2.8})
-
-
-@pytest.fixture
-def prepared_solute(default_solute):
-    default_solute.run_prepare()
-    return default_solute  # TODO: will this work?
-
 
 def test_plot_solvation_distance(rdf_bins_and_data_easy):
     bins, data = rdf_bins_and_data_easy['pf6_all']
@@ -52,5 +38,6 @@ def test_run_prepare(default_solute):
 
 def test_run(prepared_solute):
     prepared_solute.run(step=1)
+    assert len(prepared_solute.solvation_frames) == 10
 
 # should test what happens when the solute is included as a solvent
