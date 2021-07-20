@@ -9,7 +9,7 @@ dependencies:
   - python
   - pip
   - numpy
-  - MDAnalysis
+  - MDAnalysis==2.0.0b0
   - nglview
   - xarray
 
