@@ -38,6 +38,6 @@ def test_run_prepare(default_solute):
 
 def test_run(prepared_solute):
     prepared_solute.run(step=1)
-    assert len(prepared_solute.solvation_frames) == 10
+    assert len(prepared_solute.solvation_data) == 10
 
 # should test what happens when the solute is included as a solvent
