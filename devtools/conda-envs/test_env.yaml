@@ -9,7 +9,6 @@ dependencies:
   - python
   - pip
   - numpy
-  - MDAnalysis==2.0.0b0
   - nglview
   - xarray
 
@@ -19,6 +18,6 @@ dependencies:
   - codecov
 
     # Pip-only installs
-  #- pip:
-  #  - codecov
+  - pip:
+      - MDAnalysis==2.0.0b0
 
