@@ -2,6 +2,7 @@
 from abc import ABC
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
@@ -17,7 +18,7 @@ def some_function():
 
 class Solute(AnalysisBase):
     def __init__(
-            self, solute, solvents, radii=None, kernel=None, kernel_kwargs=None, **kwargs
+        self, solute, solvents, radii=None, kernel=None, kernel_kwargs=None, **kwargs
     ):
         super(Solute, self).__init__(solute.universe.trajectory, **kwargs)
         self.radii = {} if radii is None else radii
@@ -66,8 +67,12 @@ class Solute(AnalysisBase):
         assert self.solvents.keys() == self.radii.keys(), "Radii missing."
         # columns: solute #, atom id, distance, solvent name, res id
 
-
     def _single_frame(self):
+        # initialize empty arrays
+        all_pairs = np.empty((0, 2), dtype=np.int)
+        all_dist = np.empty(0)
+        all_tags = np.empty(0)
+        all_resid = np.empty(0)
         for name, solvent in self.solvents.items():
             pairs, dist = distances.capped_distance(
                 self.solute.positions,
@@ -75,8 +80,19 @@ class Solute(AnalysisBase):
                 self.radii[name],
                 box=self.u.dimensions,
             )
-            print("hi")
+            # replace local ids with absolute ids
+            pairs[:, 1] = solvent.ids[[pairs[:, 1]]]  # TODO: ids vs ix?
+            # extend
+            all_pairs = np.concatenate((all_pairs, pairs))
+            all_dist = np.concatenate((all_dist, dist))
+            all_tags = np.concatenate((all_tags, np.full(len(dist), name)))
+        all_resid = self.u.atoms[all_pairs[:, 1]].resids
+        data_chonk = np.column_stack((all_pairs[:, 0], all_pairs[:, 1], all_dist, all_tags, all_resid))
+        data_slice = pd.DataFrame(data_chonk, columns=['li_atom', 'solv_atom_id', 'dist', 'res_name', 'res_id'])
+        # select for only pairs including solvent
+        # selection = np.in1d(all_pairs[:, 0], self.solute.ids)
 
+        print("hi")
 
         # REQUIRED
         # Called after the trajectory is moved onto each new frame.
