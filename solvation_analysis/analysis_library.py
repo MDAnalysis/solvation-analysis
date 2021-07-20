@@ -1,12 +1,13 @@
+class _IonSpeciation:
+    def __init__(self, solvation_data):
+        return
 
 
-def _calculate_ion_speciation(solvation_data):
-    return
+class _CoordinationNumbers:
+    def __init__(self, solvation_data):
+        return
 
 
-def _calculate_coordination_numbers(solvation_data):
-    return
-
-
-def _calculate_ion_pairing(solvation_data):
-    return
+class _IonPairing:
+    def __init__(self, solvation_data):
+        return
