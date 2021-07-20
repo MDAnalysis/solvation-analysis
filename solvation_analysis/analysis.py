@@ -8,8 +8,12 @@ from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.analysis import distances
 import numpy as np
-import xarray as xr
 from solvation_analysis.rdf_parser import identify_solvation_cutoff
+from solvation_analysis.analysis_library import (
+    _CoordinationNumbers,
+    _IonPairing,
+    _IonSpeciation,
+)
 
 
 def some_function():
@@ -37,6 +41,7 @@ class Solute(AnalysisBase):
         self.ion_speciation = None
         self.ion_pairing = None
         self.coordination_numbers = None
+        self.solvation_frames = []
 
     @classmethod
     def _plot_solvation_radius(cls, bins, data, radius):
@@ -72,7 +77,6 @@ class Solute(AnalysisBase):
         all_pairs = np.empty((0, 2), dtype=np.int)
         all_dist = np.empty(0)
         all_tags = np.empty(0)
-        all_resid = np.empty(0)
         for name, solvent in self.solvents.items():
             pairs, dist = distances.capped_distance(
                 self.solute.positions,
@@ -86,99 +90,20 @@ class Solute(AnalysisBase):
             all_pairs = np.concatenate((all_pairs, pairs))
             all_dist = np.concatenate((all_dist, dist))
             all_tags = np.concatenate((all_tags, np.full(len(dist), name)))
+        # put the data into a data frame
         all_resid = self.u.atoms[all_pairs[:, 1]].resids
-        data_chonk = np.column_stack((all_pairs[:, 0], all_pairs[:, 1], all_dist, all_tags, all_resid))
-        data_slice = pd.DataFrame(data_chonk, columns=['li_atom', 'solv_atom_id', 'dist', 'res_name', 'res_id'])
-        # select for only pairs including solvent
-        # selection = np.in1d(all_pairs[:, 0], self.solute.ids)
-
-        print("hi")
-
-        # REQUIRED
-        # Called after the trajectory is moved onto each new frame.
-        # store result of `some_function` for a single frame
-        # self.result.append(some_function(self._ag, self._parameter))
-
-    # def _conclude(self):
-    #     # OPTIONAL
-    #     # Called once iteration on the trajectory is finished.
-    #     # Apply normalisation and averaging to results here.
-    #     self.result = np.asarray(self.result) / np.sum(self.result)
-    #     self.ion_speciation = IonSpeciation(self.solute, self.solvents)
-    #     self.ion_pairing = IonPairing(self.solute, self.solvents)
-    #     self.coordination_numbers = CoordinationNumber(self.solute, self.solvents)
-
-
-class IonSpeciation(AnalysisBase):
-    def __init__(self, solute, solvent, **kwargs):
-        super(IonSpeciation, self).__init__(solute.universe.trajectory, **kwargs)
-        self._parameter = solvent
-        self._ag = solute
-
-    def _prepare(self):
-        # OPTIONAL
-        # Called before iteration on the trajectory has begun.
-        # Data structures can be set up at this time
-        self.result = []
-
-    def _single_frame(self):
-        # REQUIRED
-        # Called after the trajectory is moved onto each new frame.
-        # store result of `some_function` for a single frame
-        self.result.append(some_function(self._ag, self._parameter))
+        solvation_data_np = np.column_stack(
+            (all_pairs[:, 0], all_pairs[:, 1], all_dist, all_tags, all_resid)
+        )
+        solvation_data_pd = pd.DataFrame(
+            solvation_data_np,
+            columns=["solvated_atom", "atom_id", "dist", "res_name", "res_id"],
+        )
+        self.solvation_frames.append(solvation_data_pd)
 
     def _conclude(self):
         # OPTIONAL
-        # Called once iteration on the trajectory is finished.
-        # Apply normalisation and averaging to results here.
-        self.result = np.asarray(self.result) / np.sum(self.result)
 
-
-class IonPairing(AnalysisBase):
-    def __init__(self, solute, solvent, **kwargs):
-        super(IonPairing, self).__init__(solute.universe.trajectory, **kwargs)
-        self._parameter = solvent
-        self._ag = solute
-
-    def _prepare(self):
-        # OPTIONAL
-        # Called before iteration on the trajectory has begun.
-        # Data structures can be set up at this time
-        self.result = []
-
-    def _single_frame(self):
-        # REQUIRED
-        # Called after the trajectory is moved onto each new frame.
-        # store result of `some_function` for a single frame
-        self.result.append(some_function(self._ag, self._parameter))
-
-    def _conclude(self):
-        # OPTIONAL
-        # Called once iteration on the trajectory is finished.
-        # Apply normalisation and averaging to results here.
-        self.result = np.asarray(self.result) / np.sum(self.result)
-
-
-class CoordinationNumber(AnalysisBase):
-    def __init__(self, solute, solvent, **kwargs):
-        super(CoordinationNumber, self).__init__(solute.universe.trajectory, **kwargs)
-        self._parameter = solvent
-        self._ag = solute
-
-    def _prepare(self):
-        # OPTIONAL
-        # Called before iteration on the trajectory has begun.
-        # Data structures can be set up at this time
-        self.result = []
-
-    def _single_frame(self):
-        # REQUIRED
-        # Called after the trajectory is moved onto each new frame.
-        # store result of `some_function` for a single frame
-        self.result.append(some_function(self._ag, self._parameter))
-
-    def _conclude(self):
-        # OPTIONAL
-        # Called once iteration on the trajectory is finished.
-        # Apply normalisation and averaging to results here.
-        self.result = np.asarray(self.result) / np.sum(self.result)
+        self.ion_speciation = _IonSpeciation(self.solvation_frames)
+        self.ion_pairing = _IonPairing(self.solvation_frames)
+        self.coordination_numbers = _CoordinationNumbers(self.solvation_frames)
