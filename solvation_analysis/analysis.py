@@ -10,14 +10,11 @@ from MDAnalysis.analysis import distances
 import numpy as np
 from solvation_analysis.rdf_parser import identify_solvation_cutoff
 from solvation_analysis.analysis_library import (
-    _CoordinationNumbers,
-    _IonPairing,
+    _CoordinationNumber,
+    _Pairing,
     _IonSpeciation,
 )
-
-
-def some_function():
-    return
+from solvation_analysis.solvation import get_radial_shell, get_closest_n_mol
 
 
 class Solute(AnalysisBase):
@@ -26,7 +23,13 @@ class Solute(AnalysisBase):
     """
 
     def __init__(
-        self, solute, solvents, radii=None, rdf_kernel=None, kernel_kwargs=None, **kwargs
+        self,
+        solute,
+        solvents,
+        radii=None,
+        rdf_kernel=None,
+        kernel_kwargs=None,
+        **kwargs,
     ):
         """
         Parameters
@@ -123,5 +126,17 @@ class Solute(AnalysisBase):
         # OPTIONAL
 
         self.ion_speciation = _IonSpeciation(self.solvation_frames)
-        self.ion_pairing = _IonPairing(self.solvation_frames)
-        self.coordination_numbers = _CoordinationNumbers(self.solvation_frames)
+        self.ion_pairing = _Pairing(self.solvation_frames)
+        self.coordination_numbers = _CoordinationNumber(self.solvation_frames)
+
+    def radial_shell(self, solute_index, radius):
+        return get_radial_shell(self.solute[solute_index], radius)
+
+    def closest_n_mol(self, solute_index, n_mol, **kwargs):
+        return get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
+
+    def solvation_shell(self, solute_index, step):
+        assert self.solvation_frames, "Solute.run() must be called first."
+        # TODO: map solvation_frames to trajectory steps
+        frame = self.solvation_frames[step]
+        res_id = None
