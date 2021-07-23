@@ -1,12 +1,9 @@
-# from abc import ABC
-from abc import ABC
-
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
-from MDAnalysis.analysis import distances
+from MDAnalysis.lib.distances import capped_distance
 import numpy as np
 from solvation_analysis.rdf_parser import identify_solvation_cutoff
 from solvation_analysis.analysis_library import (
@@ -92,11 +89,11 @@ class Solution(AnalysisBase):
 
     def _single_frame(self):
         # initialize empty arrays
-        all_pairs = np.empty((0, 2), dtype=np.int)
+        all_pairs = np.empty((0, 2), dtype=int)
         all_dist = np.empty(0)
         all_tags = np.empty(0)
         for name, solvent in self.solvents.items():
-            pairs, dist = distances.capped_distance(
+            pairs, dist = capped_distance(
                 self.solute.positions,
                 solvent.positions,
                 self.radii[name],
