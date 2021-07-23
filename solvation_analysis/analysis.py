@@ -17,7 +17,7 @@ from solvation_analysis.analysis_library import (
 from solvation_analysis.solvation import get_radial_shell, get_closest_n_mol
 
 
-class Solute(AnalysisBase):
+class Solution(AnalysisBase):
     """
     The core class of the solvation module.
     """
@@ -45,7 +45,7 @@ class Solute(AnalysisBase):
         kernel_kwargs: kwargs passed to rdf_kernel
         kwargs: kwargs passed to AnalysisBase
         """
-        super(Solute, self).__init__(solute.universe.trajectory, **kwargs)
+        super(Solution, self).__init__(solute.universe.trajectory, **kwargs)
         self.radii = {} if radii is None else radii
         self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
         # if not kernel:
@@ -74,7 +74,7 @@ class Solute(AnalysisBase):
         ax.legend()
         return fig, ax
 
-    def run_prepare(self):
+    def _prepare(self):
         for name, solvent in self.solvents.items():
             # generate and save RDFs
             rdf = InterRDF(self.solute, solvent, range=(0.0, 8.0))
@@ -88,10 +88,7 @@ class Solute(AnalysisBase):
             fig, ax = self._plot_solvation_radius(bins, data, self.radii[name])
             ax.set_title(f"Solvation distance of {name}")
             self.rdf_plots[name] = fig, ax
-
-    def _prepare(self):
         assert self.solvents.keys() == self.radii.keys(), "Radii missing."
-        # columns: solute #, atom id, distance, solvent name, res id
 
     def _single_frame(self):
         # initialize empty arrays

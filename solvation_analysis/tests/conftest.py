@@ -16,7 +16,7 @@ from solvation_analysis.tests.datafiles import (
     non_solv_rdf_bins,
     non_solv_rdf_data,
 )
-from solvation_analysis.analysis import Solute
+from solvation_analysis.analysis import Solution
 
 
 def test_solvation_analysis_imported():
@@ -72,13 +72,13 @@ def u_grid_1():
     return make_grid_universe(6, 1)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def u_real():
     """Returns a universe of a BN FEC trajectory"""
     return mda.Universe(bn_fec_data, bn_fec_dcd_wrap)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def u_real_named(u_real):
     """Returns a universe of a BN FEC trajectory with residues and atoms named"""
     types = np.loadtxt(bn_fec_atom_types, dtype=str)
@@ -88,7 +88,7 @@ def u_real_named(u_real):
     return u_real
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def atom_groups(u_real):
     """Returns pre-selected atom groups in the BN FEC universe"""
     li_atoms = u_real.atoms.select_atoms("type 22")
@@ -129,25 +129,19 @@ def rdf_bins_and_data_non_solv():
     return rdf_loading_helper(non_solv_rdf_bins, non_solv_rdf_data)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def default_solute(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solute(li, {'pf6': pf6, 'bn': bn, 'fec': fec}, radii={'pf6': 2.8})
+    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec}, radii={'pf6': 2.8})
 
 
-@pytest.fixture
-def prepared_solute(default_solute):
-    default_solute.run_prepare()
-    return default_solute  # TODO: will this work?
-
-
-@pytest.fixture
-def run_solute(prepared_solute):
-    prepared_solute.run(step=1)
-    return prepared_solute
+@pytest.fixture(scope='module')
+def run_solute(default_solute):
+    default_solute.run(step=1)
+    return default_solute
 
 
 @pytest.fixture
