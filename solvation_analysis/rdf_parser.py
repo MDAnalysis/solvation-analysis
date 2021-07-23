@@ -140,8 +140,10 @@ def identify_solvation_cutoff(
         be set to "silent", "warn", or "exception"
     cutoff_region : tuple
         boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
-    cutoff: passed to the interpolate_rdf function
-    floor:  passed to the interpolate_rdf function
+    cutoff : float
+        passed to the interpolate_rdf function
+    floor : float
+        passed to the interpolate_rdf function
 
     Returns
     -------
