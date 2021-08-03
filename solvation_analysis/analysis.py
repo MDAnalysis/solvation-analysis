@@ -10,6 +10,7 @@ from solvation_analysis.analysis_library import (
     _CoordinationNumber,
     _Pairing,
     _IonSpeciation,
+    _SolvationData
 )
 from solvation_analysis.solvation import get_radial_shell, get_closest_n_mol
 
@@ -125,9 +126,10 @@ class Solution(AnalysisBase):
     def _conclude(self):
         # OPTIONAL
 
-        self.ion_speciation = _IonSpeciation(self.solvation_frames)
-        self.ion_pairing = _Pairing(self.solvation_frames)
-        self.coordination_numbers = _CoordinationNumber(self.solvation_frames)
+        self.solvation_data = _SolvationData(self.solvation_frames)
+        self.ion_speciation = _IonSpeciation(self.solvation_data)
+        self.ion_pairing = _Pairing(self.solvation_data)
+        self.coordination_numbers = _CoordinationNumber(self.solvation_data)
 
     def radial_shell(self, solute_index, radius):
         return get_radial_shell(self.solute[solute_index], radius)

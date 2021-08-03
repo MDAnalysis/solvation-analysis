@@ -50,40 +50,7 @@ class _SolvationData:
         return counts_frame
 
 
-class _SolutionAnalysis:
-    """
-    An interface for analyzing the solvation data from Solute.
-    """
-
-    def __init__(self, solvation_data):
-        """
-        Parameters
-        ----------
-        solvation_data: the solvation data frame output by Solute
-        """
-        self.solvation_data = solvation_data
-        self.solute_number = len(np.unique(solvation_data[0]["solvated_atom"]))
-        self.frame_number = len(solvation_data)
-        self.counts = self._accumulate_counts(self.solvation_data)
-
-    @classmethod
-    def _single_frame(cls, frame):
-        frame = frame.drop_duplicates(["solvated_atom", "res_id"])
-        counts = frame.groupby(["solvated_atom", "res_name"]).count()["res_id"]
-        return counts
-
-    @classmethod
-    def _accumulate_counts(cls, frames):
-        counts_list = [cls._single_frame(frame) for frame in frames]
-        counts_frame = pd.concat(
-            counts_list, axis=1, names=["solvated_atom", "res_name"]
-        )
-        counts_frame = counts_frame.fillna(0)
-        counts_frame.columns = range(len(frames))
-        return counts_frame
-
-
-class _IonSpeciation(_SolutionAnalysis):
+class _IonSpeciation:
     """
     A class for calculating and storing speciation information for solvents.
     """
@@ -95,11 +62,10 @@ class _IonSpeciation(_SolutionAnalysis):
         ----------
         solvation_data: the solvation data frame output by Solute
         """
-        super().__init__(solvation_data)
-        self.solvation_frames = solvation_data
+        self.solvation_frames = solvation_data.solvation_frames
         self.speciation_frames = self._accumulate_speciation(self.solvation_frames)
         self.average_speciation = self._average_speciation(
-            self.speciation_frames, self.solute_number, self.frame_number
+            self.speciation_frames, solvation_data.solute_number, solvation_data.frame_number
         )
         self.res_names = self._single_speciation_frame(
             self.solvation_frames[0], return_res_names=True
@@ -107,7 +73,7 @@ class _IonSpeciation(_SolutionAnalysis):
 
     @classmethod
     def _single_speciation_frame(cls, frame, return_res_names=False):
-        counts = cls._single_frame(frame)
+        counts = frame.groupby(["solvated_atom", "res_name"]).count()["res_id"]
         counts_re = counts.reset_index(["res_name"])
         pivoted = counts_re.pivot(columns=["res_name"]).fillna(0).astype(int)
         res_names = pivoted.columns.levels[1]
@@ -145,7 +111,7 @@ class _IonSpeciation(_SolutionAnalysis):
         return
 
 
-class _CoordinationNumber(_SolutionAnalysis):
+class _CoordinationNumber:
     """
     A class for calculating and storing the coordination numbers of solvents.
     """
@@ -156,9 +122,8 @@ class _CoordinationNumber(_SolutionAnalysis):
         ----------
         solvation_data: the solvation data frame output by Solute
         """
-        super().__init__(solvation_data)
         self.average_dict = self._average_cn(
-            self.counts, self.solute_number, self.frame_number
+            solvation_data.counts, solvation_data.solute_number, solvation_data.frame_number
         )
 
     @classmethod
@@ -170,7 +135,7 @@ class _CoordinationNumber(_SolutionAnalysis):
         return mean_dict
 
 
-class _Pairing(_SolutionAnalysis):
+class _Pairing:
     """
     A class for analyzing pairing between the solute and another species.
     """
@@ -182,9 +147,8 @@ class _Pairing(_SolutionAnalysis):
         ----------
         solvation_data: the solvation data frame output by Solute
         """
-        super().__init__(solvation_data)
         self.percentage_dict = self._percentage_coordinated(
-            self.counts, self.solute_number, self.frame_number
+            solvation_data.counts, solvation_data.solute_number, solvation_data.frame_number
         )
 
     @classmethod
