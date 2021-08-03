@@ -5,18 +5,11 @@ An MDAnalysis rmodule for solvation analysis.
 Handles the primary functions
 """
 
-
-# atom selection functions
 import warnings
 import numpy as np
 import MDAnalysis as mda
 from MDAnalysis.analysis import distances
 import nglview as nv
-
-# all functions
-"get_atom_group, get_n_shells, \
-    get_cation_anion_shells, get_closest_n_mol, get_radial_shell, \
-    get_counts, get_pair_type, count_dicts"
 
 
 def visualize(selection):
