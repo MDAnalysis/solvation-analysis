@@ -26,6 +26,7 @@ class Solution(AnalysisBase):
         radii=None,
         rdf_kernel=None,
         kernel_kwargs=None,
+        rdf_kwargs=None,
         **kwargs,
     ):
         """
@@ -40,6 +41,7 @@ class Solution(AnalysisBase):
             a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
             the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
         kernel_kwargs: kwargs passed to rdf_kernel
+        kernel_kwargs: kwargs passed to inner rdf
         kwargs: kwargs passed to AnalysisBase
         """
         super(Solution, self).__init__(solute.universe.trajectory, **kwargs)
@@ -47,7 +49,8 @@ class Solution(AnalysisBase):
         self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
         # if not kernel:
         #     self.kernel = identify_solvation_cutoff
-        self.kernel_kwargs = {} if kernel_kwargs is None else radii
+        self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
+        self.rdf_kwargs = {"range": (0, 8.0)} if rdf_kwargs is None else rdf_kwargs
         # if not kernel_kwargs:
         #     self.kernel_kwargs = {}
 
@@ -74,7 +77,7 @@ class Solution(AnalysisBase):
     def _prepare(self):
         for name, solvent in self.solvents.items():
             # generate and save RDFs
-            rdf = InterRDF(self.solute, solvent, range=(0.0, 8.0))
+            rdf = InterRDF(self.solute, solvent, **self.rdf_kwargs)
             # TODO: specify start and stop args
             rdf.run()
             bins, data = rdf.results.bins, rdf.results.rdf
