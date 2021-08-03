@@ -39,6 +39,7 @@ def test_run(run_solute):
     assert len(run_solute.solvation_frames) == 10
     assert len(run_solute.solvation_frames[0]) == 228
 
+
 def test_selection_functions(run_solute):
     # this test is incomplete and is currently only demonstrating functionality
 
