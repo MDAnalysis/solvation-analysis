@@ -23,8 +23,8 @@ def test_solvation_data(solvation_results):
         ((3, 0, 1), 0.016),
     ],
 )
-def test_ion_speciation(name, percent, solvation_results):
-    speciation = _IonSpeciation(solvation_results).average_speciation
+def test_ion_speciation(name, percent, solvation_data):
+    speciation = _IonSpeciation(solvation_data).average_speciation
     np.testing.assert_allclose(percent, speciation[name], atol=0.05)
 
 
@@ -36,8 +36,8 @@ def test_ion_speciation(name, percent, solvation_results):
         ("pf6", 0.15),
     ],
 )
-def test_coordination_numbers(name, cn, solvation_results):
-    coord_dict = _CoordinationNumber(solvation_results).average_dict
+def test_coordination_numbers(name, cn, solvation_data):
+    coord_dict = _CoordinationNumber(solvation_data).average_dict
     np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
 
 
@@ -49,6 +49,6 @@ def test_coordination_numbers(name, cn, solvation_results):
         ("pf6", 0.14),
     ],
 )
-def test_pairing(name, percent, solvation_results):
-    pairing_dict = _Pairing(solvation_results).percentage_dict
+def test_pairing(name, percent, solvation_data):
+    pairing_dict = _Pairing(solvation_data).percentage_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
