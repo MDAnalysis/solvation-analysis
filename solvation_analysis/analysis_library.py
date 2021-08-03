@@ -2,6 +2,54 @@ import pandas as pd
 import numpy as np
 
 
+class _SolvationData:
+    """
+    A class for holding solvation data, this will slightly reprocess data and
+    make it available in different forms.
+    # TODO: is there any way to enforce immutability? Users shouldn't mutate this!
+    """
+
+    def __init__(self, raw_solvation_frames):
+        """
+        Parameters
+        ----------
+        raw_solvation_frames: a list of tidy dataframes from the Solution class,
+            encapsulating all solvent input
+        """
+        self.raw_solvation_frames = raw_solvation_frames
+        self.solute_number = len(np.unique(self.raw_solvation_frames[0]["solvated_atom"]))
+        self.frame_number = len(self.raw_solvation_frames)
+        self.solvation_frames = [
+            self._reindex_frame(frame) for frame in raw_solvation_frames
+        ]
+        self.solvation_frames_w_dup = [
+            self._reindex_frame(frame, duplicates=True)
+            for frame in raw_solvation_frames
+        ]
+        self.counts = self._accumulate_counts(self.solvation_frames)
+
+    @classmethod
+    def _reindex_frame(cls, raw_solvation_frame, duplicates=False):
+        new_frame = raw_solvation_frame.sort_values(["solvated_atom", "dist"])
+        if not duplicates:
+            new_frame = new_frame.drop_duplicates(["solvated_atom", "res_id"])
+        new_frame = new_frame.set_index(["solvated_atom", "atom_id"])
+        return new_frame
+
+    @classmethod
+    def _accumulate_counts(cls, solvation_frames):
+        counts_list = [
+            frame.groupby(["solvated_atom", "res_name"]).count()["res_id"]
+            for frame in solvation_frames
+        ]
+        counts_frame = pd.concat(
+            counts_list, axis=1, names=["solvated_atom", "res_name"]
+        )
+        counts_frame = counts_frame.fillna(0)
+        counts_frame.columns = range(len(solvation_frames))
+        return counts_frame
+
+
 class _SolutionAnalysis:
     """
     An interface for analyzing the solvation data from Solute.
@@ -126,6 +174,7 @@ class _Pairing(_SolutionAnalysis):
     """
     A class for analyzing pairing between the solute and another species.
     """
+
     def __init__(self, solvation_data):
         """
 
