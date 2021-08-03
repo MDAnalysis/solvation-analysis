@@ -8,6 +8,7 @@ from solvation_analysis.analysis_library import (
     _SolutionAnalysis,
 )
 
+
 @pytest.mark.parametrize(
     "name, percent",
     [

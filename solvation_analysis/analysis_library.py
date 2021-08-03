@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 
 
-# TODO: fix how I count over missing rows!
 class _SolutionAnalysis:
     """
     An interface for analyzing the solvation data from Solute.
