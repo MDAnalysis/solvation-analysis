@@ -89,9 +89,9 @@ class Solution(AnalysisBase):
 
     def _single_frame(self):
         # initialize empty arrays
-        all_pairs = np.empty((0, 2), dtype=int)
-        all_dist = np.empty(0)
-        all_tags = np.empty(0)
+        all_pairs_list = []
+        all_dist_list = []
+        all_tags_list = []
         for name, solvent in self.solvents.items():
             pairs, dist = capped_distance(
                 self.solute.positions,
@@ -102,9 +102,12 @@ class Solution(AnalysisBase):
             # replace local ids with absolute ids
             pairs[:, 1] = solvent.ids[[pairs[:, 1]]]  # TODO: ids vs ix?
             # extend
-            all_pairs = np.concatenate((all_pairs, pairs))
-            all_dist = np.concatenate((all_dist, dist))
-            all_tags = np.concatenate((all_tags, np.full(len(dist), name)))
+            all_pairs_list.append(pairs)
+            all_dist_list.append(dist)
+            all_tags_list.append(np.full(len(dist), name))  # creating a name array
+        all_pairs = np.concatenate(all_pairs_list)
+        all_dist = np.concatenate(all_dist_list)
+        all_tags = np.concatenate(all_tags_list)
         # put the data into a data frame
         all_resid = self.u.atoms[all_pairs[:, 1]].resids
         solvation_data_np = np.column_stack(
