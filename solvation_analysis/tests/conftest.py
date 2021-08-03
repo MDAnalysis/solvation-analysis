@@ -17,6 +17,7 @@ from solvation_analysis.tests.datafiles import (
     non_solv_rdf_data,
 )
 from solvation_analysis.analysis import Solution
+from solvation_analysis.analysis_library import _SolvationData
 
 
 def test_solvation_analysis_imported():
@@ -147,3 +148,8 @@ def run_solute(default_solute):
 @pytest.fixture
 def solvation_results(run_solute):
     return run_solute.solvation_frames
+
+
+@pytest.fixture
+def solvation_data(solvation_results):
+    return _SolvationData(solvation_results)

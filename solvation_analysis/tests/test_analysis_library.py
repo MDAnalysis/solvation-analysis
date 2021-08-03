@@ -5,8 +5,13 @@ from solvation_analysis.analysis_library import (
     _IonSpeciation,
     _CoordinationNumber,
     _Pairing,
-    _SolutionAnalysis,
+    _SolvationData
 )
+
+
+def test_solvation_data(solvation_results):
+    solvation_data = _SolvationData(solvation_results)
+    print("hi")
 
 
 @pytest.mark.parametrize(
@@ -47,4 +52,3 @@ def test_coordination_numbers(name, cn, solvation_results):
 def test_pairing(name, percent, solvation_results):
     pairing_dict = _Pairing(solvation_results).percentage_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
-    return
