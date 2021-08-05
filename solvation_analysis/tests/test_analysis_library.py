@@ -11,7 +11,6 @@ from solvation_analysis.analysis_library import (
 
 def test_solvation_data(solvation_results):
     solvation_data = _SolvationData(solvation_results)
-    print("hi")
 
 
 @pytest.mark.parametrize(
