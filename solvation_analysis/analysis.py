@@ -48,12 +48,8 @@ class Solution(AnalysisBase):
         super(Solution, self).__init__(solute.universe.trajectory, **kwargs)
         self.radii = {} if radii is None else radii
         self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
-        # if not kernel:
-        #     self.kernel = identify_solvation_cutoff
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
         self.rdf_kwargs = {"range": (0, 8.0)} if rdf_kwargs is None else rdf_kwargs
-        # if not kernel_kwargs:
-        #     self.kernel_kwargs = {}
 
         self.solute = solute
         self.solvents = solvents
