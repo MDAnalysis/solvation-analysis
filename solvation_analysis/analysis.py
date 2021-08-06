@@ -27,7 +27,8 @@ class Solution(AnalysisBase):
         radii=None,
         rdf_kernel=None,
         kernel_kwargs=None,
-        rdf_kwargs=None,
+        rdf_init_kwargs=None,
+        rdf_run_kwargs=None,
         **kwargs,
     ):
         """
@@ -49,7 +50,8 @@ class Solution(AnalysisBase):
         self.radii = {} if radii is None else radii
         self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
-        self.rdf_kwargs = {"range": (0, 8.0)} if rdf_kwargs is None else rdf_kwargs
+        self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
+        self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
 
         self.solute = solute
         self.solvents = solvents
@@ -92,9 +94,9 @@ class Solution(AnalysisBase):
         """
         for name, solvent in self.solvents.items():
             # generate and save RDFs
-            rdf = InterRDF(self.solute, solvent, **self.rdf_kwargs)
+            rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
             # TODO: specify start and stop args
-            rdf.run()
+            rdf.run(**self.rdf_run_kwargs)
             bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[name] = (data, bins)
             # generate and save plots
@@ -127,7 +129,7 @@ class Solution(AnalysisBase):
             all_pairs_list.append(pairs)
             all_dist_list.append(dist)
             all_tags_list.append(np.full(len(dist), name))  # creating a name array
-        all_pairs = np.concatenate(all_pairs_list)
+        all_pairs = np.concatenate(all_pairs_list, dtype=int)
         all_dist = np.concatenate(all_dist_list)
         all_tags = np.concatenate(all_tags_list)
         # put the data into a data frame
@@ -135,11 +137,14 @@ class Solution(AnalysisBase):
         solvation_data_np = np.column_stack(
             (all_pairs[:, 0], all_pairs[:, 1], all_dist, all_tags, all_resid)
         )
-        solvation_data_pd = pd.DataFrame(
+        solvation_data_df = pd.DataFrame(
             solvation_data_np,
-            columns=["solvated_atom", "atom_id", "dist", "res_name", "res_id"],
+            columns=["solvated_atom", "atom_id", "dist", "res_name", "res_id"]
         )
-        self.solvation_frames.append(solvation_data_pd)
+        # convert from strings to numeric types
+        for column in ["solvated_atom", "atom_id", "dist", "res_id"]:
+            solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
+        self.solvation_frames.append(solvation_data_df)
 
     def _conclude(self):
         """
@@ -212,6 +217,7 @@ class Solution(AnalysisBase):
 
     def solvation_shell(self, solute_index, step):
         assert self.solvation_frames, "Solute.run() must be called first."
-        # TODO: map solvation_frames to trajectory steps
-        frame = self.solvation_frames[step]
+        index = self.map_step_to_index(step)
+        frame = self.solvation_frames[index]
+        frame
         res_id = None
