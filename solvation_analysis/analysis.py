@@ -33,17 +33,17 @@ class Solution(AnalysisBase):
         """
         Parameters
         ----------
-        solute (AtomGroup): an atom group  # TODO: force to atom group
-        solvents (dict): a dictionary of names and atom groups.
-            e.g. {"name_1": solvent_group_1, "name_2": solvent_group_2, ...}
-        radii (dict): an optional dictionary of solvation radii, any radii not
-            given will be calculated. e.g. {"name_2": radius_2, "name_5": radius_5}
-        rdf_kernel (func): this function must take rdf bins and data as input and return
-            a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
-            the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
-        kernel_kwargs: kwargs passed to rdf_kernel
-        kernel_kwargs: kwargs passed to inner rdf
-        kwargs: kwargs passed to AnalysisBase
+            solute (AtomGroup): an atom group  # TODO: force to atom group
+            solvents (dict): a dictionary of names and atom groups.
+                e.g. {"name_1": solvent_group_1, "name_2": solvent_group_2, ...}
+            radii (dict): an optional dictionary of solvation radii, any radii not
+                given will be calculated. e.g. {"name_2": radius_2, "name_5": radius_5}
+            rdf_kernel (func): this function must take rdf bins and data as input and return
+                a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
+                the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
+            kernel_kwargs: kwargs passed to rdf_kernel
+            kernel_kwargs: kwargs passed to inner rdf
+            kwargs: kwargs passed to AnalysisBase
         """
         super(Solution, self).__init__(solute.universe.trajectory, **kwargs)
         self.radii = {} if radii is None else radii
@@ -63,6 +63,21 @@ class Solution(AnalysisBase):
 
     @classmethod
     def _plot_solvation_radius(cls, bins, data, radius):
+        """
+
+        Parameters
+        ----------
+            bins : np.array
+                the rdf bins
+            data : np.array
+                the rdf data
+            radius : float
+                the cutoff radius to draw on the plot
+
+        Returns
+        -------
+            Matplotlib Figure, Matplotlib Axis
+        """
         fig, ax = plt.subplots()
         ax.plot(bins, data, "b-", label="rdf")
         ax.axvline(radius, color="r", label="solvation radius")
@@ -72,6 +87,9 @@ class Solution(AnalysisBase):
         return fig, ax
 
     def _prepare(self):
+        """
+        This function identifies the solvation radii and saves the associated rdfs.
+        """
         for name, solvent in self.solvents.items():
             # generate and save RDFs
             rdf = InterRDF(self.solute, solvent, **self.rdf_kwargs)
@@ -88,10 +106,14 @@ class Solution(AnalysisBase):
         assert self.solvents.keys() == self.radii.keys(), "Radii missing."
 
     def _single_frame(self):
+        """
+        This function finds the solvation shells of each solute at a given time step.
+        """
         # initialize empty arrays
         all_pairs_list = []
         all_dist_list = []
         all_tags_list = []
+        # loop to find solvated atoms of each type
         for name, solvent in self.solvents.items():
             pairs, dist = capped_distance(
                 self.solute.positions,
@@ -120,17 +142,50 @@ class Solution(AnalysisBase):
         self.solvation_frames.append(solvation_data_pd)
 
     def _conclude(self):
-        # OPTIONAL
-
+        """
+        Instantiates the SolvationData class and several analysis classes.
+        """
         self.solvation_data = _SolvationData(self.solvation_frames)
         self.ion_speciation = _IonSpeciation(self.solvation_data)
         self.ion_pairing = _Pairing(self.solvation_data)
         self.coordination_numbers = _CoordinationNumber(self.solvation_data)
 
     def radial_shell(self, solute_index, radius):
+        """
+        Returns all molecules with atoms within the radius of the central species.
+        (specifically, within the radius of the COM of central species).
+        Thin wrapper around solvation.get_radial_shell
+
+        Parameters
+        ----------
+            solute_index : int
+                the index of the solute of interest
+            radius : float or int
+                radius used for atom selection
+
+        Returns
+        -------
+            AtomGroup
+        """
         return get_radial_shell(self.solute[solute_index], radius)
 
     def closest_n_mol(self, solute_index, n_mol, **kwargs):
+        """
+        Returns the closest n molecules to the central species, an array of their resids,
+        and an array of the distance of the closest atom in each molecule.
+        Thin wrapper around solvation.get_closest_n_mol.
+        Parameters
+        ----------
+            solute_index : Atom, AtomGroup, Residue, or ResidueGroup
+            n_mol : int
+                The number of molecules to return
+            kwargs : passed to solvation.get_closest_n_mol
+
+        Returns
+        -------
+            AtomGroup (molecules), np.Array (resids), np.Array (distances)
+
+        """
         return get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
 
     def solvation_shell(self, solute_index, step):
