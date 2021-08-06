@@ -219,5 +219,5 @@ class Solution(AnalysisBase):
         assert self.solvation_frames, "Solute.run() must be called first."
         index = self.map_step_to_index(step)
         frame = self.solvation_frames[index]
-        frame
-        res_id = None
+        shell = frame[frame.solvated_atom == solute_index]
+        return shell
