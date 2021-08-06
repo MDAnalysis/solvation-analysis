@@ -14,6 +14,7 @@ def test_plot_solvation_distance(rdf_bins_and_data_easy):
 
 
 def test_instantiate_solute(default_solute):
+    # these check basic properties of the instantiation
     assert len(default_solute.radii) == 1
     assert len(default_solute.rdf_data) == 0
     assert len(default_solute.rdf_plots) == 0
@@ -25,9 +26,11 @@ def test_instantiate_solute(default_solute):
 
 
 def test_radii_finding(run_solute):
+    # checks that the solvation radii are plotted
     assert len(run_solute.radii) == 3
     assert len(run_solute.rdf_data) == 3
     assert len(run_solute.rdf_plots) == 3
+    # checks that the identified solvation radii are approximately correct
     assert 2 < run_solute.radii['pf6'] < 3
     assert 2 < run_solute.radii['fec'] < 3
     assert 2 < run_solute.radii['bn'] < 3
@@ -36,6 +39,7 @@ def test_radii_finding(run_solute):
 
 
 def test_run(run_solute):
+    # checks that run is run with
     assert len(run_solute.solvation_frames) == 10
     assert len(run_solute.solvation_frames[0]) == 228
 
