@@ -130,7 +130,7 @@ def rdf_bins_and_data_non_solv():
     return rdf_loading_helper(non_solv_rdf_bins, non_solv_rdf_data)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def default_solute(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']

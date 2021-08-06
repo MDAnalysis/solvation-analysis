@@ -150,6 +150,28 @@ class Solution(AnalysisBase):
         self.ion_pairing = _Pairing(self.solvation_data)
         self.coordination_numbers = _CoordinationNumber(self.solvation_data)
 
+    def map_step_to_index(self, traj_step):
+        """
+        This will map the given trajectory step to an internal index of the Solution.
+        The index will select the analyzed trajectory step that is closest to but less
+        than the given trajectory step.
+
+        Parameters
+        ----------
+            traj_step : int
+                the trajectory step of interest
+
+            Returns
+            -------
+                index ; int
+        """
+        assert self.start <= traj_step <= self.stop, f"The traj_step {traj_step} " \
+                                                     f"is not in the region covered by Solution."
+        index = len(self.frames) - 1
+        while traj_step < self.frames[index]:
+            index -= 1
+        return index
+
     def radial_shell(self, solute_index, radius):
         """
         Returns all molecules with atoms within the radius of the central species.

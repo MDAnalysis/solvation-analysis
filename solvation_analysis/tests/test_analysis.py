@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pytest
+import copy
 
 from copy import deepcopy
 
@@ -42,6 +43,32 @@ def test_run(run_solute):
     # checks that run is run with
     assert len(run_solute.solvation_frames) == 10
     assert len(run_solute.solvation_frames[0]) == 228
+
+
+@pytest.mark.parametrize(
+    "step_size, index_for_2, index_for_9",
+    [
+        (1, 2, 9),
+        (2, 1, 4),
+        (3, 0, 3),
+    ],
+)
+def test_map_step_to_index(step_size, index_for_2, index_for_9, default_solute):
+    default_solute.run(step=step_size)
+    assert default_solute.map_step_to_index(2) == index_for_2
+    assert default_solute.map_step_to_index(9) == index_for_9
+
+
+def test_radial_shell(run_solute):
+    return
+
+
+def test_closest_n_mol(run_solute):
+    return
+
+
+def test_solvation_shell(run_solute):
+    return
 
 
 def test_selection_functions(run_solute):
