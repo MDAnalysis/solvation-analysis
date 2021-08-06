@@ -67,9 +67,17 @@ def test_closest_n_mol(run_solution):
     return
 
 
-def test_solvation_shell(run_solution):
-    shell = run_solution.solvation_shell(1, 5)
-    return
+@pytest.mark.parametrize(
+    "solute_index, step, expected_atom_ids",
+    [
+        (1, 5, [3065, 557, 2057, 1205]),
+        (2, 6, [3773, 3173, 161, 713, 2129]),
+        (40, 0, [4325, 1517, 1217, 1529])
+    ],
+)
+def test_solvation_shell(solute_index, step, expected_atom_ids, run_solution):
+    shell = run_solution.solvation_shell(solute_index, step)
+    assert set(shell["atom_id"]) == set(expected_atom_ids)
 
 
 def test_selection_functions(run_solution):
