@@ -130,8 +130,17 @@ def rdf_bins_and_data_non_solv():
     return rdf_loading_helper(non_solv_rdf_bins, non_solv_rdf_data)
 
 
-@pytest.fixture
-def default_solute(atom_groups):
+@pytest.fixture(scope='module')
+def pre_solution(atom_groups):
+    li = atom_groups['li']
+    pf6 = atom_groups['pf6']
+    bn = atom_groups['bn']
+    fec = atom_groups['fec']
+    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec}, radii={'pf6': 2.8})
+
+
+@pytest.fixture(scope='function')
+def pre_solution_mutable(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
@@ -140,14 +149,14 @@ def default_solute(atom_groups):
 
 
 @pytest.fixture(scope='module')
-def run_solute(default_solute):
-    default_solute.run(step=1)
-    return default_solute
+def run_solution(pre_solution):
+    pre_solution.run(step=1)
+    return pre_solution
 
 
 @pytest.fixture
-def solvation_results(run_solute):
-    return run_solute.solvation_frames
+def solvation_results(run_solution):
+    return run_solution.solvation_frames
 
 
 @pytest.fixture
