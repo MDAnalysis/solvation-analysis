@@ -1,9 +1,5 @@
 import matplotlib.pyplot as plt
 import pytest
-import copy
-
-from copy import deepcopy
-
 from solvation_analysis.analysis import Solution
 import numpy as np
 
