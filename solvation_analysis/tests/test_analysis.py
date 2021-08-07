@@ -58,27 +58,32 @@ def test_map_step_to_index(step_size, index_for_2, index_for_9, pre_solution_mut
     assert pre_solution_mutable.map_step_to_index(2) == index_for_2
     assert pre_solution_mutable.map_step_to_index(9) == index_for_9
 
-# @pytest.mark.parametrize(
-#     "solute_index, n_mol, step",
-#     [
-#         (1, 5, 3),
-#         (2, 6, [3773, 3173, 161, 713, 2129]),
-#         (40, 0, [4325, 1517, 1217, 1529])
-#     ],
-# )
-# def test_radial_shell(run_solution):
-#     return
-#
-# @pytest.mark.parametrize(
-#     "solute_index, radius, step",
-#     [
-#         (1, 5, [3065, 557, 2057, 1205]),
-#         (2, 6, [3773, 3173, 161, 713, 2129]),
-#         (40, 0, [4325, 1517, 1217, 1529])
-#     ],
-# )
-# def test_closest_n_mol(run_solution):
-#     return
+
+@pytest.mark.parametrize(
+    "solute_index, radius, step, expected_res_ids",
+    [
+        (1, 3, 5, [47, 101, 172, 256, 326, 522, 652]),
+        (2, 3, 6, [14, 60, 178, 265, 315, 653]),
+        (40, 3.5, 0, [102, 127, 128, 361, 369, 306, 691])
+    ],
+)
+def test_radial_shell(solute_index, radius, step, expected_res_ids, run_solution):
+    shell = run_solution.radial_shell(solute_index, radius, step=step)
+    var1 = set(shell.resids)
+    assert set(shell.resids) == set(expected_res_ids)
+
+
+@pytest.mark.parametrize(
+    "solute_index, n_mol, step, expected_res_ids",
+    [
+        (1, 4, 5, [47, 101, 172, 256, 652]),
+        (2, 5, 6, [14, 60, 178, 265, 315, 653]),
+        (40, 6, 0, [102, 127, 128, 361, 369, 306, 691])
+    ],
+)
+def test_closest_n_mol(solute_index, n_mol, step, expected_res_ids, run_solution):
+    shell = run_solution.closest_n_mol(solute_index, n_mol, step=step)
+    assert set(shell.resids) == set(expected_res_ids)
 
 
 @pytest.mark.parametrize(
