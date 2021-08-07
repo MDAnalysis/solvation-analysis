@@ -203,9 +203,9 @@ class Solution(AnalysisBase):
 
     def closest_n_mol(self, solute_index, n_mol, step=None, **kwargs):
         """
-        Returns the closest n molecules to the central species, an array of their resids,
-        and an array of the distance of the closest atom in each molecule.
-        Thin wrapper around solvation.get_closest_n_mol.
+        Returns the closest n molecules to the central species. Optionally returns
+        an array of their resids and an array of the distance of
+        the closest atom in each molecule. Thin wrapper around solvation.get_closest_n_mol.
         Parameters
         ----------
             solute_index : Atom, AtomGroup, Residue, or ResidueGroup
@@ -226,6 +226,21 @@ class Solution(AnalysisBase):
         return get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
 
     def solvation_shell(self, solute_index, step):
+        """
+        Returns the solvation shell of the solute as an AtomGroup.
+
+        Parameters
+        ----------
+            solute_index : Atom, AtomGroup, Residue, or ResidueGroup
+            step : int
+                the step in the trajectory to perform selection at. Defaults to the
+                current trajectory step.
+
+        Returns
+        -------
+            AtomGroup (molecules), np.Array (resids), np.Array (distances)
+
+        """
         assert self.solvation_frames, "Solute.run() must be called first."
         # map to absolute frame index
         index = self.map_step_to_index(step)
