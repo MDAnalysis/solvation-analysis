@@ -52,7 +52,7 @@ class Solution(AnalysisBase):
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
         self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
-
+        # TODO: save solute numbers somewhere
         self.solute = solute
         self.solvents = solvents
         self.u = self.solute.universe
@@ -177,7 +177,7 @@ class Solution(AnalysisBase):
             index -= 1
         return index
 
-    def radial_shell(self, solute_index, radius):
+    def radial_shell(self, solute_index, radius, step=None):
         """
         Returns all molecules with atoms within the radius of the central species.
         (specifically, within the radius of the COM of central species).
@@ -189,14 +189,19 @@ class Solution(AnalysisBase):
                 the index of the solute of interest
             radius : float or int
                 radius used for atom selection
+            step : int
+                the step in the trajectory to perform selection at. Defaults to the
+                current trajectory step.
 
         Returns
         -------
             AtomGroup
         """
+        if step is not None:
+            self.u.trajectory[step]
         return get_radial_shell(self.solute[solute_index], radius)
 
-    def closest_n_mol(self, solute_index, n_mol, **kwargs):
+    def closest_n_mol(self, solute_index, n_mol, step=None, **kwargs):
         """
         Returns the closest n molecules to the central species, an array of their resids,
         and an array of the distance of the closest atom in each molecule.
@@ -206,6 +211,9 @@ class Solution(AnalysisBase):
             solute_index : Atom, AtomGroup, Residue, or ResidueGroup
             n_mol : int
                 The number of molecules to return
+            step : int
+                the step in the trajectory to perform selection at. Defaults to the
+                current trajectory step.
             kwargs : passed to solvation.get_closest_n_mol
 
         Returns
@@ -213,11 +221,17 @@ class Solution(AnalysisBase):
             AtomGroup (molecules), np.Array (resids), np.Array (distances)
 
         """
+        if step is not None:
+            self.u.trajectory[step]
         return get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
 
     def solvation_shell(self, solute_index, step):
         assert self.solvation_frames, "Solute.run() must be called first."
+        # map to absolute frame index
         index = self.map_step_to_index(step)
         frame = self.solvation_frames[index]
+        # select shell AtomGroup
         shell = frame[frame.solvated_atom == solute_index]
-        return shell
+        ids = " ".join(shell["res_id"].astype(str))
+        shell_group = self.u.select_atoms(f"resid {ids}")
+        return shell_group
