@@ -12,7 +12,7 @@ from solvation_analysis.analysis_library import (
     _IonSpeciation,
     _SolvationData
 )
-from solvation_analysis.solvation import get_radial_shell, get_closest_n_mol
+from solvation_analysis.solvation import get_radial_shell, get_closest_n_mol, get_atom_group
 
 
 class Solution(AnalysisBase):
@@ -34,17 +34,26 @@ class Solution(AnalysisBase):
         """
         Parameters
         ----------
-            solute (AtomGroup): an atom group  # TODO: force to atom group
-            solvents (dict): a dictionary of names and atom groups.
-                e.g. {"name_1": solvent_group_1, "name_2": solvent_group_2, ...}
-            radii (dict): an optional dictionary of solvation radii, any radii not
+            solute : AtomGroup
+                the solute in the solutions
+            solvents: dict
+                a dictionary of names and atom groups. e.g. {"name_1": solvent_group_1,
+                "name_2": solvent_group_2, ...}
+            radii : dict
+                an optional dictionary of solvation radii, any radii not
                 given will be calculated. e.g. {"name_2": radius_2, "name_5": radius_5}
-            rdf_kernel (func): this function must take rdf bins and data as input and return
+            rdf_kernel : function
+                this function must take rdf bins and data as input and return
                 a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
                 the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
-            kernel_kwargs: kwargs passed to rdf_kernel
-            kernel_kwargs: kwargs passed to inner rdf
-            kwargs: kwargs passed to AnalysisBase
+            kernel_kwargs : dict
+                kwargs passed to rdf_kernel
+            rdf_init_kwargs : dict
+                kwargs passed to inner rdf initialization
+            rdf_run_kwargs : dict
+                kwargs passed to inner rdf run e.g. inner_rdf.run(**rdf_run_kwargs)
+            kwargs : dict
+                kwargs passed to AnalysisBase
         """
         super(Solution, self).__init__(solute.universe.trajectory, **kwargs)
         self.radii = {} if radii is None else radii
@@ -53,7 +62,7 @@ class Solution(AnalysisBase):
         self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
         # TODO: save solute numbers somewhere
-        self.solute = solute
+        self.solute = get_atom_group(solute)
         self.solvents = solvents
         self.u = self.solute.universe
         self.rdf_plots = {}
