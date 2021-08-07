@@ -98,12 +98,4 @@ def test_solvation_shell(solute_index, step, expected_res_ids, run_solution):
     shell = run_solution.solvation_shell(solute_index, step)
     assert set(shell.resids) == set(expected_res_ids)
 
-
-def test_selection_functions(run_solution):
-    # this test is incomplete and is currently only demonstrating functionality
-
-    run_solution.radial_shell(31, 3)       # 31 is a local solute index, 3 is a radius
-    run_solution.closest_n_mol(31, 6)      # 6 is n_mol
-    run_solution.solvation_shell(31, 9)  # 510 is the trajectory step of interest
-
 # TODO: should test what happens when the solute is included as a solvent
