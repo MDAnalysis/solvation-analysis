@@ -204,8 +204,10 @@ class Solution(AnalysisBase):
     def closest_n_mol(self, solute_index, n_mol, step=None, **kwargs):
         """
         Returns the closest n molecules to the central species. Optionally returns
-        an array of their resids and an array of the distance of
-        the closest atom in each molecule. Thin wrapper around solvation.get_closest_n_mol.
+        an array of their resids and an array of the distance of the closest atom
+        in each molecule. Thin wrapper around solvation.get_closest_n_mol, see
+        documentation for more detail.
+
         Parameters
         ----------
             solute_index : Atom, AtomGroup, Residue, or ResidueGroup
