@@ -170,8 +170,8 @@ class Solution(AnalysisBase):
         self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_id"])
         # create analysis classes
         # self.ion_speciation = _IonSpeciation(self.solvation_data)
-        # self.ion_pairing = _Pairing(self.solvation_data)
-        # self.coordination_numbers = _CoordinationNumber(self.solvation_data)
+        self.ion_pairing = _Pairing(self.solvation_data, self.n_frames, self.n_solute)
+        self.coordination_numbers = _CoordinationNumber(self.solvation_data, self.n_frames, self.n_solute)
 
     def map_step_to_index(self, traj_step):
         """
