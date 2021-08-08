@@ -63,6 +63,7 @@ class Solution(AnalysisBase):
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
         # TODO: save solute numbers somewhere
         self.solute = get_atom_group(solute)
+        self.n_solute = len(self.solute)
         self.solvents = solvents
         self.u = self.solute.universe
         self.rdf_plots = {}
@@ -75,6 +76,7 @@ class Solution(AnalysisBase):
     @classmethod
     def _plot_solvation_radius(cls, bins, data, radius):
         """
+        Will plot the solvation radius on the rdf. If
 
         Parameters
         ----------
@@ -141,32 +143,39 @@ class Solution(AnalysisBase):
         all_pairs = np.concatenate(all_pairs_list, dtype=int)
         all_dist = np.concatenate(all_dist_list)
         all_tags = np.concatenate(all_tags_list)
+        frame_length = len(all_pairs)
+        all_frames = np.full(frame_length, self._ts.frame)
         # put the data into a data frame
         all_resid = self.u.atoms[all_pairs[:, 1]].resids
         solvation_data_np = np.column_stack(
-            (all_pairs[:, 0], all_pairs[:, 1], all_dist, all_tags, all_resid)
+            (all_frames, all_pairs[:, 0], all_pairs[:, 1], all_dist, all_tags, all_resid)
         )
-        solvation_data_df = pd.DataFrame(
-            solvation_data_np,
-            columns=["solvated_atom", "atom_id", "dist", "res_name", "res_id"]
-        )
-        # convert from strings to numeric types
-        for column in ["solvated_atom", "atom_id", "dist", "res_id"]:
-            solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
-        self.solvation_frames.append(solvation_data_df)
+        self.solvation_frames.append(solvation_data_np)
 
     def _conclude(self):
         """
         Instantiates the SolvationData class and several analysis classes.
         """
-        self.solvation_data = _SolvationData(self.solvation_frames)
-        self.ion_speciation = _IonSpeciation(self.solvation_data)
-        self.ion_pairing = _Pairing(self.solvation_data)
-        self.coordination_numbers = _CoordinationNumber(self.solvation_data)
+        solvation_data_np = np.vstack(self.solvation_frames)
+        solvation_data_df = pd.DataFrame(
+            solvation_data_np,
+            columns=["frame", "solvated_atom", "atom_id", "dist", "res_name", "res_id"]
+        )
+        # clean up solvation_data df
+        for column in ["frame", "solvated_atom", "atom_id", "dist", "res_id"]:
+            solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
+        solvation_data_dup = solvation_data_df.sort_values(["frame", "solvated_atom", "dist"])
+        solvation_data = solvation_data_dup.drop_duplicates(["frame", "solvated_atom", "res_id"])
+        self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_id"])
+        self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_id"])
+        # create analysis classes
+        # self.ion_speciation = _IonSpeciation(self.solvation_data)
+        # self.ion_pairing = _Pairing(self.solvation_data)
+        # self.coordination_numbers = _CoordinationNumber(self.solvation_data)
 
     def map_step_to_index(self, traj_step):
         """
-        This will map the given trajectory step to an internal index of the Solution.
+        This will map the given trajectory step to the nearest tested frame in the Solution.
         The index will select the analyzed trajectory step that is closest to but less
         than the given trajectory step.
 
@@ -184,7 +193,7 @@ class Solution(AnalysisBase):
         index = len(self.frames) - 1
         while traj_step < self.frames[index]:
             index -= 1
-        return index
+        return self.frames[index]
 
     def radial_shell(self, solute_index, radius, step=None):
         """
@@ -254,10 +263,10 @@ class Solution(AnalysisBase):
         """
         assert self.solvation_frames, "Solute.run() must be called first."
         # map to absolute frame index
-        index = self.map_step_to_index(step)
-        frame = self.solvation_frames[index]
+        step = self.map_step_to_index(step)
+        # select shell of interest
+        shell = self.solvation_data.xs((step, solute_index), level=("frame", "solvated_atom"))
         # select shell AtomGroup
-        shell = frame[frame.solvated_atom == solute_index]
         ids = " ".join(shell["res_id"].astype(str))
         shell_group = self.u.select_atoms(f"resid {ids}")
         return shell_group

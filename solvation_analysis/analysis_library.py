@@ -6,7 +6,6 @@ class _SolvationData:
     """
     A class for holding solvation data, this will slightly reprocess data and
     make it available in different forms.
-    # TODO: is there any way to enforce immutability? Users shouldn't mutate this!
     """
 
     def __init__(self, raw_solvation_frames):

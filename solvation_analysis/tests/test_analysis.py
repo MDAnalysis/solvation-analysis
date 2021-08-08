@@ -4,12 +4,6 @@ from solvation_analysis.analysis import Solution
 import numpy as np
 
 
-def test_plot_solvation_distance(rdf_bins_and_data_easy):
-    bins, data = rdf_bins_and_data_easy['pf6_all']
-    fig, ax = Solution._plot_solvation_radius(bins, data, 2)
-    # plt.show()  # comment out for global testing
-
-
 def test_instantiate_solute(pre_solution):
     # these check basic properties of the instantiation
     assert len(pre_solution.radii) == 1
@@ -20,6 +14,18 @@ def test_instantiate_solute(pre_solution):
     assert pre_solution.solvents['pf6'].n_residues == 49
     assert pre_solution.solvents['fec'].n_residues == 237
     assert pre_solution.solvents['bn'].n_residues == 363
+
+
+def test_plot_solvation_distance(rdf_bins_and_data_easy):
+    bins, data = rdf_bins_and_data_easy['pf6_all']
+    fig, ax = Solution._plot_solvation_radius(bins, data, 2)
+    # plt.show()  # comment out for global testing
+
+
+def test_plot_grid(run_solution):
+    # creates a grid of solvation distance plots
+    # plt.show()
+    return
 
 
 def test_radii_finding(run_solution):
@@ -35,18 +41,20 @@ def test_radii_finding(run_solution):
     #     plt.show()  # comment out for global testing
 
 
-def test_run(run_solution):
-    # checks that run is run with
-    assert len(run_solution.solvation_frames) == 10
-    assert len(run_solution.solvation_frames[0]) == 228
+def test_run(pre_solution_mutable):
+    # checks that run is run correctly
+    pre_solution_mutable.run(step=1)
+    assert len(pre_solution_mutable.solvation_frames) == 10
+    assert len(pre_solution_mutable.solvation_frames[0]) == 228
+    assert len(pre_solution_mutable.solvation_data) == 2317
 
 
 @pytest.mark.parametrize(
     "step_size, index_for_2, index_for_9",
     [
         (1, 2, 9),
-        (2, 1, 4),
-        (3, 0, 3),
+        (2, 2, 8),
+        (3, 0, 9),
     ],
 )
 def test_map_step_to_index(step_size, index_for_2, index_for_9, pre_solution_mutable):
