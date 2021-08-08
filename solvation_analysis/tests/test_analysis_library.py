@@ -36,7 +36,7 @@ def test_ion_speciation(name, percent, solvation_data):
     ],
 )
 def test_coordination_numbers(name, cn, solvation_data):
-    coord_dict = _CoordinationNumber(solvation_data).average_dict
+    coord_dict = _CoordinationNumber(solvation_data, 10, 49).cn_dict
     np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
 
 

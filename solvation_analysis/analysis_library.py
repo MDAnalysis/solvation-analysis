@@ -115,23 +115,25 @@ class _CoordinationNumber:
     A class for calculating and storing the coordination numbers of solvents.
     """
 
-    def __init__(self, solvation_data):
+    def __init__(self, solvation_data, n_frames, n_solutes):
         """
         Parameters
         ----------
         solvation_data: the solvation data frame output by Solute
         """
-        self.average_dict = self._average_cn(
-            solvation_data.counts, solvation_data.solute_number, solvation_data.frame_number
-        )
+        self.solvation_data = solvation_data
+        self.n_frames = n_frames
+        self.n_solutes = n_solutes
+        self.cn_dict, self.cn_by_frame = self._average_cn()
 
-    @classmethod
-    def _average_cn(cls, counts, solute_number, frame_number):
-        mean_counts = counts.groupby(["res_name"]).sum().sum(axis=1) / (
-            solute_number * frame_number
+    def _average_cn(self):
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        cn_series = counts.groupby(["res_name", "frame"]).sum() / (
+            self.n_solutes * self.n_frames
         )
-        mean_dict = mean_counts.to_dict()
-        return mean_dict
+        cn_by_frame = cn_series.unstack()
+        cn_dict = cn_series.groupby(["res_name"]).sum().to_dict()
+        return cn_dict, cn_by_frame
 
 
 class _Pairing:
