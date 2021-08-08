@@ -9,8 +9,8 @@ from solvation_analysis.analysis_library import (
 )
 
 
-def test_solvation_data(solvation_results):
-    solvation_data = _SolvationData(solvation_results)
+# def test_solvation_data(solvation_results):
+#     solvation_data = _SolvationData(solvation_results)
 
 
 @pytest.mark.parametrize(
@@ -49,5 +49,5 @@ def test_coordination_numbers(name, cn, solvation_data):
     ],
 )
 def test_pairing(name, percent, solvation_data):
-    pairing_dict = _Pairing(solvation_data).percentage_dict
+    pairing_dict = _Pairing(solvation_data, 10, 49).percentage_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)

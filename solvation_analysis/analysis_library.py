@@ -141,24 +141,21 @@ class _Pairing:
     A class for analyzing pairing between the solute and another species.
     """
 
-    def __init__(self, solvation_data):
+    def __init__(self, solvation_data, n_frames, n_solutes):
         """
 
         Parameters
         ----------
         solvation_data: the solvation data frame output by Solute
         """
-        self.percentage_dict = self._percentage_coordinated(
-            solvation_data.counts, solvation_data.solute_number, solvation_data.frame_number
-        )
+        self.solvation_data = solvation_data
+        self.n_frames = n_frames
+        self.n_solutes = n_solutes
+        self.percentage_dict = self._percentage_coordinated()
 
-    @classmethod
-    def _percentage_coordinated(cls, counts, solute_number, frame_number):
-        solutes_coordinated = counts.astype(bool).sum(  # coordinated or not
-            axis=1
-        ).groupby(  # average number coordinated, per solute
-            level=1
-        ).sum() / (
-            solute_number * frame_number
+    def _percentage_coordinated(self):
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        solutes_coordinated = counts.astype(bool).groupby(["res_name"]).sum() / (
+            self.n_frames * self.n_solutes
         )  # average coordinated overall
-        return solutes_coordinated
+        return solutes_coordinated.to_dict()
