@@ -5,28 +5,38 @@ import numpy as np
 class Speciation:
     """
     A class for calculating and storing speciation information for solvents.
+
+    Parameters
+    ----------
+        solvation_data : pandas.DataFrame
+            The solvation data frame output by Solution
+        n_frames : int
+            The number of frames in solvation_data
+        n_solutes : int
+            The number of solutes in solvation_data
+
+    Attributes
+    ----------
+        solvation_data : pandas.DataFrame
+            The solvation data frame output by Solution
+        n_frames : int
+            The number of frames in solvation_data
+        n_solutes : int
+            The number of solutes in solvation_data
+
+    Methods
+    -------
+        cluster_percent
+
+        find_clusters
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
-        """
 
-        Parameters
-        ----------
-        solvation_data: the solvation data frame output by Solute
-        """
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.speciation, self.speciation_percent = self._compute_speciation()
-
-        # self.solvation_frames = solvation_data.solvation_frames
-        # self.speciation_frames = self._accumulate_speciation(self.solvation_frames)
-        # self.average_speciation = self._average_speciation(
-        #     self.speciation_frames, solvation_data.solute_number, solvation_data.frame_number
-        # )
-        # self.res_names = self._single_speciation_frame(
-        #     self.solvation_frames[0], return_res_names=True
-        # )
 
     def _compute_speciation(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
