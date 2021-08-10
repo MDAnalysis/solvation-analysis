@@ -7,9 +7,9 @@ from MDAnalysis.lib.distances import capped_distance
 import numpy as np
 from solvation_analysis.rdf_parser import identify_solvation_cutoff
 from solvation_analysis.analysis_library import (
-    _CoordinationNumber,
+    _Coordination,
     _Pairing,
-    _IonSpeciation,
+    _Speciation,
     _SolvationData
 )
 from solvation_analysis.solvation import get_radial_shell, get_closest_n_mol, get_atom_group
@@ -169,9 +169,9 @@ class Solution(AnalysisBase):
         self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_id"])
         self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_id"])
         # create analysis classes
-        # self.ion_speciation = _IonSpeciation(self.solvation_data)
+        self.ion_speciation = _Speciation(self.solvation_data, self.n_frames, self.n_solute)
         self.ion_pairing = _Pairing(self.solvation_data, self.n_frames, self.n_solute)
-        self.coordination_numbers = _CoordinationNumber(self.solvation_data, self.n_frames, self.n_solute)
+        self.coordination_numbers = _Coordination(self.solvation_data, self.n_frames, self.n_solute)
 
     def map_step_to_index(self, traj_step):
         """

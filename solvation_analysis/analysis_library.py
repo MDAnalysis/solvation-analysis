@@ -49,68 +49,70 @@ class _SolvationData:
         return counts_frame
 
 
-class _IonSpeciation:
+class _Speciation:
     """
     A class for calculating and storing speciation information for solvents.
     """
 
-    def __init__(self, solvation_data):
+    def __init__(self, solvation_data, n_frames, n_solutes):
         """
 
         Parameters
         ----------
         solvation_data: the solvation data frame output by Solute
         """
-        self.solvation_frames = solvation_data.solvation_frames
-        self.speciation_frames = self._accumulate_speciation(self.solvation_frames)
-        self.average_speciation = self._average_speciation(
-            self.speciation_frames, solvation_data.solute_number, solvation_data.frame_number
-        )
-        self.res_names = self._single_speciation_frame(
-            self.solvation_frames[0], return_res_names=True
-        )
+        self.solvation_data = solvation_data
+        self.n_frames = n_frames
+        self.n_solutes = n_solutes
+        self.speciation, self.speciation_percent = self._compute_speciation()
 
-    @classmethod
-    def _single_speciation_frame(cls, frame, return_res_names=False):
-        counts = frame.groupby(["solvated_atom", "res_name"]).count()["res_id"]
+        # self.solvation_frames = solvation_data.solvation_frames
+        # self.speciation_frames = self._accumulate_speciation(self.solvation_frames)
+        # self.average_speciation = self._average_speciation(
+        #     self.speciation_frames, solvation_data.solute_number, solvation_data.frame_number
+        # )
+        # self.res_names = self._single_speciation_frame(
+        #     self.solvation_frames[0], return_res_names=True
+        # )
+
+    def _compute_speciation(self):
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         counts_re = counts.reset_index(["res_name"])
-        pivoted = counts_re.pivot(columns=["res_name"]).fillna(0).astype(int)
-        res_names = pivoted.columns.levels[1]
-        pivoted.columns = res_names
-        speciation_counts = pivoted.groupby(pivoted.columns.to_list()).size()
-        if return_res_names:
-            return res_names
-        return speciation_counts
-
-    @classmethod
-    def _accumulate_speciation(cls, frames):
-        speciation_list = [cls._single_speciation_frame(frame) for frame in frames]
-        speciation = pd.concat(speciation_list, axis=1).fillna(0)
-        return speciation
+        speciation = counts_re.pivot(columns=["res_name"]).fillna(0).astype(int)
+        res_names = speciation.columns.levels[1]
+        speciation.columns = res_names
+        sum_series = speciation.groupby(speciation.columns.to_list()).size()
+        sum_sorted = sum_series.sort_values(ascending=False)
+        speciation_percent = sum_sorted.reset_index().rename(columns={0: 'count'})
+        speciation_percent['count'] = speciation_percent['count'] / (self.n_frames * self.n_solutes)
+        return speciation, speciation_percent
 
     @classmethod
     def _average_speciation(cls, speciation_frames, solute_number, frame_number):
         averages = speciation_frames.sum(axis=1) / (solute_number * frame_number)
         return averages
 
-    def check_cluster_percent(self, shell_tuple):
+    def cluster_percent(self, shell_dict):
         """
         This function should return the percent of clusters that exist with
         a particular composition.
         """
-        if shell_tuple in self.average_speciation.index.to_list():
-            return self.average_speciation[shell_tuple]
-        else:
-            return 0
+        query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
+        query = " and ".join(query_list)
+        query_counts = self.speciation_percent.query(query)
+        return query_counts['count'].sum()
 
-    def find_clusters(self, shell_tuple):
+    def find_clusters(self, shell_dict):
         """
         This should return the step and solute # of all clusters of a particular composition.
         """
-        return
+        query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
+        query = " and ".join(query_list)
+        query_counts = self.speciation.query(query)
+        return query_counts
 
 
-class _CoordinationNumber:
+class _Coordination:
     """
     A class for calculating and storing the coordination numbers of solvents.
     """
