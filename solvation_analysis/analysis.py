@@ -245,7 +245,7 @@ class Solution(AnalysisBase):
             self.u.trajectory[step]
         return get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
 
-    def solvation_shell(self, solute_index, step):
+    def solvation_shell(self, solute_index, step, as_df=False, remove_mols=None, closest_n_only=None):
         """
         Returns the solvation shell of the solute as an AtomGroup.
 
@@ -255,18 +255,68 @@ class Solution(AnalysisBase):
             step : int
                 the step in the trajectory to perform selection at. Defaults to the
                 current trajectory step.
+            as_df : boolean
+                if true, this function will return a DataFrame representing the shell
+                instead of a AtomGroup. Default to False.
+            remove_mols : dict
+                remove_dict lets you remove specific residues from the final shell.
+                It should be a dict of molnames and ints e.g. {'mol1': n, 'mol2', m}.
+                It will remove up to n of mol1 and up to m of mol2. So if the dict is
+                {'mol1': 1, 'mol2', 1} and the shell has 4 mol1 and 0 mol2,
+                solvation_shell will return a shell with 3 mol1 and 0 mol2.
+            closest_n_only : int
+                if given, only the closest n residues will be included
+
 
         Returns
         -------
-            AtomGroup (molecules), np.Array (resids), np.Array (distances)
+            AtomGroup or DataFrame
 
         """
+        remove_mols = {} if remove_mols is None else remove_mols
         assert self.solvation_frames, "Solute.run() must be called first."
         # map to absolute frame index
         step = self.map_step_to_index(step)
         # select shell of interest
         shell = self.solvation_data.xs((step, solute_index), level=("frame", "solvated_atom"))
-        # select shell AtomGroup
-        ids = " ".join(shell["res_id"].astype(str))
-        shell_group = self.u.select_atoms(f"resid {ids}")
-        return shell_group
+        # remove mols
+        for mol_name, n_remove in remove_mols.items():
+            # first, filter for only mols of type mol_name
+            is_mol = shell.res_name == mol_name
+            res_ids = shell[is_mol].res_id
+            mol_count = len(res_ids)
+            n_remove = min(mol_count, n_remove)
+            # then truncate resnames to remove mols
+            remove_ids = res_ids[(mol_count - n_remove):]
+            # then apply to original shell
+            remove = shell.res_id.isin(remove_ids)
+            shell = shell[np.invert(remove)]
+        # filter based on length
+        if closest_n_only:
+            assert closest_n_only > 0, "closest_n_only must be at least 1"
+            closest_n_only = min(len(shell), closest_n_only)
+            shell = shell[0: closest_n_only]
+        if as_df:
+            return shell
+        else:
+            return self.resids_to_atom_group(shell["res_id"], solute_index=solute_index)
+
+    def resids_to_atom_group(self, ids, solute_index=None):
+        """
+
+        Parameters
+        ----------
+        ids : np.array[int]
+            an array of res ids
+        solute_index : int
+            if given, will include the solute with solute_index
+
+        Returns
+        -------
+
+        """
+        ids = " ".join(ids.astype(str))
+        atoms = self.u.select_atoms(f"resid {ids}")
+        if solute_index is not None:
+            atoms = atoms | self.solute[solute_index]
+        return atoms

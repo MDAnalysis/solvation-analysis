@@ -111,6 +111,7 @@ class _Speciation:
         query_counts = self.speciation.query(query)
         return query_counts
 
+    # def truncate_cluster
 
 class _Coordination:
     """
