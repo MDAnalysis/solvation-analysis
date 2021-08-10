@@ -93,13 +93,52 @@ def test_closest_n_mol(solute_index, n_mol, step, expected_res_ids, run_solution
 @pytest.mark.parametrize(
     "solute_index, step, expected_res_ids",
     [
-        (1, 5, [47, 101, 172, 256]),
-        (2, 6, [14, 60, 178, 265, 315]),
-        (40, 0, [102, 127, 128, 361])
+        (1, 5, [47, 101, 172, 256, 652]),
+        (2, 6, [14, 60, 178, 265, 315, 653]),
+        (40, 0, [102, 127, 128, 361, 691])
     ],
 )
 def test_solvation_shell(solute_index, step, expected_res_ids, run_solution):
     shell = run_solution.solvation_shell(solute_index, step)
     assert set(shell.resids) == set(expected_res_ids)
 
+
+@pytest.mark.parametrize(
+    "solute_index, step, remove, expected_res_ids",
+    [
+        (1, 5, {'bn': 1}, [47, 172, 256, 652]),
+        (2, 6, {'bn': 2, 'fec': 1}, [14, 178, 315, 653]),
+        (40, 0, {'fec': 1}, [102, 127, 128, 361, 691])
+    ],
+)
+def test_solvation_shell_remove(solute_index, step, remove, expected_res_ids, run_solution):
+    shell = run_solution.solvation_shell(solute_index, step, remove_mols=remove)
+    assert set(shell.resids) == set(expected_res_ids)
+
 # TODO: should test what happens when the solute is included as a solvent
+
+@pytest.mark.parametrize(
+    "solute_index, step, remove, expected_res_ids",
+    [
+        (1, 5, {'bn': 1}, [47, 172, 256, 652]),
+        (2, 6, {'bn': 2, 'fec': 1}, [14, 178, 315, 653]),
+        (40, 0, {'fec': 1}, [102, 127, 128, 361, 691])
+    ],
+)
+def test_solvation_shell_remove(solute_index, step, remove, expected_res_ids, run_solution):
+    shell = run_solution.solvation_shell(solute_index, step, remove_mols=remove)
+    assert set(shell.resids) == set(expected_res_ids)
+
+
+@pytest.mark.parametrize(
+    "solute_index, step, n, expected_res_ids",
+    [
+        (1, 5, 3, [47, 172, 256, 652]),
+        (2, 6, 3, [14, 178, 315, 653]),
+        (40, 0, 4, [102, 127, 128, 361, 691]),
+        (40, 0, 1, [102, 691])
+    ],
+)
+def test_solvation_shell_remove(solute_index, step, n, expected_res_ids, run_solution):
+    shell = run_solution.solvation_shell(solute_index, step, closest_n_only=n)
+    assert set(shell.resids) == set(expected_res_ids)
