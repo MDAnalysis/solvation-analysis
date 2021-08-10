@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 
-class _Speciation:
+
+class Speciation:
     """
     A class for calculating and storing speciation information for solvents.
     """
@@ -63,9 +64,8 @@ class _Speciation:
         query_counts = self.speciation.query(query)
         return query_counts
 
-    # def truncate_cluster
 
-class _Coordination:
+class Coordination:
     """
     A class for calculating and storing the coordination numbers of solvents.
     """
@@ -91,7 +91,7 @@ class _Coordination:
         return cn_dict, cn_by_frame
 
 
-class _Pairing:
+class Pairing:
     """
     A class for analyzing pairing between the solute and another species.
     """

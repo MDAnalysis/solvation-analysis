@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 from solvation_analysis.analysis_library import (
-    _Speciation,
-    _Coordination,
-    _Pairing,
+    Speciation,
+    Coordination,
+    Pairing,
 )
 
 
@@ -18,7 +18,7 @@ from solvation_analysis.analysis_library import (
     ],
 )
 def test_speciation_cluster_percent(cluster, percent, solvation_data):
-    speciation = _Speciation(solvation_data, 10, 49)
+    speciation = Speciation(solvation_data, 10, 49)
     percentage = speciation.cluster_percent(cluster)
     np.testing.assert_allclose(percent, percentage, atol=0.05)
 
@@ -33,7 +33,7 @@ def test_speciation_cluster_percent(cluster, percent, solvation_data):
     ],
 )
 def test_speciation_find_clusters(cluster, n_clusters, solvation_data):
-    speciation = _Speciation(solvation_data, 10, 49)
+    speciation = Speciation(solvation_data, 10, 49)
     df = speciation.find_clusters(cluster)
     assert len(df) == n_clusters
 
@@ -47,7 +47,7 @@ def test_speciation_find_clusters(cluster, n_clusters, solvation_data):
     ],
 )
 def test_coordination_numbers(name, cn, solvation_data):
-    coord_dict = _Coordination(solvation_data, 10, 49).cn_dict
+    coord_dict = Coordination(solvation_data, 10, 49).cn_dict
     np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
 
 
@@ -60,5 +60,5 @@ def test_coordination_numbers(name, cn, solvation_data):
     ],
 )
 def test_pairing(name, percent, solvation_data):
-    pairing_dict = _Pairing(solvation_data, 10, 49).percentage_dict
+    pairing_dict = Pairing(solvation_data, 10, 49).percentage_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
