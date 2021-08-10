@@ -5,7 +5,6 @@ from solvation_analysis.analysis_library import (
     _Speciation,
     _Coordination,
     _Pairing,
-    _SolvationData
 )
 
 
