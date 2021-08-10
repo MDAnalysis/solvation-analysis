@@ -2,29 +2,26 @@ import numpy as np
 import pytest
 
 from solvation_analysis.analysis_library import (
-    _IonSpeciation,
-    _CoordinationNumber,
+    _Speciation,
+    _Coordination,
     _Pairing,
     _SolvationData
 )
 
 
-# def test_solvation_data(solvation_results):
-#     solvation_data = _SolvationData(solvation_results)
-
-
 @pytest.mark.parametrize(
-    "name, percent",
+    "cluster, percent",
     [
-        ((4, 0, 0), 0.295),
-        ((5, 0, 0), 0.357),
-        ((3, 3, 0), 0.004),
-        ((3, 0, 1), 0.016),
+        ({'bn': 5, 'fec': 0, 'pf6': 0}, 0.357),
+        ({'bn': 3, 'fec': 3, 'pf6': 0}, 0.004),
+        ({'bn': 3, 'fec': 0, 'pf6': 1}, 0.016),
     ],
 )
-def test_ion_speciation(name, percent, solvation_data):
-    speciation = _IonSpeciation(solvation_data).average_speciation
-    np.testing.assert_allclose(percent, speciation[name], atol=0.05)
+def test_ion_speciation(cluster, percent, solvation_data):
+    speciation = _Speciation(solvation_data, 10, 49)
+    speciation.find_clusters({'bn': 5})
+    percentage = speciation.cluster_percent(cluster)
+    np.testing.assert_allclose(percent, percentage, atol=0.05)
 
 
 @pytest.mark.parametrize(
@@ -36,7 +33,7 @@ def test_ion_speciation(name, percent, solvation_data):
     ],
 )
 def test_coordination_numbers(name, cn, solvation_data):
-    coord_dict = _CoordinationNumber(solvation_data, 10, 49).cn_dict
+    coord_dict = _Coordination(solvation_data, 10, 49).cn_dict
     np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
 
 
