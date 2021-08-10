@@ -17,7 +17,6 @@ from solvation_analysis.tests.datafiles import (
     non_solv_rdf_data,
 )
 from solvation_analysis.analysis import Solution
-from solvation_analysis.analysis_library import _SolvationData
 
 
 def test_solvation_analysis_imported():

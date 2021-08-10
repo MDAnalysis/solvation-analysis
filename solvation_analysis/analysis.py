@@ -10,7 +10,6 @@ from solvation_analysis.analysis_library import (
     _Coordination,
     _Pairing,
     _Speciation,
-    _SolvationData
 )
 from solvation_analysis.solvation import get_radial_shell, get_closest_n_mol, get_atom_group
 
