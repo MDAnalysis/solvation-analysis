@@ -76,7 +76,7 @@ class Solution(AnalysisBase):
     speciation : Speciation object
         An analysis_library.Speciation object instantiated from solvation_data.
 
-    # should these e included in the docs?
+    # should these be included in the docs?
     kernel
     kernel_kwargs
     rdf_init_kwargs
@@ -162,7 +162,7 @@ class Solution(AnalysisBase):
         """
         This function finds the solvation shells of each solute at a given time step.
         """
-        # initialize empty arrays
+        # initialize empty lists
         all_pairs_list = []
         all_dist_list = []
         all_tags_list = []
@@ -284,7 +284,6 @@ class Solution(AnalysisBase):
                 solvation_shell will return a shell with 3 mol1 and 0 mol2.
             closest_n_only : int, optional
                 if given, only the closest n residues will be included
-
 
         Returns
         -------
