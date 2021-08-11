@@ -12,11 +12,11 @@ class Speciation:
     Parameters
     ----------
         solvation_data : pandas.DataFrame
-            The solvation data frame output by Solution
+            The solvation data frame output by Solution.
         n_frames : int
-            The number of frames in solvation_data
+            The number of frames in solvation_data.
         n_solutes : int
-            The number of solutes in solvation_data
+            The number of solutes in solvation_data.
 
     Attributes
     ----------
@@ -114,11 +114,11 @@ class Coordination:
     Parameters
     ----------
         solvation_data : pandas.DataFrame
-            The solvation data frame output by Solution
+            The solvation data frame output by Solution.
         n_frames : int
-            The number of frames in solvation_data
+            The number of frames in solvation_data.
         n_solutes : int
-            The number of solutes in solvation_data
+            The number of solutes in solvation_data.
 
     Attributes
     ----------
@@ -153,11 +153,11 @@ class Pairing:
     Parameters
     ----------
         solvation_data : pandas.DataFrame
-            The solvation data frame output by Solution
+            The solvation data frame output by Solution.
         n_frames : int
-            The number of frames in solvation_data
+            The number of frames in solvation_data.
         n_solutes : int
-            The number of solutes in solvation_data
+            The number of solutes in solvation_data.
 
     Attributes
     ----------
