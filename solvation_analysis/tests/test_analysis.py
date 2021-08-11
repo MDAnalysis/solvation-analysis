@@ -32,7 +32,6 @@ def test_radii_finding(run_solution):
     # checks that the solvation radii are plotted
     assert len(run_solution.radii) == 3
     assert len(run_solution.rdf_data) == 3
-    assert len(run_solution.rdf_plots) == 3
     # checks that the identified solvation radii are approximately correct
     assert 2 < run_solution.radii['pf6'] < 3
     assert 2 < run_solution.radii['fec'] < 3
@@ -47,20 +46,6 @@ def test_run(pre_solution_mutable):
     assert len(pre_solution_mutable.solvation_frames) == 10
     assert len(pre_solution_mutable.solvation_frames[0]) == 228
     assert len(pre_solution_mutable.solvation_data) == 2317
-
-
-@pytest.mark.parametrize(
-    "step_size, index_for_2, index_for_9",
-    [
-        (1, 2, 9),
-        (2, 2, 8),
-        (3, 0, 9),
-    ],
-)
-def test_map_step_to_index(step_size, index_for_2, index_for_9, pre_solution_mutable):
-    pre_solution_mutable.run(step=step_size)
-    assert pre_solution_mutable.map_step_to_index(2) == index_for_2
-    assert pre_solution_mutable.map_step_to_index(9) == index_for_9
 
 
 @pytest.mark.parametrize(
