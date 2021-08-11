@@ -8,7 +8,6 @@ def test_instantiate_solute(pre_solution):
     # these check basic properties of the instantiation
     assert len(pre_solution.radii) == 1
     assert len(pre_solution.rdf_data) == 0
-    assert len(pre_solution.rdf_plots) == 0
     assert callable(pre_solution.kernel)
     assert pre_solution.solute.n_residues == 49
     assert pre_solution.solvents['pf6'].n_residues == 49
@@ -126,3 +125,43 @@ def test_solvation_shell_remove(solute_index, step, remove, expected_res_ids, ru
 def test_solvation_shell_remove(solute_index, step, n, expected_res_ids, run_solution):
     shell = run_solution.solvation_shell(solute_index, step, closest_n_only=n)
     assert set(shell.resids) == set(expected_res_ids)
+
+
+@pytest.mark.parametrize(
+    "cluster, n_clusters",
+    [
+        ({'bn': 5, 'fec': 0, 'pf6': 0}, 175),
+        ({'bn': 3, 'fec': 3, 'pf6': 0}, 2),
+        ({'bn': 3, 'fec': 0, 'pf6': 1}, 8),
+        ({'bn': 4}, 260),
+    ],
+)
+def test_speciation_find_clusters(cluster, n_clusters, run_solution):
+    df = run_solution.speciation.find_clusters(cluster)
+    assert len(df) == n_clusters
+
+
+@pytest.mark.parametrize(
+    "name, cn",
+    [
+        ("fec", 0.25),
+        ("bn", 4.33),
+        ("pf6", 0.15),
+    ],
+)
+def test_coordination_numbers(name, cn, run_solution):
+    coord_dict = run_solution.coordination.cn_dict
+    np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
+
+
+@pytest.mark.parametrize(
+    "name, percent",
+    [
+        ("fec", 0.21),
+        ("bn", 1.0),
+        ("pf6", 0.14),
+    ],
+)
+def test_pairing(name, percent, run_solution):
+    pairing_dict = run_solution.pairing.percentage_dict
+    np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
