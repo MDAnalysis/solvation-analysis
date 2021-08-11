@@ -46,9 +46,10 @@ def test_speciation_find_clusters(cluster, n_clusters, solvation_data):
         ("pf6", 0.15),
     ],
 )
-def test_coordination_numbers(name, cn, solvation_data):
-    coord_dict = Coordination(solvation_data, 10, 49).cn_dict
-    np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
+def test_coordination(name, cn, solvation_data):
+    coordination = Coordination(solvation_data, 10, 49)
+    np.testing.assert_allclose(cn, coordination.cn_dict[name], atol=0.05)
+    assert len(coordination.cn_by_frame) == 3
 
 
 @pytest.mark.parametrize(
@@ -60,5 +61,6 @@ def test_coordination_numbers(name, cn, solvation_data):
     ],
 )
 def test_pairing(name, percent, solvation_data):
-    pairing_dict = Pairing(solvation_data, 10, 49).percentage_dict
-    np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
+    pairing = Pairing(solvation_data, 10, 49)
+    np.testing.assert_allclose([percent], pairing.pairing_dict[name], atol=0.05)
+    assert len(pairing.pairing_by_frame) == 3
