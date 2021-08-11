@@ -45,19 +45,11 @@ class Solution(AnalysisBase):
     ----------
     u : Universe
         An MDAnalysis Universe object
-    solute : AtomGroup
-        the solute in the solutions
-    solvents: dict
-        a dictionary of names and atom groups. e.g. {"name_1": solvent_group_1,
-        "name_2": solvent_group_2, ...}
     n_solute : int
         number of solute atoms
     radii : dict
         a dictionary of solvation radii for each solvent
         e.g. {"name_2": radius_2, "name_2": radius_2, ...}
-    rdf_plots : dict
-        a dictionary of rdf plots, keys are solvent names and values
-        are (Matplotlib.Figure, Matplotlib.Axes) tuples.
     rdf_data : dict
         a dictionary of rdf data, keys are solvent names and values
         are (bins, data) tuples.
@@ -75,11 +67,6 @@ class Solution(AnalysisBase):
         An analysis_library.Coordination object instantiated from solvation_data.
     speciation : Speciation object
         An analysis_library.Speciation object instantiated from solvation_data.
-
-    # should these be included in the docs?
-    kernel
-    kernel_kwargs
-    rdf_init_kwargs
     """
 
     def __init__(
@@ -104,7 +91,6 @@ class Solution(AnalysisBase):
         self.n_solute = len(self.solute)
         self.solvents = solvents
         self.u = self.solute.universe
-        self.rdf_plots = {}
         self.rdf_data = {}
         self.solvation_data = None
         self.solvation_data_dup = None

@@ -100,7 +100,6 @@ def test_solvation_shell_remove(solute_index, step, remove, expected_res_ids, ru
     shell = run_solution.solvation_shell(solute_index, step, remove_mols=remove)
     assert set(shell.resids) == set(expected_res_ids)
 
-# TODO: should test what happens when the solute is included as a solvent
 
 @pytest.mark.parametrize(
     "solute_index, step, remove, expected_res_ids",
