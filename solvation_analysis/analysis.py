@@ -213,30 +213,6 @@ class Solution(AnalysisBase):
         self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute)
         self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute)
 
-    def map_step_to_index(self, traj_step):
-        """
-        This will map the given trajectory step to the nearest tested frame in the Solution.
-        The index will select the analyzed trajectory step that is closest to but less
-        than the given trajectory step.
-
-        Parameters
-        ----------
-            traj_step : int
-                the trajectory step of interest
-
-        Returns
-        -------
-            index : int
-                the closest index that is analyzed
-
-        """
-        assert self.start <= traj_step <= self.stop, f"The traj_step {traj_step} " \
-                                                     f"is not in the region covered by Solution."
-        index = len(self.frames) - 1
-        while traj_step < self.frames[index]:
-            index -= 1
-        return self.frames[index]
-
     def radial_shell(self, solute_index, radius, step=None):
         """
         Returns all molecules with atoms within the radius of the central species.
@@ -315,10 +291,10 @@ class Solution(AnalysisBase):
             AtomGroup or DataFrame
 
         """
-        remove_mols = {} if remove_mols is None else remove_mols
         assert self.solvation_frames, "Solute.run() must be called first."
-        # map to absolute frame index
-        step = self.map_step_to_index(step)
+        assert step in self.frames, "The requested step must be one of an " \
+                                    "analyzed steps in self.frames."
+        remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
         shell = self.solvation_data.xs((step, solute_index), level=("frame", "solvated_atom"))
         # remove mols
