@@ -60,7 +60,7 @@ class Solution(AnalysisBase):
         are (Matplotlib.Figure, Matplotlib.Axes) tuples.
     rdf_data : dict
         a dictionary of rdf data, keys are solvent names and values
-        are (data, bins) tuples.
+        are (bins, data) tuples.
     solvation_data : pandas.DataFrame
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
         "dist", "res_name", and "res_id". If multiple entries share a frame, solvated_atom,
@@ -113,32 +113,6 @@ class Solution(AnalysisBase):
         self.coordination = None
         self.solvation_frames = []
 
-    @staticmethod
-    def _plot_solvation_radius(bins, data, radius):
-        """
-        Will plot the solvation radius on the rdf. If
-
-        Parameters
-        ----------
-            bins : np.array
-                the rdf bins
-            data : np.array
-                the rdf data
-            radius : float
-                the cutoff radius to draw on the plot
-
-        Returns
-        -------
-            Matplotlib Figure, Matplotlib Axes
-        """
-        fig, ax = plt.subplots()
-        ax.plot(bins, data, "b-", label="rdf")
-        ax.axvline(radius, color="r", label="solvation radius")
-        ax.set_xlabel("Radial Distance (A)")
-        ax.set_ylabel("Probability Density")
-        ax.legend()
-        return fig, ax
-
     def _prepare(self):
         """
         This function identifies the solvation radii and saves the associated rdfs.
@@ -146,16 +120,12 @@ class Solution(AnalysisBase):
         for name, solvent in self.solvents.items():
             # generate and save RDFs
             rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
-            # TODO: specify start and stop args
             rdf.run(**self.rdf_run_kwargs)
             bins, data = rdf.results.bins, rdf.results.rdf
-            self.rdf_data[name] = (data, bins)
+            self.rdf_data[name] = (bins, data)
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
-            fig, ax = self._plot_solvation_radius(bins, data, self.radii[name])
-            ax.set_title(f"Solvation distance of {name}")
-            self.rdf_plots[name] = fig, ax
         assert self.solvents.keys() == self.radii.keys(), "Radii missing."
 
     def _single_frame(self):
@@ -212,6 +182,52 @@ class Solution(AnalysisBase):
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
         self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute)
         self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute)
+
+    @staticmethod
+    def _plot_solvation_radius(bins, data, radius):
+        """
+        Will plot the solvation radius on the rdf from bins, data, and a radius.
+        Includes a vertical line at the radius of interest.
+
+        Parameters
+        ----------
+            bins : np.array
+                the rdf bins
+            data : np.array
+                the rdf data
+            radius : float
+                the cutoff radius to draw on the plot
+
+        Returns
+        -------
+            Matplotlib Figure, Matplotlib Axes
+        """
+        fig, ax = plt.subplots()
+        ax.plot(bins, data, "b-", label="rdf")
+        ax.axvline(radius, color="r", label="solvation radius")
+        ax.set_xlabel("Radial Distance (A)")
+        ax.set_ylabel("Probability Density")
+        ax.legend()
+        return fig, ax
+
+    def plot_solvation_radius(self, res_name):
+        """
+        Will plot the rdf of a solvent molecule, specified by resname.
+        Includes a vertical line at the radius of interest.
+
+        Parameters
+        ----------
+        res_name : str
+            the name of the residue of interest, as written in the solvents dict
+
+        Returns
+        -------
+            Matplotlib Figure, Matplotlib Axes
+        """
+        bins, data = self.rdf_data[res_name]
+        fig, ax = self._plot_solvation_radius(bins, data, self.radii[res_name])
+        ax.set_title(f"Solvation distance of {res_name}")
+        return fig, ax
 
     def radial_shell(self, solute_index, radius, step=None):
         """
