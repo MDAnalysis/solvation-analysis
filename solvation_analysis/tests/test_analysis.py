@@ -163,5 +163,5 @@ def test_coordination_numbers(name, cn, run_solution):
     ],
 )
 def test_pairing(name, percent, run_solution):
-    pairing_dict = run_solution.pairing.percentage_dict
+    pairing_dict = run_solution.pairing.pairing_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
