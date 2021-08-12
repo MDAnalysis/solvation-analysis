@@ -56,7 +56,7 @@ def test_run(pre_solution_mutable):
     ],
 )
 def test_radial_shell(solute_index, radius, step, expected_res_ids, run_solution):
-    shell = run_solution.radial_shell(solute_index, radius, step=step)
+    shell = run_solution.radial_shell(solute_index, radius, frame=step)
     var1 = set(shell.resids)
     assert set(shell.resids) == set(expected_res_ids)
 
@@ -70,7 +70,7 @@ def test_radial_shell(solute_index, radius, step, expected_res_ids, run_solution
     ],
 )
 def test_closest_n_mol(solute_index, n_mol, step, expected_res_ids, run_solution):
-    shell = run_solution.closest_n_mol(solute_index, n_mol, step=step)
+    shell = run_solution.closest_n_mol(solute_index, n_mol, frame=step)
     assert set(shell.resids) == set(expected_res_ids)
 
 
