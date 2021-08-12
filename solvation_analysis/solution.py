@@ -103,6 +103,11 @@ class Solution(AnalysisBase):
         self.n_solute = len(self.solute)
         self.solvents = solvents
         self.u = self.solute.universe
+
+    def _prepare(self):
+        """
+        This function identifies the solvation radii and saves the associated rdfs.
+        """
         self.rdf_data = {}
         self.solvation_data = None
         self.solvation_data_dup = None
@@ -110,11 +115,6 @@ class Solution(AnalysisBase):
         self.pairing = None
         self.coordination = None
         self.solvation_frames = []
-
-    def _prepare(self):
-        """
-        This function identifies the solvation radii and saves the associated rdfs.
-        """
         for name, solvent in self.solvents.items():
             # generate and save RDFs
             rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
