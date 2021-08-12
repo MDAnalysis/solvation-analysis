@@ -98,8 +98,8 @@ class Solution(AnalysisBase):
         self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
         # TODO: save solute numbers somewhere
-        self.solute = get_atom_group(solute)
-        self.n_solute = len(self.solute)
+        self.solute = solute
+        self.n_solute = len(self.solute.residues)
         self.solvents = solvents
         self.u = self.solute.universe
 

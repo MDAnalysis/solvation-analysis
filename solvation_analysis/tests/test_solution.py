@@ -7,7 +7,6 @@ import numpy as np
 def test_instantiate_solute(pre_solution):
     # these check basic properties of the instantiation
     assert len(pre_solution.radii) == 1
-    assert len(pre_solution.rdf_data) == 0
     assert callable(pre_solution.kernel)
     assert pre_solution.solute.n_residues == 49
     assert pre_solution.solvents['pf6'].n_residues == 49
