@@ -17,16 +17,16 @@ from MDAnalysis.analysis import distances
 
 def get_atom_group(selection):
     """
-    Cast an Atom, AtomGroup, Residue, or ResidueGroup to AtomGroup.
+    Cast an MDAnalysis.Atom, MDAnalysis.Residue, or MDAnalysis.ResidueGroup to AtomGroup.
 
     Parameters
     ----------
-    selection: Atom, AtomGroup, Residue or ResidueGroup
+    selection: MDAnalysis.Atom, MDAnalysis.Residue or MDAnalysis.ResidueGroup
         atoms to cast
 
     Returns
     -------
-    AtomGroup
+    MDAnalysis.AtomGroup
 
     """
     assert isinstance(
@@ -57,17 +57,17 @@ def _get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
 
     Parameters
     ----------
-    central_species : Atom, AtomGroup, Residue or ResidueGroup
+    central_species : MDAnalysis.Atom, MDAnalysis.AtomGroup, MDAnalysis.Residue or MDAnalysis.ResidueGroup
     n_shell : int
         number of shells to return
     radius : float or int
         radius used to select atoms in next shell
-    ignore_atoms : AtomGroup
+    ignore_atoms : MDAnalysis.AtomGroup
         these atoms will be ignored
 
     Returns
     -------
-    List of AtomGroups
+    List of MDAnalysis.AtomGroups
 
 
     """
@@ -92,7 +92,7 @@ def get_closest_n_mol(
 
     Parameters
     ----------
-    central_species : Atom, AtomGroup, Residue or ResidueGroup
+    central_species : MDAnalysis.Atom, MDAnalysis.AtomGroup, MDAnalysis.Residue or MDAnalysis.ResidueGroup
     n_mol : int
         The number of molecules to return
     guess_radius : float or int
@@ -106,7 +106,7 @@ def get_closest_n_mol(
 
     Returns
     -------
-    full shell : AtomGroup
+    full shell : MDAnalysis.AtomGroup
         the atoms in the shell
     ordered_resids : numpy.array of int
         the residue id of the n_mol closest atoms
@@ -161,13 +161,13 @@ def get_radial_shell(central_species, radius):
 
     Parameters
     ----------
-    central_species : Atom, AtomGroup, Residue, or ResidueGroup
+    central_species : MDAnalysis.Atom, MDAnalysis.AtomGroup, MDAnalysis.Residue, or MDAnalysis.ResidueGroup
     radius : float or int
         radius used for atom selection
 
     Returns
     -------
-    AtomGroup
+    MDAnalysis.AtomGroup
 
     """
     u = central_species.universe
