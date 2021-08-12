@@ -32,11 +32,11 @@ class Solution(AnalysisBase):
 
     Parameters
     ----------
-    solute : Atom, AtomGroup, Residue or ResidueGroup
+    solute : MDAnalysis.Atom, MDAnalysis.AtomGroup, MDAnalysis.Residue or MDAnalysis.ResidueGroup
         the solute in the solutions
-    solvents: dict of {str: Atom, AtomGroup, Residue or ResidueGroup}
-        a dictionary of names and atom groups. e.g. {"name_1": solvent_group_1,
-        "name_2": solvent_group_2, ...}
+    solvents: dict of {str: MDAnalysis.Atom, MDAnalysis.AtomGroup, MDAnalysis.Residue
+        or MDAnalysis.ResidueGroup} a dictionary of names and atom groups.
+        e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}
     radii : dict, optional
         an optional dictionary of solvation radii, any radii not
         given will be calculated. e.g. {"name_2": radius_2, "name_5": radius_5}
@@ -249,7 +249,7 @@ class Solution(AnalysisBase):
 
         Returns
         -------
-        AtomGroup
+        MDAnalysis.AtomGroup
         """
         if step is not None:
             self.u.trajectory[step]
@@ -275,7 +275,7 @@ class Solution(AnalysisBase):
 
         Returns
         -------
-        full shell : AtomGroup
+        full shell : MDAnalysis.AtomGroup
             the atoms in the shell
         ordered_resids : numpy.array of int, optional
             the residue id of the n_mol closest atoms
@@ -311,7 +311,7 @@ class Solution(AnalysisBase):
 
         Returns
         -------
-        AtomGroup or DataFrame
+        MDAnalysis.AtomGroup or DataFrame
 
         """
         assert self.solvation_frames, "Solute.run() must be called first."
@@ -354,7 +354,7 @@ class Solution(AnalysisBase):
 
         Returns
         -------
-        AtomGroup
+        MDAnalysis.AtomGroup
         """
         ids = " ".join(ids.astype(str))
         atoms = self.u.select_atoms(f"resid {ids}")
