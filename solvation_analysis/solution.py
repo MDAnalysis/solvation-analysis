@@ -1,3 +1,15 @@
+"""
+========
+solution
+========
+:Author: Orion Cohen
+:Year: 2021
+:Copyright: GNU Public License v3
+
+Solution contains a core class for the solvation analysis module.
+"""
+
+
 import matplotlib.pyplot as plt
 import pandas as pd
 

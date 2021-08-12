@@ -1,3 +1,14 @@
+"""
+================
+analysis_library
+================
+:Author: Orion Cohen
+:Year: 2021
+:Copyright: GNU Public License v3
+
+A few core classes for analyzing solvation data.
+"""
+
 import pandas as pd
 import numpy as np
 
