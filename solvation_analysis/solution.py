@@ -332,7 +332,7 @@ class Solution(AnalysisBase):
         else:
             return self.resids_to_atom_group(shell["res_id"], solute_index=solute_index)
 
-    def resids_to_atom_group(self, ids, solute_index=None):
+    def _resids_to_atom_group(self, ids, solute_index=None):
         """
 
         Parameters
