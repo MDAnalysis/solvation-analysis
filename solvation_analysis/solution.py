@@ -32,10 +32,9 @@ class Solution(AnalysisBase):
 
     Parameters
     ----------
-    solute : MDAnalysis.Atom, MDAnalysis.AtomGroup, MDAnalysis.Residue or MDAnalysis.ResidueGroup
+    solute : MDAnalysis.AtomGroup
         the solute in the solutions
-    solvents: dict of {str: MDAnalysis.Atom, MDAnalysis.AtomGroup, MDAnalysis.Residue
-        or MDAnalysis.ResidueGroup} a dictionary of names and atom groups.
+    solvents: dict of {str: MDAnalysis.AtomGroup} a dictionary of names and atom groups.
         e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}
     radii : dict, optional
         an optional dictionary of solvation radii, any radii not
