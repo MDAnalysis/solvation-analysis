@@ -4,6 +4,4 @@ mdanalysis
 pytest
 pathlib
 matplotlib
-nglview~=3.0.3
 scipy
-xarray

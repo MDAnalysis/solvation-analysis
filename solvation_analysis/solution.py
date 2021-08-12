@@ -158,12 +158,14 @@ class Solution(AnalysisBase):
         solvation_data_np = np.column_stack(
             (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, all_resid)
         )
+        # add the current frame to the growing list of solvation frames
         self.solvation_frames.append(solvation_data_np)
 
     def _conclude(self):
         """
         Instantiates the SolvationData class and several analysis classes.
         """
+        # stack all solvation frames into a single data structure
         solvation_data_np = np.vstack(self.solvation_frames)
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
