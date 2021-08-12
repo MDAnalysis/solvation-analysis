@@ -50,8 +50,8 @@ class Solution(AnalysisBase):
         kwargs passed to inner rdf initialization
     rdf_run_kwargs : dict, optional
         kwargs passed to inner rdf run e.g. inner_rdf.run(**rdf_run_kwargs)
-    kwargs : dict, optional
-        kwargs passed to AnalysisBase
+    verbose : bool, optional
+       Turn on more logging and debugging, default ``False``
 
     Attributes
     ----------
@@ -90,9 +90,9 @@ class Solution(AnalysisBase):
         kernel_kwargs=None,
         rdf_init_kwargs=None,
         rdf_run_kwargs=None,
-        **kwargs,
+        verbose=False,
     ):
-        super(Solution, self).__init__(solute.universe.trajectory, **kwargs)
+        super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = {} if radii is None else radii
         self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
