@@ -16,7 +16,7 @@ from solvation_analysis.tests.datafiles import (
     non_solv_rdf_bins,
     non_solv_rdf_data,
 )
-from solvation_analysis.analysis import Solution
+from solvation_analysis.solution import Solution
 
 
 def test_solvation_analysis_imported():

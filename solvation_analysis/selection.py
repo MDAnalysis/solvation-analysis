@@ -1,5 +1,5 @@
 """
-solvation.py
+selection.py
 An MDAnalysis rmodule for solvation analysis.
 
 Handles the primary functions

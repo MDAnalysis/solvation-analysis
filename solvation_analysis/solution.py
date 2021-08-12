@@ -11,7 +11,7 @@ from solvation_analysis.analysis_library import (
     Pairing,
     Speciation,
 )
-from solvation_analysis.solvation import get_radial_shell, get_closest_n_mol, get_atom_group
+from solvation_analysis.selection import get_radial_shell, get_closest_n_mol, get_atom_group
 
 
 class Solution(AnalysisBase):
