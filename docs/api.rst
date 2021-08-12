@@ -2,6 +2,10 @@ API Documentation
 =================
 
 .. autosummary::
-   :toctree: autosummary
+    :toctree: stubs
 
-   solvation_analysis.canvas
+.. toctree::
+
+    api/solution
+    api/selection
+    api/analysis_library
