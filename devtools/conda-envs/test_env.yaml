@@ -8,7 +8,11 @@ dependencies:
     # Base depends
   - python
   - pip
+  - scipy
   - numpy
+  - pandas
+  - matplotlib
+  - pathlib
 
     # Testing
   - pytest
