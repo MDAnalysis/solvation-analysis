@@ -128,7 +128,7 @@ class Solution(AnalysisBase):
 
     def _single_frame(self):
         """
-        This function finds the solvation shells of each solute at a given time step.
+        This function finds the solvation shells of each solute at a given frame.
         """
         # initialize empty lists
         pairs_list = []

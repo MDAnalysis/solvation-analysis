@@ -33,7 +33,7 @@ class Speciation:
     ----------
     speciation : pandas.DataFrame
         a dataframe containing the speciation of every li ion at
-        every time step. Indexed by frame and solute numbers.
+        every trajectory frame. Indexed by frame and solute numbers.
         Columns are the solvent molecules and values are the number
         of solvent in the shell.
     speciation_percent : pandas.DataFrame
