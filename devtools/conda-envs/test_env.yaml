@@ -9,8 +9,6 @@ dependencies:
   - python
   - pip
   - numpy
-  - nglview
-  - xarray
 
     # Testing
   - pytest
