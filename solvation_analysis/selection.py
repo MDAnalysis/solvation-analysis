@@ -13,13 +13,6 @@ import warnings
 import numpy as np
 import MDAnalysis as mda
 from MDAnalysis.analysis import distances
-import nglview as nv
-
-
-def visualize(selection):
-    mda_view = nv.show_mdanalysis(selection)
-    mda_view.add_representation("licorice", selection="Li", color="blue")
-    return mda_view.display()
 
 
 def get_atom_group(selection):
