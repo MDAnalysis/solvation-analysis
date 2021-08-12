@@ -1,8 +1,12 @@
 """
-selection.py
-An MDAnalysis rmodule for solvation analysis.
+=========
+selection
+=========
+:Author: Orion Cohen
+:Year: 2021
+:Copyright: GNU Public License v3
 
-Handles the primary functions
+Convenient selection utilities.
 """
 
 import warnings
