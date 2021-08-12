@@ -28,7 +28,7 @@ def get_atom_group(selection):
 
     Parameters
     ----------
-    selection: Atom, AtomGroup, Residue, or ResidueGroup
+    selection: Atom, AtomGroup, Residue or ResidueGroup
         atoms to cast
 
     Returns
@@ -64,7 +64,7 @@ def _get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
 
     Parameters
     ----------
-    central_species : Atom, AtomGroup, Residue, or ResidueGroup
+    central_species : Atom, AtomGroup, Residue or ResidueGroup
     n_shell : int
         number of shells to return
     radius : float or int
@@ -99,7 +99,7 @@ def get_closest_n_mol(
 
     Parameters
     ----------
-    central_species : Atom, AtomGroup, Residue, or ResidueGroup
+    central_species : Atom, AtomGroup, Residue or ResidueGroup
     n_mol : int
         The number of molecules to return
     guess_radius : float or int

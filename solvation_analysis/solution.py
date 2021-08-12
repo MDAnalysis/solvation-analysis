@@ -32,9 +32,9 @@ class Solution(AnalysisBase):
 
     Parameters
     ----------
-    solute : AtomGroup
+    solute : Atom, AtomGroup, Residue or ResidueGroup
         the solute in the solutions
-    solvents: dict
+    solvents: dict of {str: Atom, AtomGroup, Residue or ResidueGroup}
         a dictionary of names and atom groups. e.g. {"name_1": solvent_group_1,
         "name_2": solvent_group_2, ...}
     radii : dict, optional
@@ -56,7 +56,7 @@ class Solution(AnalysisBase):
     Attributes
     ----------
     u : Universe
-        An MDAnalysis Universe object
+        An MDAnalysis.Universe object
     n_solute : int
         number of solute atoms
     radii : dict
