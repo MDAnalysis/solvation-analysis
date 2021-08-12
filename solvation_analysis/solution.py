@@ -231,7 +231,7 @@ class Solution(AnalysisBase):
         ax.set_title(f"Solvation distance of {res_name}")
         return fig, ax
 
-    def radial_shell(self, solute_index, radius, step=None):
+    def radial_shell(self, solute_index, radius, frame=None):
         """
         Returns all molecules with atoms within the radius of the central species.
         (specifically, within the radius of the COM of central species).
@@ -243,19 +243,23 @@ class Solution(AnalysisBase):
             the index of the solute of interest
         radius : float or int
             radius used for atom selection
-        step : int, optional
-            the step in the trajectory to perform selection at. Defaults to the
-            current trajectory step.
+        frame : int, optional
+            the frame in the trajectory to perform selection at. Defaults to the
+            current trajectory frame.
 
         Returns
         -------
         MDAnalysis.AtomGroup
         """
-        if step is not None:
-            self.u.trajectory[step]
-        return get_radial_shell(self.solute[solute_index], radius)
+        if frame is not None:
+            initial_frame = self.u.trajectory.frame
+            self.u.trajectory[frame]
+        atoms = get_radial_shell(self.solute[solute_index], radius)
+        if frame is not None:
+            self.u.trajectory[initial_frame]
+        return atoms
 
-    def closest_n_mol(self, solute_index, n_mol, step=None, **kwargs):
+    def closest_n_mol(self, solute_index, n_mol, frame=None, **kwargs):
         """
         Returns the closest n molecules to the central species. Optionally returns
         an array of their resids and an array of the distance of the closest atom
@@ -268,9 +272,9 @@ class Solution(AnalysisBase):
             The index of the solute of interest
         n_mol : int
             The number of molecules to return
-        step : int, optional
-            the step in the trajectory to perform selection at. Defaults to the
-            current trajectory step.
+        frame : int, optional
+            the frame in the trajectory to perform selection at. Defaults to the
+            current trajectory frame.
         kwargs : passed to solvation.get_closest_n_mol
 
         Returns
@@ -282,11 +286,15 @@ class Solution(AnalysisBase):
         radii : numpy.array of float, optional
             the distance of each atom from the center
         """
-        if step is not None:
-            self.u.trajectory[step]
-        return get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
+        if frame is not None:
+            initial_frame = self.u.trajectory.frame
+            self.u.trajectory[frame]
+        atoms = get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
+        if frame is not None:
+            self.u.trajectory[initial_frame]
+        return atoms
 
-    def solvation_shell(self, solute_index, step, as_df=False, remove_mols=None, closest_n_only=None):
+    def solvation_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
         """
         Returns the solvation shell of the solute as an AtomGroup.
 
@@ -294,9 +302,9 @@ class Solution(AnalysisBase):
         ----------
         solute_index : int
             The index of the solute of interest
-        step : int
-            the step in the trajectory to perform selection at. Defaults to the
-            current trajectory step.
+        frame : int
+            the frame in the trajectory to perform selection at. Defaults to the
+            current trajectory frame.
         as_df : bool, default False
             if true, this function will return a DataFrame representing the shell
             instead of a AtomGroup.
@@ -315,11 +323,11 @@ class Solution(AnalysisBase):
 
         """
         assert self.solvation_frames, "Solute.run() must be called first."
-        assert step in self.frames, ("The requested step must be one "
-                                     "of an analyzed steps in self.frames.")
+        assert frame in self.frames, ("The requested frame must be one "
+                                     "of an analyzed frames in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
-        shell = self.solvation_data.xs((step, solute_index), level=("frame", "solvated_atom"))
+        shell = self.solvation_data.xs((frame, solute_index), level=("frame", "solvated_atom"))
         # remove mols
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
