@@ -131,9 +131,9 @@ class Solution(AnalysisBase):
         This function finds the solvation shells of each solute at a given time step.
         """
         # initialize empty lists
-        all_pairs_list = []
-        all_dist_list = []
-        all_tags_list = []
+        pairs_list = []
+        dist_list = []
+        tags_list = []
         # loop to find solvated atoms of each type
         for name, solvent in self.solvents.items():
             pairs, dist = capped_distance(
@@ -145,18 +145,18 @@ class Solution(AnalysisBase):
             # replace local ids with absolute ids
             pairs[:, 1] = solvent.ids[[pairs[:, 1]]]  # TODO: ids vs ix?
             # extend
-            all_pairs_list.append(pairs)
-            all_dist_list.append(dist)
-            all_tags_list.append(np.full(len(dist), name))  # creating a name array
-        all_pairs = np.concatenate(all_pairs_list, dtype=int)
-        all_dist = np.concatenate(all_dist_list)
-        all_tags = np.concatenate(all_tags_list)
-        frame_length = len(all_pairs)
-        all_frames = np.full(frame_length, self._ts.frame)
+            pairs_list.append(pairs)
+            dist_list.append(dist)
+            tags_list.append(np.full(len(dist), name))  # creating a name array
+        pairs_array = np.concatenate(pairs_list, dtype=int)
+        dist_array = np.concatenate(dist_list)
+        res_name_array = np.concatenate(tags_list)
+        array_length = len(pairs_array)
+        frame_number_array = np.full(array_length, self._ts.frame)
         # put the data into a data frame
-        all_resid = self.u.atoms[all_pairs[:, 1]].resids
+        all_resid = self.u.atoms[pairs_array[:, 1]].resids
         solvation_data_np = np.column_stack(
-            (all_frames, all_pairs[:, 0], all_pairs[:, 1], all_dist, all_tags, all_resid)
+            (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, all_resid)
         )
         self.solvation_frames.append(solvation_data_np)
 
