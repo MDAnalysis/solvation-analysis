@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import pytest
-from solvation_analysis.analysis import Solution
+from solvation_analysis.solution import Solution
 import numpy as np
 
 
