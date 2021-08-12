@@ -96,20 +96,26 @@ def get_closest_n_mol(
 
     Parameters
     ----------
-        central_species : Atom, AtomGroup, Residue, or ResidueGroup
-        n_mol : int
-            The number of molecules to return
-        guess_radius : float or int
-            an initial search radius to look for closest n mol
-        return_ordered_resids : if True, will return the resids of the closest n
-            molecules, ordered by radius
-        return_radii : if True, will return the distance of the closest atom of each
-            of the n molecules
+    central_species : Atom, AtomGroup, Residue, or ResidueGroup
+    n_mol : int
+        The number of molecules to return
+    guess_radius : float or int
+        an initial search radius to look for closest n mol
+    return_ordered_resids : bool, default False
+        whether to return the resids of the closest n
+        molecules, ordered by radius
+    return_radii : bool, default False
+        whether to return the distance of the closest atom of each
+        of the n molecules
 
     Returns
     -------
-        AtomGroup (molecules), np.Array (resids), np.Array (distances)
-
+    full shell : AtomGroup
+        the atoms in the shell
+    ordered_resids : numpy.array of int
+        the residue id of the n_mol closest atoms
+    radii : numpy.array of float
+        the distance of each atom from the center
     """
     u = central_species.universe
     central_species = get_atom_group(central_species)

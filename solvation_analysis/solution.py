@@ -32,26 +32,26 @@ class Solution(AnalysisBase):
 
     Parameters
     ----------
-        solute : AtomGroup
-            the solute in the solutions
-        solvents: dict
-            a dictionary of names and atom groups. e.g. {"name_1": solvent_group_1,
-            "name_2": solvent_group_2, ...}
-        radii : dict, optional
-            an optional dictionary of solvation radii, any radii not
-            given will be calculated. e.g. {"name_2": radius_2, "name_5": radius_5}
-        rdf_kernel : function, optional
-            this function must take rdf bins and data as input and return
-            a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
-            the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
-        kernel_kwargs : dict, optional
-            kwargs passed to rdf_kernel
-        rdf_init_kwargs : dict, optional
-            kwargs passed to inner rdf initialization
-        rdf_run_kwargs : dict, optional
-            kwargs passed to inner rdf run e.g. inner_rdf.run(**rdf_run_kwargs)
-        kwargs : dict, optional
-            kwargs passed to AnalysisBase
+    solute : AtomGroup
+        the solute in the solutions
+    solvents: dict
+        a dictionary of names and atom groups. e.g. {"name_1": solvent_group_1,
+        "name_2": solvent_group_2, ...}
+    radii : dict, optional
+        an optional dictionary of solvation radii, any radii not
+        given will be calculated. e.g. {"name_2": radius_2, "name_5": radius_5}
+    rdf_kernel : function, optional
+        this function must take rdf bins and data as input and return
+        a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
+        the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
+    kernel_kwargs : dict, optional
+        kwargs passed to rdf_kernel
+    rdf_init_kwargs : dict, optional
+        kwargs passed to inner rdf initialization
+    rdf_run_kwargs : dict, optional
+        kwargs passed to inner rdf run e.g. inner_rdf.run(**rdf_run_kwargs)
+    kwargs : dict, optional
+        kwargs passed to AnalysisBase
 
     Attributes
     ----------
@@ -189,16 +189,17 @@ class Solution(AnalysisBase):
 
         Parameters
         ----------
-            bins : np.array
-                the rdf bins
-            data : np.array
-                the rdf data
-            radius : float
-                the cutoff radius to draw on the plot
+        bins : np.array
+            the rdf bins
+        data : np.array
+            the rdf data
+        radius : float
+            the cutoff radius to draw on the plot
 
         Returns
         -------
-            Matplotlib Figure, Matplotlib Axes
+        fig : matplotlib.Figure
+        ax : matplotlib.Axes
         """
         fig, ax = plt.subplots()
         ax.plot(bins, data, "b-", label="rdf")
@@ -220,7 +221,8 @@ class Solution(AnalysisBase):
 
         Returns
         -------
-            Matplotlib Figure, Matplotlib Axes
+        fig : matplotlib.Figure
+        ax : matplotlib.Axes
         """
         bins, data = self.rdf_data[res_name]
         fig, ax = self._plot_solvation_radius(bins, data, self.radii[res_name])
@@ -235,17 +237,17 @@ class Solution(AnalysisBase):
 
         Parameters
         ----------
-            solute_index : int
-                the index of the solute of interest
-            radius : float or int
-                radius used for atom selection
-            step : int, optional
-                the step in the trajectory to perform selection at. Defaults to the
-                current trajectory step.
+        solute_index : int
+            the index of the solute of interest
+        radius : float or int
+            radius used for atom selection
+        step : int, optional
+            the step in the trajectory to perform selection at. Defaults to the
+            current trajectory step.
 
         Returns
         -------
-            AtomGroup
+        AtomGroup
         """
         if step is not None:
             self.u.trajectory[step]
@@ -260,18 +262,23 @@ class Solution(AnalysisBase):
 
         Parameters
         ----------
-            solute_index : Atom, AtomGroup, Residue, or ResidueGroup
-            n_mol : int
-                The number of molecules to return
-            step : int, optional
-                the step in the trajectory to perform selection at. Defaults to the
-                current trajectory step.
-            kwargs : passed to solvation.get_closest_n_mol
+        solute_index : int
+            The index of the solute of interest
+        n_mol : int
+            The number of molecules to return
+        step : int, optional
+            the step in the trajectory to perform selection at. Defaults to the
+            current trajectory step.
+        kwargs : passed to solvation.get_closest_n_mol
 
         Returns
         -------
-            AtomGroup (molecules), np.Array (resids), np.Array (distances)
-
+        full shell : AtomGroup
+            the atoms in the shell
+        ordered_resids : numpy.array of int, optional
+            the residue id of the n_mol closest atoms
+        radii : numpy.array of float, optional
+            the distance of each atom from the center
         """
         if step is not None:
             self.u.trajectory[step]
@@ -283,25 +290,26 @@ class Solution(AnalysisBase):
 
         Parameters
         ----------
-            solute_index : Atom, AtomGroup, Residue, or ResidueGroup
-            step : int
-                the step in the trajectory to perform selection at. Defaults to the
-                current trajectory step.
-            as_df : boolean, default=False
-                if true, this function will return a DataFrame representing the shell
-                instead of a AtomGroup.
-            remove_mols : dict, optional
-                remove_dict lets you remove specific residues from the final shell.
-                It should be a dict of molnames and ints e.g. {'mol1': n, 'mol2', m}.
-                It will remove up to n of mol1 and up to m of mol2. So if the dict is
-                {'mol1': 1, 'mol2', 1} and the shell has 4 mol1 and 0 mol2,
-                solvation_shell will return a shell with 3 mol1 and 0 mol2.
-            closest_n_only : int, optional
-                if given, only the closest n residues will be included
+        solute_index : int
+            The index of the solute of interest
+        step : int
+            the step in the trajectory to perform selection at. Defaults to the
+            current trajectory step.
+        as_df : bool, default False
+            if true, this function will return a DataFrame representing the shell
+            instead of a AtomGroup.
+        remove_mols : dict of {str: int}, optional
+            remove_dict lets you remove specific residues from the final shell.
+            It should be a dict of molnames and ints e.g. {'mol1': n, 'mol2', m}.
+            It will remove up to n of mol1 and up to m of mol2. So if the dict is
+            {'mol1': 1, 'mol2', 1} and the shell has 4 mol1 and 0 mol2,
+            solvation_shell will return a shell with 3 mol1 and 0 mol2.
+        closest_n_only : int, optional
+            if given, only the closest n residues will be included
 
         Returns
         -------
-            AtomGroup or DataFrame
+        AtomGroup or DataFrame
 
         """
         assert self.solvation_frames, "Solute.run() must be called first."
@@ -330,22 +338,21 @@ class Solution(AnalysisBase):
         if as_df:
             return shell
         else:
-            return self.resids_to_atom_group(shell["res_id"], solute_index=solute_index)
+            return self._resids_to_atom_group(shell["res_id"], solute_index=solute_index)
 
     def _resids_to_atom_group(self, ids, solute_index=None):
         """
 
         Parameters
         ----------
-        ids : np.array[int]
+        ids : numpy.array of int
             an array of res ids
         solute_index : int, optional
             if given, will include the solute with solute_index
 
         Returns
-
         -------
-
+        AtomGroup
         """
         ids = " ".join(ids.astype(str))
         atoms = self.u.select_atoms(f"resid {ids}")
