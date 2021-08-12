@@ -22,25 +22,25 @@ class Speciation:
 
     Parameters
     ----------
-        solvation_data : pandas.DataFrame
-            The solvation data frame output by Solution.
-        n_frames : int
-            The number of frames in solvation_data.
-        n_solutes : int
-            The number of solutes in solvation_data.
+    solvation_data : pandas.DataFrame
+        The solvation data frame output by Solution.
+    n_frames : int
+        The number of frames in solvation_data.
+    n_solutes : int
+        The number of solutes in solvation_data.
 
     Attributes
     ----------
-        speciation : pandas.DataFrame
-            a dataframe containing the speciation of every li ion at
-            every time step. Indexed by frame and solute numbers.
-            Columns are the solvent molecules and values are the number
-            of solvent in the shell.
-        speciation_percent : pandas.DataFrame
-            the percentage of shells of each type. Columns are the solvent
-            molecules and and values are the number of solvent in the shell.
-            The final column is the percentage of total shell of that
-            particular composition.
+    speciation : pandas.DataFrame
+        a dataframe containing the speciation of every li ion at
+        every time step. Indexed by frame and solute numbers.
+        Columns are the solvent molecules and values are the number
+        of solvent in the shell.
+    speciation_percent : pandas.DataFrame
+        the percentage of shells of each type. Columns are the solvent
+        molecules and and values are the number of solvent in the shell.
+        The final column is the percentage of total shell of that
+        particular composition.
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
@@ -74,18 +74,18 @@ class Speciation:
 
         Attributes
         ----------
-            shell_dict : dict
-                a specification for a shell composition. Keys are residue names (str)
-                and values are the number of desired residues. e.g. if shell_dict =
-                {'mol1': 4} then the function will return the percentage of shells
-                that have 4 mol1. Note that this may include shells with 4 mol1 and
-                any number of other solvents. To specify a shell with 4 mol1 and nothing
-                else, enter a dict such as {'mol1': 4, 'mol2': 0, 'mol3': 0}.
+        shell_dict : dict of {str: int}
+            a specification for a shell composition. Keys are residue names (str)
+            and values are the number of desired residues. e.g. if shell_dict =
+            {'mol1': 4} then the function will return the percentage of shells
+            that have 4 mol1. Note that this may include shells with 4 mol1 and
+            any number of other solvents. To specify a shell with 4 mol1 and nothing
+            else, enter a dict such as {'mol1': 4, 'mol2': 0, 'mol3': 0}.
 
         Returns
         -------
-            float
-                the percentage of shells
+        float
+            the percentage of shells
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
@@ -99,18 +99,18 @@ class Speciation:
 
         Attributes
         ----------
-            shell_dict : dict
-                a specification for a shell composition. Keys are residue names (str)
-                and values are the number of desired residues. e.g. if shell_dict =
-                {'mol1': 4} then the function will return all shells
-                that have 4 mol1. Note that this may include shells with 4 mol1 and
-                any number of other solvents. To specify a shell with 4 mol1 and nothing
-                else, enter a dict such as {'mol1': 4, 'mol2': 0, 'mol3': 0}.
+        shell_dict : dict of {str: int}
+            a specification for a shell composition. Keys are residue names (str)
+            and values are the number of desired residues. e.g. if shell_dict =
+            {'mol1': 4} then the function will return all shells
+            that have 4 mol1. Note that this may include shells with 4 mol1 and
+            any number of other solvents. To specify a shell with 4 mol1 and nothing
+            else, enter a dict such as {'mol1': 4, 'mol2': 0, 'mol3': 0}.
 
         Returns
         -------
-            pandas.DataFrame
-                the index and composition of all shells that match shell_dict
+        pandas.DataFrame
+            the index and composition of all shells that match shell_dict
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
@@ -124,12 +124,12 @@ class Coordination:
 
     Parameters
     ----------
-        solvation_data : pandas.DataFrame
-            The solvation data frame output by Solution.
-        n_frames : int
-            The number of frames in solvation_data.
-        n_solutes : int
-            The number of solutes in solvation_data.
+    solvation_data : pandas.DataFrame
+        The solvation data frame output by Solution.
+    n_frames : int
+        The number of frames in solvation_data.
+    n_solutes : int
+        The number of solutes in solvation_data.
 
     Attributes
     ----------
@@ -163,21 +163,21 @@ class Pairing:
 
     Parameters
     ----------
-        solvation_data : pandas.DataFrame
-            The solvation data frame output by Solution.
-        n_frames : int
-            The number of frames in solvation_data.
-        n_solutes : int
-            The number of solutes in solvation_data.
+    solvation_data : pandas.DataFrame
+        The solvation data frame output by Solution.
+    n_frames : int
+        The number of frames in solvation_data.
+    n_solutes : int
+        The number of solutes in solvation_data.
 
     Attributes
     ----------
-        pairing_dict : dict
-            a dictionary where keys are residue names (str) and values are the
-            percentage of solutes that contain that residue (float).
-        pairing_by_frame : pd.DataFrame
-            a dictionary tracking the average percentage of each
-            residue across frames.
+    pairing_dict : dict
+        a dictionary where keys are residue names (str) and values are the
+        percentage of solutes that contain that residue (float).
+    pairing_by_frame : pd.DataFrame
+        a dictionary tracking the average percentage of each
+        residue across frames.
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
