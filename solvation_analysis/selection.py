@@ -24,15 +24,16 @@ def visualize(selection):
 
 def get_atom_group(selection):
     """
-    Casts an Atom, AtomGroup, Residue, or ResidueGroup to AtomGroup.
+    Cast an Atom, AtomGroup, Residue, or ResidueGroup to AtomGroup.
 
     Parameters
     ----------
-        selection: Atom, AtomGroup, Residue, or ResidueGroup
+    selection: Atom, AtomGroup, Residue, or ResidueGroup
+        atoms to cast
 
     Returns
     -------
-        AtomGroup
+    AtomGroup
 
     """
     assert isinstance(
@@ -52,8 +53,10 @@ def get_atom_group(selection):
     return selection
 
 
-def get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
+def _get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
     """
+    CURRENTLY INCOMPLETE, set to private until complete
+
     A list containing the nth shell at the nth index. Note that the shells
     have 0 intersection. For example, calling get_n_shells with n_shell = 2
     would return: [central_species, first_shell, second_shell]. This scales
@@ -61,18 +64,18 @@ def get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
 
     Parameters
     ----------
-        central_species : Atom, AtomGroup, Residue, or ResidueGroup
-        n_shell : int
-            number of shells to return
-        radius : float or int
-            radius used to select atoms in next shell
-        ignore_atoms : AtomGroup
-            these atoms will be ignored
+    central_species : Atom, AtomGroup, Residue, or ResidueGroup
+    n_shell : int
+        number of shells to return
+    radius : float or int
+        radius used to select atoms in next shell
+    ignore_atoms : AtomGroup
+        these atoms will be ignored
 
     Returns
     -------
-        List[AtomGroups] :
-            List of n shells
+    List of AtomGroups
+
 
     """
     u = central_species.universe
@@ -165,13 +168,13 @@ def get_radial_shell(central_species, radius):
 
     Parameters
     ----------
-        central_species : Atom, AtomGroup, Residue, or ResidueGroup
-        radius : float or int
-            radius used for atom selection
+    central_species : Atom, AtomGroup, Residue, or ResidueGroup
+    radius : float or int
+        radius used for atom selection
 
     Returns
     -------
-        full_shell : AtomGroup
+    AtomGroup
 
     """
     u = central_species.universe
