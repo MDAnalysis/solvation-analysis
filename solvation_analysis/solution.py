@@ -313,8 +313,8 @@ class Solution(AnalysisBase):
 
         """
         assert self.solvation_frames, "Solute.run() must be called first."
-        assert step in self.frames, "The requested step must be one of an " \
-                                    "analyzed steps in self.frames."
+        assert step in self.frames, ("The requested step must be one "
+                                     "of an analyzed steps in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
         shell = self.solvation_data.xs((step, solute_index), level=("frame", "solvated_atom"))
