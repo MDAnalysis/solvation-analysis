@@ -6,7 +6,18 @@ solution
 :Year: 2021
 :Copyright: GNU Public License v3
 
-Solution contains a core class for the solvation analysis module.
+The solvation_analysis module is centered around the Solution class, which defines
+solvation as coordination of a central solute with surrounding solvents. The Solution
+class provides a convenient interface for specifying a solute and solvents, calculating
+their solvation radii, and collecting the solvation shells of each solute into a
+pandas.DataFrame for convenient analysis.
+
+Solution uses the solvation data to instantiate each of he analysis classes in
+the analysis_library as attributes. Creating a convenient interface for more in
+depth analysis of specific aspects of solvation.
+
+Solution also provides several functions to select a particular solute and its solvation
+shell, returning an AtomGroup for visualization or further analysis.
 """
 
 
