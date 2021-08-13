@@ -6,7 +6,12 @@ selection
 :Year: 2021
 :Copyright: GNU Public License v3
 
-Convenient selection utilities.
+The selection functions provide a quick and convenient way of selecting the residues
+surrounding a specific central species. They all return AtomGroups, useful for
+visualization or further analysis.
+
+These functions also serve as methods of the Solution class, selecting the atoms
+surrounding specific solutes.
 """
 
 import warnings
@@ -116,7 +121,6 @@ def get_closest_n_mol(
     u = central_species.universe
     central_species = get_atom_group(central_species)
     coords = central_species.center_of_mass()
-    str_coords = " ".join(str(coord) for coord in coords)
     pairs, radii = mda.lib.distances.capped_distance(
         coords, u.atoms.positions, guess_radius, return_distances=True, box=u.dimensions
     )

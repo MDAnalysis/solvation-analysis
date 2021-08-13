@@ -136,7 +136,7 @@ def test_solvation_shell_remove(solute_index, step, n, expected_res_ids, run_sol
     ],
 )
 def test_speciation_find_clusters(cluster, n_clusters, run_solution):
-    df = run_solution.speciation.find_clusters(cluster)
+    df = run_solution.speciation.find_shells(cluster)
     assert len(df) == n_clusters
 
 
