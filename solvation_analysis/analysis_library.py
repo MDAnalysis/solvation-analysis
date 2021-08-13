@@ -1,6 +1,6 @@
 """
 ================
-Analysis_library
+Analysis Library
 ================
 :Author: Orion Cohen
 :Year: 2021
