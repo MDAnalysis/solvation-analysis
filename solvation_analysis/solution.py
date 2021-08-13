@@ -89,7 +89,7 @@ class Solution(AnalysisBase):
     solvation_data : pandas.DataFrame
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
         "dist", "res_name", and "res_id". If multiple entries share a frame, solvated_atom,
-        and atom_id, all but the the closest atom is dropped.
+        and atom_id, all but the closest atom is dropped.
     solvation_data_dup : pandas.DataFrame
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
         "dist", "res_name", and "res_id". If multiple entries share a frame, solvated_atom,
@@ -127,7 +127,7 @@ class Solution(AnalysisBase):
 
     def _prepare(self):
         """
-        This function identifies the solvation radii and saves the associated rdfs.
+        This function identifies the solvation radii and saves the associated rdf data.
         """
         self.rdf_data = {}
         self.solvation_data = None
@@ -184,7 +184,7 @@ class Solution(AnalysisBase):
 
     def _conclude(self):
         """
-        Instantiates the SolvationData class and several analysis classes.
+        Creates a clean solvation_data pandas.DataFrame and instantiates several analysis classes.
         """
         # stack all solvation frames into a single data structure
         solvation_data_np = np.vstack(self.solvation_frames)
@@ -207,7 +207,8 @@ class Solution(AnalysisBase):
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):
         """
-        Will plot the solvation radius on the rdf from bins, data, and a radius.
+        Plot a solvation radius on an rdf.
+
         Includes a vertical line at the radius of interest.
 
         Parameters
@@ -234,8 +235,10 @@ class Solution(AnalysisBase):
 
     def plot_solvation_radius(self, res_name):
         """
-        Will plot the rdf of a solvent molecule, specified by resname.
-        Includes a vertical line at the radius of interest.
+        Plot the rdf of a solvent molecule
+
+        Specified by the residue name in the solvents dict. Includes a vertical
+        line at the radius of interest.
 
         Parameters
         ----------
@@ -254,9 +257,11 @@ class Solution(AnalysisBase):
 
     def radial_shell(self, solute_index, radius, frame=None):
         """
-        Returns all molecules with atoms within the radius of the central species.
-        (specifically, within the radius of the COM of central species).
-        Thin wrapper around solvation.get_radial_shell
+        Select all residues with atoms within r of the solute.
+
+        The solute is specified by it's index within solvation_data. r is
+        specified with the radius argument. Thin wrapper around
+        solvation.get_radial_shell.
 
         Parameters
         ----------
@@ -282,10 +287,13 @@ class Solution(AnalysisBase):
 
     def closest_n_mol(self, solute_index, n_mol, frame=None, **kwargs):
         """
-        Returns the closest n molecules to the central species. Optionally returns
-        an array of their resids and an array of the distance of the closest atom
-        in each molecule. Thin wrapper around solvation.get_closest_n_mol, see
-        documentation for more detail.
+        Select the n closest mols to the solute.
+
+        The solute is specified by it's index within solvation_data.
+        n is specified with the n_mol argument. Optionally returns
+        an array of their resids and an array of the distance of
+        the closest atom in each molecule. Thin wrapper around
+        solvation.get_closest_n_mol, see documentation for more detail.
 
         Parameters
         ----------
@@ -317,7 +325,15 @@ class Solution(AnalysisBase):
 
     def solvation_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
         """
-        Returns the solvation shell of the solute as an AtomGroup.
+        Select the solvation shell of the solute.
+
+        The solvation shell can be returned either as an
+        AtomGroup, to be visualized or passed to other routines,
+        or as a pandas.DataFrame for convenient inspection.
+
+        The solvation shell can be truncated before being returned,
+        either by removing specific residue types with remove_mols
+        or by introducing a hard cutoff with closest_n_only.
 
         Parameters
         ----------
@@ -340,7 +356,7 @@ class Solution(AnalysisBase):
 
         Returns
         -------
-        MDAnalysis.AtomGroup or DataFrame
+        MDAnalysis.AtomGroup or pandas.DataFrame
 
         """
         assert self.solvation_frames, "Solute.run() must be called first."
@@ -369,15 +385,16 @@ class Solution(AnalysisBase):
         if as_df:
             return shell
         else:
-            return self._resids_to_atom_group(shell["res_id"], solute_index=solute_index)
+            return self._df_to_atom_group(shell, solute_index=solute_index)
 
-    def _resids_to_atom_group(self, ids, solute_index=None):
+    def _df_to_atom_group(self, df, solute_index=None):
         """
+        Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with res_ids.
 
         Parameters
         ----------
-        ids : numpy.array of int
-            an array of res ids
+        df : pandas.DataFrame
+            a df with a 'res_id' column
         solute_index : int, optional
             if given, will include the solute with solute_index
 
@@ -385,8 +402,8 @@ class Solution(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        ids = " ".join(ids.astype(str))
-        atoms = self.u.select_atoms(f"resid {ids}")
+        ids = df['res_id'].values - 1  # -1 to go from res_id -> res_ix
+        atoms = self.u.residues[ids].atoms
         if solute_index is not None:
             atoms = atoms | self.solute[solute_index]
         return atoms
