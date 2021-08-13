@@ -1,6 +1,6 @@
 """
 =========
-selection
+Selection
 =========
 :Author: Orion Cohen
 :Year: 2021
