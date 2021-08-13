@@ -6,7 +6,13 @@ analysis_library
 :Year: 2021
 :Copyright: GNU Public License v3
 
-A few core classes for analyzing solvation data.
+Analysis library defines a variety of classes that analyze different aspects of solvation.
+These classes are all instantiated with the solvation_data (pandas.DataFrame) generated
+from the Solution class.
+
+While the classes in analysis_library can be used in isolation, they are meant to be used
+as attributes of the Solution class. This makes instantiating them and calculating the
+solvation data a non-issue.
 """
 
 import pandas as pd
@@ -15,10 +21,20 @@ import numpy as np
 
 class Speciation:
     """
-    A class for calculating and storing speciation information for solvents. This class
-    will find the shell contents for every li ion in every frame and run analyses on them.
-    It calculates statistics on the shells and allows the user to query for shells with
-    particular contents.
+    Calculate the solvation shells of every solute.
+
+    Speciation organizes the solvation data by the type of residue
+    coordinated with the central solvent. It collects this information in a
+    pandas.DataFrame indexed by the frame and solute number. Each column is
+    one of the solvents in the res_name column of the solvation data. The
+    column value is how many residue of that type are in the solvation shell.
+
+    Speciation provides the speciation of each solute in the speciation
+    attribute, it also calculates the percentage of each unique
+    shell and makes it available in the speciation_percent attribute.
+
+    Additionally, there are methods for finding solvation shells of
+    interest and computing how common certain shell configurations are.
 
     Parameters
     ----------
@@ -66,9 +82,11 @@ class Speciation:
         averages = speciation_frames.sum(axis=1) / (solute_number * frame_number)
         return averages
 
-    def cluster_percent(self, shell_dict):
+    def shell_percent(self, shell_dict):
         """
-        This function computes the percent of clusters that exist with a particular
+        Calculate the percentage of shells matching shell_dict.
+
+        This function computes the percent of solvation shells that exist with a particular
         composition. The composition is specified by the shell_dict. The percent
         will be of all shells that match that specification.
 
@@ -92,8 +110,10 @@ class Speciation:
         query_counts = self.speciation_percent.query(query)
         return query_counts['count'].sum()
 
-    def find_clusters(self, shell_dict):
+    def find_shells(self, shell_dict):
         """
+        Find all solvation shells that match shell_dict.
+
         This returns the frame, solute index, and composition of all solutes
         that match the composition given in shell_dict.
 
@@ -120,7 +140,14 @@ class Speciation:
 
 class Coordination:
     """
-    A class for calculating and storing the coordination numbers of solvents.
+    Calculate the coordination number of each solvent.
+
+    Coordination calculates the coordination number by averaging the number of
+    coordinated solvents in all of the solvation shells. This is equivalent to
+    the typical method of integrating the RDF up to the solvation radius cutoff.
+
+    The coordination numbers are made available as an average over the whole
+    simulation and by frame.
 
     Parameters
     ----------
@@ -159,7 +186,10 @@ class Coordination:
 
 class Pairing:
     """
-    A class for analyzing pairing between the solute and another species.
+    Calculate the percent of solutes that are coordinated with each solvent.
+
+    The pairing percentages are made available as an average over the whole
+    simulation and by frame.
 
     Parameters
     ----------
