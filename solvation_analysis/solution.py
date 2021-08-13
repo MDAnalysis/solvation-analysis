@@ -1,6 +1,6 @@
 """
 ========
-solution
+Solution
 ========
 :Author: Orion Cohen
 :Year: 2021
