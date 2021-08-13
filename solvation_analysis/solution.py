@@ -28,7 +28,29 @@ from solvation_analysis.selection import get_radial_shell, get_closest_n_mol, ge
 
 class Solution(AnalysisBase):
     """
-    The core class of the solvation module.
+    Analyze the solvation structure of a solution.
+
+    Solution finds the coordination between the solute and each solvent
+    and collects that information in a pandas.DataFrame (solvation_data)
+    for convenient analysis. The names provided in the solvents dictionary
+    are used throughout the class.
+
+    First, Solution plots the rdf between the solute and each solvent and
+    uses it to identify the radius of the first solvation shell. Radii can
+    instead be supplied with the radii parameter. After Solution.run() is
+    called, these radii can be queried with the plot_solvation_radius method.
+
+    Second, Solution finds all atoms in the first solvation shell, using
+    the cutoff radii for each solvent. For each coordinating atom the id,
+    residue id, and distance from the solute are saved in solvation_data.
+    This analysis is repeated for each solute at every frame in the
+    analysis and the data is compiled into a pandas.DataFrame and indexed
+    by frame, solute number, and atom id.
+
+    Finally, Solution instantiates Speciation, Coordination, and Pairing
+    objects from the solvation_data, providing a convenient interface to
+    further analysis.
+
 
     Parameters
     ----------
