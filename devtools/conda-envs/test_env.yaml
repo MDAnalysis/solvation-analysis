@@ -1,25 +1,22 @@
 name: test
 channels:
-
   - conda-forge
-
   - defaults
 dependencies:
     # Base depends
   - python
   - pip
-  - scipy
-  - numpy
-  - pandas
-  - matplotlib
-  - pathlib
-
-    # Testing
-  - pytest
-  - pytest-cov
-  - codecov
 
     # Pip-only installs
   - pip:
+      # new MDAnalysis
       - MDAnalysis==2.0.0b0
-
+      # base sci-python libraries
+      - scipy
+      - numpy
+      - pandas
+      - matplotlib
+      # testing
+      - pytest
+      - pytest-cov
+      - codecov
