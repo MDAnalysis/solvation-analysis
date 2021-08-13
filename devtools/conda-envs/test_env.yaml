@@ -16,7 +16,7 @@ dependencies:
       - numpy
       - pandas
       - matplotlib
-      # testing
+      # testing #
       - pytest
       - pytest-cov
       - codecov
