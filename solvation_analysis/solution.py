@@ -62,16 +62,20 @@ class Solution(AnalysisBase):
     objects from the solvation_data, providing a convenient interface to
     further analysis.
 
+    Note: Atom and Residue ids (1-based) are returned, not ix (0-based).
+    This aligns with the MDAnalysis selection language.
 
     Parameters
     ----------
     solute : MDAnalysis.AtomGroup
         the solute in the solutions
-    solvents: dict of {str: MDAnalysis.AtomGroup} a dictionary of names and atom groups.
+    solvents: dict of {str: MDAnalysis.AtomGroup}
+        a dictionary of solvent names and associated MDAnalysis.AtomGroups.
         e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}
-    radii : dict, optional
-        an optional dictionary of solvation radii, any radii not
-        given will be calculated. e.g. {"name_2": radius_2, "name_5": radius_5}
+    radii : dict of {str: float}, optional
+        an optional dictionary of solvent names and associated solvation radii
+        e.g. {"name_2": radius_2, "name_5": radius_5} Any radii not given will
+        be calculated. The solvent names should match the solvents parameter.
     rdf_kernel : function, optional
         this function must take rdf bins and data as input and return
         a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
@@ -79,9 +83,11 @@ class Solution(AnalysisBase):
     kernel_kwargs : dict, optional
         kwargs passed to rdf_kernel
     rdf_init_kwargs : dict, optional
-        kwargs passed to inner rdf initialization
+        kwargs passed to the initialization of the MDAnalysis.InterRDF used to plot
+        the solute-solvent RDFs.
     rdf_run_kwargs : dict, optional
-        kwargs passed to inner rdf run e.g. inner_rdf.run(**rdf_run_kwargs)
+        kwargs passed to the internel MDAnalysis.InterRDF.run() command
+        e.g. inner_rdf.run(**rdf_run_kwargs)
     verbose : bool, optional
        Turn on more logging and debugging, default ``False``
 
@@ -105,12 +111,14 @@ class Solution(AnalysisBase):
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
         "dist", "res_name", and "res_id". If multiple entries share a frame, solvated_atom,
         and atom_id, all atoms are kept.
-    pairing : Pairing object
-        An analysis_library.Pairing object instantiated from solvation_data.
-    coordination : Coordination object
-        An analysis_library.Coordination object instantiated from solvation_data.
-    speciation : Speciation object
-        An analysis_library.Speciation object instantiated from solvation_data.
+    pairing : analysis_library.Pairing
+        pairing provides an interface for finding the percent of solutes with
+        each solvent in their solvation shell.
+    coordination : analysis_library.Coordination
+        coordination provides an interface for finding the coordination numbers of
+        each solvent.
+    speciation : analysis_library.Speciation
+        speciation provides an interface for parsing the solvation shells of each solute.
     """
 
     def __init__(
@@ -175,7 +183,7 @@ class Solution(AnalysisBase):
                 box=self.u.dimensions,
             )
             # replace local ids with absolute ids
-            pairs[:, 1] = solvent.ids[[pairs[:, 1]]]  # TODO: ids vs ix?
+            pairs[:, 1] = solvent.ids[[pairs[:, 1]]]
             # extend
             pairs_list.append(pairs)
             dist_list.append(dist)
