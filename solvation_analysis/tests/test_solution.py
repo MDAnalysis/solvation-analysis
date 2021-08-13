@@ -20,12 +20,6 @@ def test_plot_solvation_distance(rdf_bins_and_data_easy):
     # plt.show()  # comment out for global testing
 
 
-def test_plot_grid(run_solution):
-    # creates a grid of solvation distance plots
-    # plt.show()
-    return
-
-
 def test_radii_finding(run_solution):
     # checks that the solvation radii are plotted
     assert len(run_solution.radii) == 3

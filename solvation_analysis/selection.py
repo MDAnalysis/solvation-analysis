@@ -53,7 +53,7 @@ def get_atom_group(selection):
 
 def _get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
     """
-    CURRENTLY INCOMPLETE, set to private until complete
+    # TODO: complete this class
 
     A list containing the nth shell at the nth index. Note that the shells
     have 0 intersection. For example, calling get_n_shells with n_shell = 2
