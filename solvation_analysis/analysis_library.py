@@ -47,7 +47,7 @@ class Speciation:
 
     Attributes
     ----------
-    speciation : pandas.DataFrame
+    speciation_data : pandas.DataFrame
         a dataframe containing the speciation of every li ion at
         every trajectory frame. Indexed by frame and solute numbers.
         Columns are the solvent molecules and values are the number
@@ -63,19 +63,19 @@ class Speciation:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.speciation, self.speciation_percent = self._compute_speciation()
+        self.speciation_data, self.speciation_percent = self._compute_speciation()
 
     def _compute_speciation(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         counts_re = counts.reset_index(["res_name"])
-        speciation = counts_re.pivot(columns=["res_name"]).fillna(0).astype(int)
-        res_names = speciation.columns.levels[1]
-        speciation.columns = res_names
-        sum_series = speciation.groupby(speciation.columns.to_list()).size()
+        speciation_data = counts_re.pivot(columns=["res_name"]).fillna(0).astype(int)
+        res_names = speciation_data.columns.levels[1]
+        speciation_data.columns = res_names
+        sum_series = speciation_data.groupby(speciation_data.columns.to_list()).size()
         sum_sorted = sum_series.sort_values(ascending=False)
         speciation_percent = sum_sorted.reset_index().rename(columns={0: 'count'})
         speciation_percent['count'] = speciation_percent['count'] / (self.n_frames * self.n_solutes)
-        return speciation, speciation_percent
+        return speciation_data, speciation_percent
 
     @classmethod
     def _average_speciation(cls, speciation_frames, solute_number, frame_number):
@@ -134,7 +134,7 @@ class Speciation:
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
-        query_counts = self.speciation.query(query)
+        query_counts = self.speciation_data.query(query)
         return query_counts
 
 
