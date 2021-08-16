@@ -171,7 +171,7 @@ class Solution(AnalysisBase):
         assert len(missing_solvents) == 0, (
             f"Solution could not identify a solvation radius for "
             f"{missing_solvents_str}. Please manually enter missing radii "
-            f"by adding to the radii dict and rerun the analysis."
+            f"by editing the radii dict and rerun the analysis."
         )
 
     def _single_frame(self):
