@@ -46,7 +46,7 @@ class Solution(AnalysisBase):
     for convenient analysis. The names provided in the solvents dictionary
     are used throughout the class.
 
-    First, Solution plots the rdf between the solute and each solvent and
+    First, Solution plots the RDF between the solute and each solvent and
     uses it to identify the radius of the first solvation shell. Radii can
     instead be supplied with the radii parameter. After Solution.run() is
     called, these radii can be queried with the plot_solvation_radius method.
@@ -77,7 +77,7 @@ class Solution(AnalysisBase):
         e.g. {"name_2": radius_2, "name_5": radius_5} Any radii not given will
         be calculated. The solvent names should match the solvents parameter.
     rdf_kernel : function, optional
-        this function must take rdf bins and data as input and return
+        this function must take RDF bins and data as input and return
         a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
         the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
     kernel_kwargs : dict, optional
@@ -101,7 +101,7 @@ class Solution(AnalysisBase):
         a dictionary of solvation radii for each solvent
         e.g. {"name_2": radius_2, "name_2": radius_2, ...}
     rdf_data : dict
-        a dictionary of rdf data, keys are solvent names and values
+        a dictionary of RDF data, keys are solvent names and values
         are (bins, data) tuples.
     solvation_data : pandas.DataFrame
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
@@ -146,7 +146,7 @@ class Solution(AnalysisBase):
 
     def _prepare(self):
         """
-        This function identifies the solvation radii and saves the associated rdf data.
+        This function identifies the solvation radii and saves the associated RDF data.
         """
         self.rdf_data = {}
         self.solvation_data = None
@@ -226,16 +226,16 @@ class Solution(AnalysisBase):
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):
         """
-        Plot a solvation radius on an rdf.
+        Plot a solvation radius on an RDF.
 
         Includes a vertical line at the radius of interest.
 
         Parameters
         ----------
         bins : np.array
-            the rdf bins
+            the RDF bins
         data : np.array
-            the rdf data
+            the RDF data
         radius : float
             the cutoff radius to draw on the plot
 
@@ -254,7 +254,7 @@ class Solution(AnalysisBase):
 
     def plot_solvation_radius(self, res_name):
         """
-        Plot the rdf of a solvent molecule
+        Plot the RDF of a solvent molecule
 
         Specified by the residue name in the solvents dict. Includes a vertical
         line at the radius of interest.
