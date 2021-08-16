@@ -8,7 +8,7 @@ import warnings
 def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
     """
     Fits a sciply.interpolate.UnivariateSpline to the starting region of
-    the rdf. The floor and cutoff control the region of the rdf that the
+    the RDF. The floor and cutoff control the region of the RDF that the
     spline is fit to.
 
     Parameters
@@ -62,7 +62,7 @@ def identify_minima(f):
 
 def plot_interpolation_fit(bins, rdf, **kwargs):
     """
-    Calls interpolate_rdf and identify_minima to identify the extrema of an rdf.
+    Calls interpolate_rdf and identify_minima to identify the extrema of an RDF.
     Plots the original rdf, the interpolated spline, and the extrema of the
     interpolated spline.
 
@@ -71,7 +71,7 @@ def plot_interpolation_fit(bins, rdf, **kwargs):
     bins : np.array
         the x-axis bins of the rdf
     rdf : np.array
-        rdf data matching the bins
+        RDF data matching the bins
     kwargs : passed to the interpolate_rdf function
 
     Returns
@@ -101,7 +101,7 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
 
     Parameters
     ----------
-    f : an interpolated rdf function
+    f : an interpolated RDF function
     cutoff_region : tuple
         boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
     cr_pts : np.array
@@ -134,7 +134,7 @@ def identify_solvation_cutoff(
     bins : np.array
         the x-axis bins of the rdf
     rdf : np.array
-        rdf data matching the bins
+        RDF data matching the bins
     failure_behavior : str
         specifies the behavior of the function if no solvation shell is found, can
         be set to "silent", "warn", or "exception"
