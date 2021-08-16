@@ -12,7 +12,7 @@ class provides a convenient interface for specifying a solute and solvents, calc
 their solvation radii, and collecting the solvation shells of each solute into a
 pandas.DataFrame for convenient analysis.
 
-Solution uses the solvation data to instantiate each of he analysis classes in
+Solution uses the solvation data to instantiate each of the analysis classes in
 the analysis_library as attributes. Creating a convenient interface for more in
 depth analysis of specific aspects of solvation.
 
@@ -46,7 +46,7 @@ class Solution(AnalysisBase):
     for convenient analysis. The names provided in the solvents dictionary
     are used throughout the class.
 
-    First, Solution plots the RDF between the solute and each solvent and
+    First, Solution calculates the RDF between the solute and each solvent and
     uses it to identify the radius of the first solvation shell. Radii can
     instead be supplied with the radii parameter. After Solution.run() is
     called, these radii can be queried with the plot_solvation_radius method.
@@ -188,17 +188,18 @@ class Solution(AnalysisBase):
             pairs_list.append(pairs)
             dist_list.append(dist)
             tags_list.append(np.full(len(dist), name))  # creating a name array
+        # create full length features arrays
         pairs_array = np.concatenate(pairs_list, dtype=int)
         dist_array = np.concatenate(dist_list)
         res_name_array = np.concatenate(tags_list)
+        res_id_array = self.u.atoms[pairs_array[:, 1]].resids
         array_length = len(pairs_array)
         frame_number_array = np.full(array_length, self._ts.frame)
-        # put the data into a data frame
-        all_resid = self.u.atoms[pairs_array[:, 1]].resids
+        # stack the data into one large array
         solvation_data_np = np.column_stack(
-            (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, all_resid)
+            (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, res_id_array)
         )
-        # add the current frame to the growing list of solvation frames
+        # add the current frame to the growing list of solvation arrays
         self.solvation_frames.append(solvation_data_np)
 
     def _conclude(self):

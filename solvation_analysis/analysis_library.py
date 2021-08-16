@@ -160,7 +160,7 @@ class Coordination:
 
     Attributes
     ----------
-    cn_dict : dict
+    cn_dict : dict of {str: float}
         a dictionary where keys are residue names (str) and values are the
         average coordination number of that residue (float).
     cn_by_frame : pd.DataFrame
@@ -202,7 +202,7 @@ class Pairing:
 
     Attributes
     ----------
-    pairing_dict : dict
+    pairing_dict : dict of {str: float}
         a dictionary where keys are residue names (str) and values are the
         percentage of solutes that contain that residue (float).
     pairing_by_frame : pd.DataFrame
