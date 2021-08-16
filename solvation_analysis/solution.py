@@ -168,13 +168,11 @@ class Solution(AnalysisBase):
                                 if not np.isnan(radius)])
         missing_solvents = set(self.solvents.keys()) - calculated_radii
         missing_solvents_str = ' '.join([str(i) for i in missing_solvents])
-        if len(missing_solvents) != 0:
-            warnings.warn(
-                f"Solution could not identify a solvation radius for "
-                f"{missing_solvents_str}. Please manually enter missing radii "
-                f"by adding to the radii dict and rerun the analysis.",
-                RuntimeWarning
-            )
+        assert len(missing_solvents) == 0, (
+            f"Solution could not identify a solvation radius for "
+            f"{missing_solvents_str}. Please manually enter missing radii "
+            f"by adding to the radii dict and rerun the analysis."
+        )
 
     def _single_frame(self):
         """

@@ -34,7 +34,8 @@ def test_radii_finding(run_solution):
 
 
 def test_run_warning(pre_solution_mutable):
-    with pytest.warns(RuntimeWarning):
+    # checks that an error is thrown if there are not enough radii
+    with pytest.raises(AssertionError):
         pre_solution_mutable.run(step=1)
 
 
