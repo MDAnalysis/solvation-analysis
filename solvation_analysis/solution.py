@@ -275,7 +275,7 @@ class Solution(AnalysisBase):
         ax.set_title(f"Solvation distance of {res_name}")
         return fig, ax
 
-    def radial_shell(self, solute_index, radius, frame=None):
+    def radial_shell(self, solute_index, radius):
         """
         Select all residues with atoms within r of the solute.
 
@@ -289,23 +289,14 @@ class Solution(AnalysisBase):
             the index of the solute of interest
         radius : float or int
             radius used for atom selection
-        frame : int, optional
-            the frame in the trajectory to perform selection at. Defaults to the
-            current trajectory frame.
 
         Returns
         -------
         MDAnalysis.AtomGroup
         """
-        if frame is not None:
-            initial_frame = self.u.trajectory.frame
-            self.u.trajectory[frame]
-        atoms = get_radial_shell(self.solute[solute_index], radius)
-        if frame is not None:
-            self.u.trajectory[initial_frame]
-        return atoms
+        return get_radial_shell(self.solute[solute_index], radius)
 
-    def closest_n_mol(self, solute_index, n_mol, frame=None, **kwargs):
+    def closest_n_mol(self, solute_index, n_mol, **kwargs):
         """
         Select the n closest mols to the solute.
 
@@ -321,9 +312,6 @@ class Solution(AnalysisBase):
             The index of the solute of interest
         n_mol : int
             The number of molecules to return
-        frame : int, optional
-            the frame in the trajectory to perform selection at. Defaults to the
-            current trajectory frame.
         kwargs : passed to solvation.get_closest_n_mol
 
         Returns
@@ -335,13 +323,7 @@ class Solution(AnalysisBase):
         radii : numpy.array of float, optional
             the distance of each atom from the center
         """
-        if frame is not None:
-            initial_frame = self.u.trajectory.frame
-            self.u.trajectory[frame]
-        atoms = get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
-        if frame is not None:
-            self.u.trajectory[initial_frame]
-        return atoms
+        return get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
 
     def solvation_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
         """

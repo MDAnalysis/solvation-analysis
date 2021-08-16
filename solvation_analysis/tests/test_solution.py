@@ -41,29 +41,30 @@ def test_run(pre_solution_mutable):
 
 
 @pytest.mark.parametrize(
-    "solute_index, radius, step, expected_res_ids",
+    "solute_index, radius, frame, expected_res_ids",
     [
         (1, 3, 5, [47, 101, 172, 256, 326, 522, 652]),
         (2, 3, 6, [14, 60, 178, 265, 315, 653]),
         (40, 3.5, 0, [102, 127, 128, 361, 369, 306, 691])
     ],
 )
-def test_radial_shell(solute_index, radius, step, expected_res_ids, run_solution):
-    shell = run_solution.radial_shell(solute_index, radius, frame=step)
-    var1 = set(shell.resids)
+def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solution):
+    run_solution.u.trajectory[frame]
+    shell = run_solution.radial_shell(solute_index, radius)
     assert set(shell.resids) == set(expected_res_ids)
 
 
 @pytest.mark.parametrize(
-    "solute_index, n_mol, step, expected_res_ids",
+    "solute_index, n_mol, frame, expected_res_ids",
     [
         (1, 4, 5, [47, 101, 172, 256, 652]),
         (2, 5, 6, [14, 60, 178, 265, 315, 653]),
         (40, 6, 0, [102, 127, 128, 361, 369, 306, 691])
     ],
 )
-def test_closest_n_mol(solute_index, n_mol, step, expected_res_ids, run_solution):
-    shell = run_solution.closest_n_mol(solute_index, n_mol, frame=step)
+def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solution):
+    run_solution.u.trajectory[frame]
+    shell = run_solution.closest_n_mol(solute_index, n_mol)
     assert set(shell.resids) == set(expected_res_ids)
 
 
