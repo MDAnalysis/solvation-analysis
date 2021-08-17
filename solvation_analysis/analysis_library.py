@@ -210,7 +210,7 @@ class Pairing:
         residue across frames.
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes):
+    def __init__(self, solvation_data, n_frames, n_solutes, solvent_counts=None):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
@@ -225,3 +225,9 @@ class Pairing:
         pairing_normalized = pairing_series / self.n_frames
         pairing_dict = pairing_normalized.groupby(["res_name"]).sum().to_dict()
         return pairing_dict, pairing_by_frame
+
+    def _solvent_correlation(self):
+        return
+
+    def _solvent_valency(self):
+        return
