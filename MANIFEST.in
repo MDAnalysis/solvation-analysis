@@ -1,7 +1,9 @@
+include README.md
 include LICENSE
+include requirements.txt
 include MANIFEST.in
 include CODE_OF_CONDUCT.md
 include versioneer.py
 
 graft solvation_analysis
-global-exclude *.py[cod] __pycache__ *.so
+global-exclude *.py[cod] __pycache__ *.soinclude solvation_analysis/_version.py
