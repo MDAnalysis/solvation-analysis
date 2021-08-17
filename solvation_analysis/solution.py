@@ -76,6 +76,10 @@ class Solution(AnalysisBase):
         an optional dictionary of solvent names and associated solvation radii
         e.g. {"name_2": radius_2, "name_5": radius_5} Any radii not given will
         be calculated. The solvent names should match the solvents parameter.
+    solvent_counts : dict of {str: int}, optional
+        an optional dictionary of solvent counts e.g. the number of solvent. Any
+        solvents not included will be set equal to the number of residues in the
+        solvents AtomGroup.
     rdf_kernel : function, optional
         this function must take RDF bins and data as input and return
         a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
@@ -226,7 +230,7 @@ class Solution(AnalysisBase):
         self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_id"])
         # create analysis classes
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
-        self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute)
+        self.pairing = Pairing(self.solvation_data, self.n_frames, self.solvent_counts)
         self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute)
 
     @staticmethod
