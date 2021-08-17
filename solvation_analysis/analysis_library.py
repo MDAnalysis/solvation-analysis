@@ -140,11 +140,15 @@ class Speciation:
 
 class Coordination:
     """
-    Calculate the coordination number of each solvent.
+    Calculate the coordination number for each solvent.
 
     Coordination calculates the coordination number by averaging the number of
     coordinated solvents in all of the solvation shells. This is equivalent to
-    the typical method of integrating the RDF up to the solvation radius cutoff.
+    the typical method of integrating the solute-solvent RDF up to the solvation
+    radius cutoff. As a result, Coordination calculates species-species coordination
+    numbers, not the total coordination number of the solute. So if the coordination
+    number of mol1 is 3.2, there are on average 3.2 mol1 residues within the solvation
+    distance of each solute.
 
     The coordination numbers are made available as an average over the whole
     simulation and by frame.
@@ -187,6 +191,10 @@ class Coordination:
 class Pairing:
     """
     Calculate the percent of solutes that are coordinated with each solvent.
+
+    The pairing percentage is the percent of solutes that are coordinated with
+    ANY solvent with matching type. So if the pairing of mol1 is 0.5, then 50% of
+    solutes are coordinated with at least 1 mol1.
 
     The pairing percentages are made available as an average over the whole
     simulation and by frame.
