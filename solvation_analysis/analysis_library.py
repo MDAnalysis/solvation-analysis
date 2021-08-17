@@ -177,7 +177,7 @@ class Coordination:
     def _average_cn(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         cn_series = counts.groupby(["res_name", "frame"]).sum() / (
-            self.n_solutes * self.n_frames
+                self.n_solutes * self.n_frames
         )
         cn_by_frame = cn_series.unstack()
         cn_dict = cn_series.groupby(["res_name"]).sum().to_dict()
@@ -210,13 +210,14 @@ class Pairing:
         residue across frames.
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes, solvent_counts=None):
+    def __init__(self, solvation_data, n_frames, n_solutes, solvent_counts):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.pairing_dict, self.pairing_by_frame = self._percentage_coordinated()
+        self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
+        self.solvent_counts = solvent_counts
 
-    def _percentage_coordinated(self):
+    def _percent_coordinated(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
             self.n_solutes
@@ -226,8 +227,21 @@ class Pairing:
         pairing_dict = pairing_normalized.groupby(["res_name"]).sum().to_dict()
         return pairing_dict, pairing_by_frame
 
+    def _percent_free_solvent(self):
+        # calculate % of solvent that is uncoordinated
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
+            self.n_solutes
+        )  # average coordinated overall
+        return
+
     def _solvent_correlation(self):
+        # given one solvent in shell, what is the probability of a second?
+        # should return a correlation matrix
+        # best to test on a random system!
+
         return
 
     def _solvent_valency(self):
+        # determine the count of ions in shell
         return

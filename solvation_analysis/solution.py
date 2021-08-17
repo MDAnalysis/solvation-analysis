@@ -141,8 +141,8 @@ class Solution(AnalysisBase):
         self.radii = {} if radii is None else radii
         self.solvent_counts = {} if solvent_counts is None else solvent_counts
         for name in solvents.keys():
-            if name not in solvent_counts:
-                solvent_counts[name] = len(solvents[name].residues)
+            if name not in self.solvent_counts.keys():
+                self.solvent_counts[name] = len(solvents[name].residues)
         self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
         self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
@@ -230,7 +230,7 @@ class Solution(AnalysisBase):
         self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_id"])
         # create analysis classes
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
-        self.pairing = Pairing(self.solvation_data, self.n_frames, self.solvent_counts)
+        self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
         self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute)
 
     @staticmethod

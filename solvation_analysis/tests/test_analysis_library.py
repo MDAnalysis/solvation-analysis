@@ -61,6 +61,7 @@ def test_coordination(name, cn, solvation_data):
     ],
 )
 def test_pairing(name, percent, solvation_data):
-    pairing = Pairing(solvation_data, 10, 49)
+    pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
     np.testing.assert_allclose([percent], pairing.pairing_dict[name], atol=0.05)
     assert len(pairing.pairing_by_frame) == 3
+
