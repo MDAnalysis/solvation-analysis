@@ -109,6 +109,7 @@ class Speciation:
         --------
         **first define Li, BN, and FEC AtomGroups**
         >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> solution.run()
         >>> solution.speciation.shell_percent({'BN': 4, 'PF6': 1})
         0.0898
         """
@@ -182,6 +183,7 @@ class Coordination:
     --------
     **first define Li, BN, and FEC AtomGroups**
     >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+    >>> solution.run()
     >>> solution.coordination.cn_dict
     {'BN': 4.328, 'FEC': 0.253, 'PF6': 0.128}
 
@@ -236,6 +238,7 @@ class Pairing:
     --------
     **first define Li, BN, and FEC AtomGroups**
     >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+    >>> solution.run()
     >>> solution.pairing.pairing_dict
     {'BN': 1.0, 'FEC': 0.210, 'PF6': 0.120}
     """
