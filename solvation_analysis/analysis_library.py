@@ -145,7 +145,7 @@ class Coordination:
     Coordination calculates the coordination number by averaging the number of
     coordinated solvents in all of the solvation shells. This is equivalent to
     the typical method of integrating the solute-solvent RDF up to the solvation
-    radius cutoff. As a result, Coordination calculates species-species coordination
+    radius cutoff. As a result, Coordination calculates **species-species** coordination
     numbers, not the total coordination number of the solute. So if the coordination
     number of mol1 is 3.2, there are on average 3.2 mol1 residues within the solvation
     distance of each solute.
@@ -170,6 +170,14 @@ class Coordination:
     cn_by_frame : pd.DataFrame
         a dictionary tracking the average coordination number of each
         residue across frames.
+
+    Examples
+    --------
+    **first define Li, BN, and FEC AtomGroups**
+    >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+    >>> solution.coordination.cn_dict
+    {'BN': 4.328, 'FEC': 0.253, 'PF6': 0.128}
+
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
