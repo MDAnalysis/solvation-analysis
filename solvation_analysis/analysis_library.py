@@ -224,6 +224,13 @@ class Pairing:
     pairing_by_frame : pd.DataFrame
         a dictionary tracking the average percentage of each
         residue across frames.
+
+    Examples
+    --------
+    **first define Li, BN, and FEC AtomGroups**
+    >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+    >>> solution.pairing.pairing_dict
+    {'BN': 1.0, 'FEC': 0.210, 'PF6': 0.120}
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
