@@ -39,6 +39,20 @@ def test_speciation_find_clusters(cluster, n_clusters, solvation_data):
 
 
 @pytest.mark.parametrize(
+    "solvent_one, solvent_two, correlation",
+    [
+        ('bn', 'bn', 0.98),
+        ('fec', 'bn', 1.03),
+        ('fec', 'pf6', 0.15),
+    ],
+)
+def test_speciation_correlation(solvent_one, solvent_two, correlation, solvation_data):
+    speciation = Speciation(solvation_data, 10, 49)
+    df = speciation.correlation
+    np.testing.assert_allclose(df[solvent_one][solvent_two], correlation, atol=0.05)
+
+
+@pytest.mark.parametrize(
     "name, cn",
     [
         ("fec", 0.25),
