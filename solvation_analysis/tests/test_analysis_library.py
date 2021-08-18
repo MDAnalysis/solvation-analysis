@@ -60,8 +60,20 @@ def test_coordination(name, cn, solvation_data):
         ("pf6", 0.14),
     ],
 )
-def test_pairing(name, percent, solvation_data):
+def test_pairing_dict(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
     np.testing.assert_allclose([percent], pairing.pairing_dict[name], atol=0.05)
     assert len(pairing.pairing_by_frame) == 3
 
+
+@pytest.mark.parametrize(
+    "name, percent",
+    [
+        ("fec", 0.052),
+        ("bn", 0.58),
+        ("pf6", 0.146),
+    ],
+)
+def test_pairing_participating(name, percent, solvation_data):
+    pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
+    np.testing.assert_allclose([percent], pairing.participating_solvents[name], atol=0.05)

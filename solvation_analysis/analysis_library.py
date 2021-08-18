@@ -216,7 +216,7 @@ class Pairing:
         self.n_solutes = n_solutes
         self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.solvent_counts = solvent_counts
-        self.test = self._percent_free_solvent()
+        self.participating_solvents = self._percent_solvents_in_shell()
 
     def _percent_coordinated(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
@@ -228,13 +228,15 @@ class Pairing:
         pairing_dict = pairing_normalized.groupby(["res_name"]).sum().to_dict()
         return pairing_dict, pairing_by_frame
 
-    def _percent_free_solvent(self):
+    def _percent_solvents_in_shell(self):
         # calculate % of solvent that is uncoordinated
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
             self.n_solutes
         )  # average coordinated overall
-        return counts
+        totals = counts.groupby(['res_name']).sum() / self.n_frames
+        n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
+        return totals / n_solvents
 
     def _solvent_correlation(self):
         # given one solvent in shell, what is the probability of a second?
