@@ -213,6 +213,12 @@ class Coordination:
         cn_dict = cn_series.groupby(["res_name"]).sum().to_dict()
         return cn_dict, cn_by_frame
 
+    def _calculate_coordinating_atoms(self):
+        # determine which atoms are actually coordinating
+        # return the ids of those atoms
+        # maybe give an option to calculate by name / id of atoms
+        return
+
 
 class Pairing:
     """
