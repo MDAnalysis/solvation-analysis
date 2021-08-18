@@ -33,6 +33,7 @@ from solvation_analysis.analysis_library import (
     Coordination,
     Pairing,
     Speciation,
+    Valency,
 )
 from solvation_analysis.selection import get_radial_shell, get_closest_n_mol, get_atom_group
 
@@ -232,6 +233,7 @@ class Solution(AnalysisBase):
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
         self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
         self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute)
+        self.valency = Valency(self.solvation_data_dup, self.n_frames, self.n_solute)
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):

@@ -270,8 +270,14 @@ class Valency:
 
     def __init__(self, solvation_data_dup, n_frames, n_solutes):
         self.solvation_data_dup = solvation_data_dup
+        self.valency = self._solvent_valency()
 
     def _solvent_valency(self):
         # determine the count of ions in shell
-        return
+        valency_counts = (self.solvation_data_dup
+                          .groupby(['frame', 'solvated_atom', 'res_name', 'res_id'])
+                          .size()
+                          .reset_index(['res_name', 'res_id'])
+                          )
+        return 1
 
