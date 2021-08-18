@@ -64,6 +64,7 @@ class Speciation:
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.speciation, self.speciation_percent = self._compute_speciation()
+        self.correlation = self._solvent_correlation()
 
     def _compute_speciation(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
@@ -136,6 +137,35 @@ class Speciation:
         query = " and ".join(query_list)
         query_counts = self.speciation.query(query)
         return query_counts
+
+    def _solvent_correlation(self):
+        # given one solvent in shell, what is the probability of a second?
+        # should return a correlation matrix
+        # best to test on a random system!
+        expected_solvents_list = []
+        actual_solvents_list = []
+        for solvent in self.speciation.columns.values:
+            # calculate number of available coordinating solvent slots
+            shells_w_solvent = self.speciation.query(f'{solvent} > 0')
+            n_solvents = shells_w_solvent.sum()
+            # calculate expected number of coordinating solvents
+            n_coordination_slots = n_solvents.sum() - len(shells_w_solvent)
+            coordination_percentage = self.speciation.sum() / self.speciation.sum().sum()
+            expected_solvents = coordination_percentage * n_coordination_slots
+            # calculate actual number of coordinating solvents
+            actual_solvents = n_solvents.copy()
+            actual_solvents[solvent] = actual_solvents[solvent] - len(shells_w_solvent)
+            # name series and append to list
+            expected_solvents.name = solvent
+            actual_solvents.name = solvent
+            expected_solvents_list.append(expected_solvents)
+            actual_solvents_list.append(actual_solvents)
+        # make DataFrames
+        actual_df = pd.concat(actual_solvents_list, axis=1)
+        expected_df = pd.concat(expected_solvents_list, axis=1)
+        # calculate correlation matrix
+        correlation = actual_df / expected_df
+        return correlation
 
 
 class Coordination:
@@ -231,20 +261,17 @@ class Pairing:
     def _percent_solvents_in_shell(self):
         # calculate % of solvent that is uncoordinated
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
-        pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
-            self.n_solutes
-        )  # average coordinated overall
         totals = counts.groupby(['res_name']).sum() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         return totals / n_solvents
 
-    def _solvent_correlation(self):
-        # given one solvent in shell, what is the probability of a second?
-        # should return a correlation matrix
-        # best to test on a random system!
 
-        return
+class Valency:
+
+    def __init__(self, solvation_data_dup, n_frames, n_solutes):
+        self.solvation_data_dup = solvation_data_dup
 
     def _solvent_valency(self):
         # determine the count of ions in shell
         return
+
