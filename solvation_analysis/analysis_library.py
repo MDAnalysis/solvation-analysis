@@ -104,6 +104,13 @@ class Speciation:
         -------
         float
             the percentage of shells
+
+        Examples
+        --------
+        **first define Li, BN, and FEC AtomGroups**
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> solution.speciation.shell_percent({'BN': 4, 'PF6': 1})
+        0.0898
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
