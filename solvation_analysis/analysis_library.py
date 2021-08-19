@@ -107,11 +107,14 @@ class Speciation:
 
         Examples
         --------
-        **first define Li, BN, and FEC AtomGroups**
-        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-        >>> solution.run()
-        >>> solution.speciation.shell_percent({'BN': 4, 'PF6': 1})
-        0.0898
+
+         .. code-block:: python
+
+            # first define Li, BN, and FEC AtomGroups
+            >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+            >>> solution.run()
+            >>> solution.speciation.shell_percent({'BN': 4, 'PF6': 1})
+            0.0898
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
@@ -181,11 +184,14 @@ class Coordination:
 
     Examples
     --------
-    **first define Li, BN, and FEC AtomGroups**
-    >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-    >>> solution.run()
-    >>> solution.coordination.cn_dict
-    {'BN': 4.328, 'FEC': 0.253, 'PF6': 0.128}
+
+     .. code-block:: python
+
+        # first define Li, BN, and FEC AtomGroups
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> solution.run()
+        >>> solution.coordination.cn_dict
+        {'BN': 4.328, 'FEC': 0.253, 'PF6': 0.128}
 
     """
 
@@ -236,11 +242,14 @@ class Pairing:
 
     Examples
     --------
-    **first define Li, BN, and FEC AtomGroups**
-    >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-    >>> solution.run()
-    >>> solution.pairing.pairing_dict
-    {'BN': 1.0, 'FEC': 0.210, 'PF6': 0.120}
+
+     .. code-block:: python
+
+        # first define Li, BN, and FEC AtomGroups
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> solution.run()
+        >>> solution.pairing.pairing_dict
+        {'BN': 1.0, 'FEC': 0.210, 'PF6': 0.120}
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
