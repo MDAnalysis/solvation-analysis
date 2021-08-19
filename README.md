@@ -26,7 +26,11 @@ in understanding the solvation structure of a liquid, this package is for you!
 
 Main development by @orioncohen, with mentorship from @richardjgowers, @IAlibay, and 
 @hmacdope.
+
+Find the documentation on [readthedocs](https://solvation-analysis.readthedocs.io/en/latest/).
+
 ---
+
 #### Acknowledgements
  
 Project based on the 
