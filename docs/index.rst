@@ -6,6 +6,16 @@
 Welcome to SolvationAnalysis's documentation!
 =========================================================
 
+Solvation analysis implements a `robust, cohesive, and fast set of methods
+<https://summerofcode.withgoogle.com/projects/#6227159028334592>`_ for
+analyzing the solvation structure of a liquid. It seamlessly integrates with
+`MDAnalysis <https://www.mdanalysis.org/>`_, making use of the core AtomGroup
+and Universe data structures to parse solvation information. If you are interested
+in understanding the solvation structure of a liquid, this package is for you!
+
+To get started, check out the Getting Started section of the documentation.
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
