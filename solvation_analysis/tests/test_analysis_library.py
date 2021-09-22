@@ -52,6 +52,12 @@ def test_speciation_correlation(solvent_one, solvent_two, correlation, solvation
     np.testing.assert_allclose(df[solvent_one][solvent_two], correlation, atol=0.05)
 
 
+def test_plot_correlation(solvation_data):
+    speciation = Speciation(solvation_data, 10, 49)
+    fig, ax = speciation.plot_correlation()
+    # fig.show()
+
+
 @pytest.mark.parametrize(
     "name, cn",
     [

@@ -17,6 +17,7 @@ solvation data a non-issue.
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Speciation:
@@ -167,6 +168,35 @@ class Speciation:
         correlation = actual_df / expected_df
         return correlation
 
+    def plot_correlation(self):
+        solvent_names = self.speciation.columns.values
+        fig, ax = plt.subplots()
+        im = ax.imshow(self.correlation)
+        # We want to show all ticks...
+        ax.set_xticks(np.arange(len(solvent_names)))
+        ax.set_yticks(np.arange(len(solvent_names)))
+        # ... and label them with the respective list entries
+        ax.set_xticklabels(solvent_names, fontsize=14)
+        ax.set_yticklabels(solvent_names, fontsize=14)
+        # Let the horizontal axes labeling appear on top.
+        ax.tick_params(top=True, bottom=False,
+                       labeltop=True, labelbottom=False,)
+        # Rotate the tick labels and set their alignment.
+        plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
+                 rotation_mode="anchor")
+        # Loop over data dimensions and create text annotations.
+        for i in range(len(solvent_names)):
+            for j in range(len(solvent_names)):
+
+                ax.text(j, i, round(self.correlation.iloc[i, j], 2),
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                        color="black",
+                        fontsize=14,
+                        )
+        fig.tight_layout()
+        return fig, ax
+
 
 class Coordination:
     """
@@ -197,7 +227,6 @@ class Coordination:
         a dictionary tracking the average coordination number of each
         residue across frames.
     """
-
     def __init__(self, solvation_data, n_frames, n_solutes):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
@@ -252,7 +281,7 @@ class Pairing:
         self.n_solutes = n_solutes
         self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.solvent_counts = solvent_counts
-        self.participating_solvents = self._percent_solvents_in_shell()
+        self.participating_solvents = self._percent_free_solvent()
 
     def _percent_coordinated(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
@@ -264,7 +293,7 @@ class Pairing:
         pairing_dict = pairing_normalized.groupby(["res_name"]).sum().to_dict()
         return pairing_dict, pairing_by_frame
 
-    def _percent_solvents_in_shell(self):
+    def _percent_free_solvent(self):
         # calculate % of solvent that is uncoordinated
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         totals = counts.groupby(['res_name']).sum() / self.n_frames
