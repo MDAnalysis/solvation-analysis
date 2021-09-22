@@ -233,7 +233,6 @@ class Solution(AnalysisBase):
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
         self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
         self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute)
-        self.valency = Valency(self.solvation_data_dup, self.n_frames, self.n_solute)
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):
