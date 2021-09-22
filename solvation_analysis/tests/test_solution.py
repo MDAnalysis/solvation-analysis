@@ -17,7 +17,7 @@ def test_instantiate_solute(pre_solution):
 def test_plot_solvation_distance(rdf_bins_and_data_easy):
     bins, data = rdf_bins_and_data_easy['pf6_all']
     fig, ax = Solution._plot_solvation_radius(bins, data, 2)
-    # plt.show()  # comment out for global testing
+    # fig.show()  # comment out for global testing
 
 
 def test_radii_finding(run_solution):
@@ -29,7 +29,7 @@ def test_radii_finding(run_solution):
     assert 2 < run_solution.radii['fec'] < 3
     assert 2 < run_solution.radii['bn'] < 3
     # for fig, ax in run_solute.rdf_plots.values():
-    #     plt.show()  # comment out for global testing
+    # plt.show()  # comment out for global testing
 
 
 def test_run(pre_solution_mutable):

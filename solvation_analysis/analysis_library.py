@@ -187,7 +187,6 @@ class Speciation:
         # Loop over data dimensions and create text annotations.
         for i in range(len(solvent_names)):
             for j in range(len(solvent_names)):
-
                 ax.text(j, i, round(self.correlation.iloc[i, j], 2),
                         horizontalalignment="center",
                         verticalalignment="center",
