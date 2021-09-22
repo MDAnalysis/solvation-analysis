@@ -59,7 +59,7 @@ class Speciation:
         The final column is the percentage of total shell of that
         particular composition.
     co_occurrence : pandas.DataFrame
-        The actual co-occurance of solvents divided by the expected co-occurance.
+        The actual co-occurrence of solvents divided by the expected co-occurrence.
         In other words, given one molecule of solvent i in the shell, what is the
         probability of finding a solvent j relative to choosing a solvent at random
         from the pool of all coordinated solvents. This matrix will
@@ -176,7 +176,7 @@ class Speciation:
         """
         Plot the co-occurrence matrix of the solution.
 
-        Co-occurence as a heatmap with numerical values in addition to colors.
+        Co-occurrence as a heatmap with numerical values in addition to colors.
 
         Returns
         -------
