@@ -33,7 +33,6 @@ from solvation_analysis.analysis_library import (
     Coordination,
     Pairing,
     Speciation,
-    Valency,
 )
 from solvation_analysis.selection import get_radial_shell, get_closest_n_mol, get_atom_group
 
