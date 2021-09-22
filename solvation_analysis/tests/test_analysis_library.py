@@ -48,13 +48,13 @@ def test_speciation_find_clusters(cluster, n_clusters, solvation_data):
 )
 def test_speciation_correlation(solvent_one, solvent_two, correlation, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    df = speciation.correlation
+    df = speciation.co_occurrence
     np.testing.assert_allclose(df[solvent_one][solvent_two], correlation, atol=0.05)
 
 
 def test_plot_correlation(solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    fig, ax = speciation.plot_correlation()
+    fig, ax = speciation.plot_co_occurrence()
     # fig.show()
 
 
@@ -96,4 +96,4 @@ def test_pairing_dict(name, percent, solvation_data):
 )
 def test_pairing_participating(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
-    np.testing.assert_allclose([percent], pairing.free_solvents[name], atol=0.05)
+    np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)

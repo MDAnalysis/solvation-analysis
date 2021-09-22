@@ -58,6 +58,11 @@ class Speciation:
         molecules and and values are the number of solvent in the shell.
         The final column is the percentage of total shell of that
         particular composition.
+    co_occurrence : pandas.DataFrame
+        The actual co-occurance of solvents divided by the expected co-occurance.
+        In other words, given one molecule of solvent i what is the probability
+        of solvent j, adjusted for the amount of j that is participating in
+        solvation.
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
@@ -65,7 +70,7 @@ class Speciation:
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.speciation, self.speciation_percent = self._compute_speciation()
-        self.correlation = self._solvent_correlation()
+        self.co_occurrence = self._solvent_co_occurrence()
 
     def _compute_speciation(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
@@ -139,7 +144,7 @@ class Speciation:
         query_counts = self.speciation.query(query)
         return query_counts
 
-    def _solvent_correlation(self):
+    def _solvent_co_occurrence(self):
         # given one solvent in shell, what is the probability of a second?
         # should return a correlation matrix
         # best to test on a random system!
@@ -168,10 +173,10 @@ class Speciation:
         correlation = actual_df / expected_df
         return correlation
 
-    def plot_correlation(self):
+    def plot_co_occurrence(self):
         solvent_names = self.speciation.columns.values
         fig, ax = plt.subplots()
-        im = ax.imshow(self.correlation)
+        im = ax.imshow(self.co_occurrence)
         # We want to show all ticks...
         ax.set_xticks(np.arange(len(solvent_names)))
         ax.set_yticks(np.arange(len(solvent_names)))
@@ -187,7 +192,7 @@ class Speciation:
         # Loop over data dimensions and create text annotations.
         for i in range(len(solvent_names)):
             for j in range(len(solvent_names)):
-                ax.text(j, i, round(self.correlation.iloc[i, j], 2),
+                ax.text(j, i, round(self.co_occurrence.iloc[i, j], 2),
                         horizontalalignment="center",
                         verticalalignment="center",
                         color="black",
@@ -263,6 +268,8 @@ class Pairing:
         The number of frames in solvation_data.
     n_solutes : int
         The number of solutes in solvation_data.
+    n_solvents : dict of {str: int}
+        The number of each kind of solvent.
 
     Attributes
     ----------
@@ -272,15 +279,18 @@ class Pairing:
     pairing_by_frame : pd.DataFrame
         a dictionary tracking the average percentage of each
         residue across frames.
+    percent_free_solvents : dict of {str: float}
+        a dictionary containing the percent of each solvent that is free. e.g.
+        not coordinated to a solute.
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes, solvent_counts):
+    def __init__(self, solvation_data, n_frames, n_solutes, n_solvents):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
-        self.solvent_counts = solvent_counts
-        self.free_solvents = self._percent_free_solvent()
+        self.solvent_counts = n_solvents
+        self.percent_free_solvents = self._percent_free_solvent()
 
     def _percent_coordinated(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
@@ -297,4 +307,5 @@ class Pairing:
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         totals = counts.groupby(['res_name']).sum() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
-        return np.ones(len(totals)) - totals / n_solvents
+        free_solvents = np.ones(len(totals)) - totals / n_solvents
+        return free_solvents.to_dict()
