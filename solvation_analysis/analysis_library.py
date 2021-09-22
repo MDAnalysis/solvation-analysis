@@ -60,9 +60,10 @@ class Speciation:
         particular composition.
     co_occurrence : pandas.DataFrame
         The actual co-occurance of solvents divided by the expected co-occurance.
-        In other words, given one molecule of solvent i what is the probability
-        of solvent j, adjusted for the amount of j that is participating in
-        solvation.
+        In other words, given one molecule of solvent i in the shell, what is the
+        probability of finding a solvent j relative to choosing a solvent at random
+        from the pool of all coordinated solvents. This matrix will
+        likely not be symmetric.
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
@@ -145,9 +146,7 @@ class Speciation:
         return query_counts
 
     def _solvent_co_occurrence(self):
-        # given one solvent in shell, what is the probability of a second?
-        # should return a correlation matrix
-        # best to test on a random system!
+        # calculate the co-occurrence of solvent molecules.
         expected_solvents_list = []
         actual_solvents_list = []
         for solvent in self.speciation.columns.values:
@@ -174,6 +173,17 @@ class Speciation:
         return correlation
 
     def plot_co_occurrence(self):
+        """
+        Plot the co-occurrence matrix of the solution.
+
+        Co-occurence as a heatmap with numerical values in addition to colors.
+
+        Returns
+        -------
+        fig : matplotlib.Figure
+        ax : matplotlib.Axes
+
+        """
         solvent_names = self.speciation.columns.values
         fig, ax = plt.subplots()
         im = ax.imshow(self.co_occurrence)
@@ -293,6 +303,7 @@ class Pairing:
         self.percent_free_solvents = self._percent_free_solvent()
 
     def _percent_coordinated(self):
+        # calculate the percent of solute coordinated with each solvent
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
             self.n_solutes
@@ -303,7 +314,7 @@ class Pairing:
         return pairing_dict, pairing_by_frame
 
     def _percent_free_solvent(self):
-        # calculate % of solvent that is uncoordinated
+        # calculate the percent of each solvent NOT coordinated with the solute
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         totals = counts.groupby(['res_name']).sum() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
