@@ -89,11 +89,11 @@ def test_pairing_dict(name, percent, solvation_data):
 @pytest.mark.parametrize(
     "name, percent",
     [
-        ("fec", 0.052),
-        ("bn", 0.58),
-        ("pf6", 0.146),
+        ("fec", 0.947),
+        ("bn", 0.415),
+        ("pf6", 0.853),
     ],
 )
 def test_pairing_participating(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
-    np.testing.assert_allclose([percent], pairing.participating_solvents[name], atol=0.05)
+    np.testing.assert_allclose([percent], pairing.free_solvents[name], atol=0.05)

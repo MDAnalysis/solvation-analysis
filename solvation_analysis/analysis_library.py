@@ -280,7 +280,7 @@ class Pairing:
         self.n_solutes = n_solutes
         self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.solvent_counts = solvent_counts
-        self.participating_solvents = self._percent_free_solvent()
+        self.free_solvents = self._percent_free_solvent()
 
     def _percent_coordinated(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
@@ -297,4 +297,4 @@ class Pairing:
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
         totals = counts.groupby(['res_name']).sum() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
-        return totals / n_solvents
+        return np.ones(len(totals)) - totals / n_solvents
