@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import warnings
 import pytest
 from solvation_analysis.solution import Solution
 import numpy as np
@@ -32,8 +33,15 @@ def test_radii_finding(run_solution):
     # plt.show()  # comment out for global testing
 
 
+def test_run_warning(pre_solution_mutable):
+    # checks that an error is thrown if there are not enough radii
+    with pytest.raises(AssertionError):
+        pre_solution_mutable.run(step=1)
+
+
 def test_run(pre_solution_mutable):
     # checks that run is run correctly
+    pre_solution_mutable.radii = {'pf6': 2.8}
     pre_solution_mutable.run(step=1)
     assert len(pre_solution_mutable.solvation_frames) == 10
     assert len(pre_solution_mutable.solvation_frames[0]) == 228

@@ -144,7 +144,7 @@ def pre_solution_mutable(atom_groups):
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec}, radii={'pf6': 2.8})
+    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec})
 
 
 @pytest.fixture(scope='module')

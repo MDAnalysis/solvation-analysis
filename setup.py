@@ -44,6 +44,13 @@ setup(
     # Allows `setup.py test` to work correctly with pytest
     setup_requires=[] + pytest_runner,
 
+    install_requires=[
+        'numpy>=1.16.0',
+        'mdanalysis>=2.0.0b0',
+        'pandas',
+        'matplotlib',
+        'scipy',
+    ],
     # Additional entries you may want simply uncomment the lines you want and fill in the data
     # url='http://www.my_package.com',  # Website
     # install_requires=[],              # Required packages, pulls from pip if needed; do not use for Conda deployment
