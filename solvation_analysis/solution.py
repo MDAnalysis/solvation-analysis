@@ -23,6 +23,7 @@ shell, returning an AtomGroup for visualization or further analysis.
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import warnings
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
@@ -173,7 +174,15 @@ class Solution(AnalysisBase):
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
-        assert self.solvents.keys() == self.radii.keys(), "Radii missing."
+        calculated_radii = set([name for name, radius in self.radii.items()
+                                if not np.isnan(radius)])
+        missing_solvents = set(self.solvents.keys()) - calculated_radii
+        missing_solvents_str = ' '.join([str(i) for i in missing_solvents])
+        assert len(missing_solvents) == 0, (
+            f"Solution could not identify a solvation radius for "
+            f"{missing_solvents_str}. Please manually enter missing radii "
+            f"by editing the radii dict and rerun the analysis."
+        )
 
     def _single_frame(self):
         """
@@ -192,7 +201,7 @@ class Solution(AnalysisBase):
                 box=self.u.dimensions,
             )
             # replace local ids with absolute ids
-            pairs[:, 1] = solvent.ids[[pairs[:, 1]]]
+            pairs[:, 1] = solvent.ids[tuple([pairs[:, 1]])]
             # extend
             pairs_list.append(pairs)
             dist_list.append(dist)
