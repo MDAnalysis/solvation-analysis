@@ -72,6 +72,7 @@ def test_coordination(name, cn, solvation_data, run_solution):
     np.testing.assert_allclose(cn, coordination.cn_dict[name], atol=0.05)
     assert len(coordination.cn_by_frame) == 3
 
+
 @pytest.mark.parametrize(
     "name, atom_type, percent",
     [

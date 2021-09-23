@@ -255,6 +255,9 @@ class Coordination:
     cn_by_frame : pd.DataFrame
         a dictionary tracking the average coordination number of each
         residue across frames.
+    coordinating_atoms : pd.DataFrame
+        percent of each atom_type participating in solvation, calculated
+         for each solvent.
 
     Examples
     --------
