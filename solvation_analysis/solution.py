@@ -201,7 +201,7 @@ class Solution(AnalysisBase):
                 box=self.u.dimensions,
             )
             # replace local ids with absolute ids
-            pairs[:, 1] = solvent.ids[tuple([pairs[:, 1]])]
+            pairs[:, 1] = solvent.ids[[pairs[:, 1]]]
             # extend
             pairs_list.append(pairs)
             dist_list.append(dist)
