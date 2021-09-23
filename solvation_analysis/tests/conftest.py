@@ -161,3 +161,8 @@ def solvation_results(run_solution):
 @pytest.fixture
 def solvation_data(run_solution):
     return run_solution.solvation_data
+
+
+@pytest.fixture
+def solvation_data_dup(run_solution):
+    return run_solution.solvation_data_dup

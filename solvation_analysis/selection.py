@@ -88,11 +88,11 @@ def get_closest_n_mol(
     central_species,
     n_mol,
     guess_radius=3,
-    return_ordered_resids=False,
+    return_ordered_resix=False,
     return_radii=False,
 ):
     """
-    Returns the closest n molecules to the central species, an array of their resids,
+    Returns the closest n molecules to the central species, an array of their resix,
     and an array of the distance of the closest atom in each molecule.
 
     Parameters
@@ -102,8 +102,8 @@ def get_closest_n_mol(
         The number of molecules to return
     guess_radius : float or int
         an initial search radius to look for closest n mol
-    return_ordered_resids : bool, default False
-        whether to return the resids of the closest n
+    return_ordered_resix : bool, default False
+        whether to return the resix of the closest n
         molecules, ordered by radius
     return_radii : bool, default False
         whether to return the distance of the closest atom of each
@@ -113,8 +113,8 @@ def get_closest_n_mol(
     -------
     full shell : MDAnalysis.AtomGroup
         the atoms in the shell
-    ordered_resids : numpy.array of int
-        the residue id of the n_mol closest atoms
+    ordered_resix : numpy.array of int
+        the residue index of the n_mol closest atoms
     radii : numpy.array of float
         the distance of each atom from the center
     """
@@ -125,33 +125,33 @@ def get_closest_n_mol(
         coords, u.atoms.positions, guess_radius, return_distances=True, box=u.dimensions
     )
     partial_shell = u.atoms[pairs[:, 1]]
-    shell_resids = partial_shell.resids
-    if len(np.unique(shell_resids)) < n_mol + 1:
+    shell_resix = partial_shell.resindices
+    if len(np.unique(shell_resix)) < n_mol + 1:
         return get_closest_n_mol(
             central_species,
             n_mol,
             guess_radius + 1,
-            return_ordered_resids=return_ordered_resids,
+            return_ordered_resix=return_ordered_resix,
             return_radii=return_radii
         )
     radii = distances.distance_array(coords, partial_shell.positions, box=u.dimensions)[
         0
     ]
     ordering = np.argsort(radii)
-    ordered_resids = shell_resids[ordering]
-    closest_n_resix = np.sort(np.unique(ordered_resids, return_index=True)[1])[
+    ordered_resix = shell_resix[ordering]
+    closest_n_resix = np.sort(np.unique(ordered_resix, return_index=True)[1])[
         0: n_mol + 1
     ]
-    str_resids = " ".join(str(resid) for resid in ordered_resids[closest_n_resix])
-    full_shell = u.select_atoms(f"resid {str_resids}")
-    if return_ordered_resids and return_radii:
+    str_resix = " ".join(str(resix) for resix in ordered_resix[closest_n_resix])
+    full_shell = u.select_atoms(f"resindex {str_resix}")
+    if return_ordered_resix and return_radii:
         return (
             full_shell,
-            ordered_resids[closest_n_resix],
+            ordered_resix[closest_n_resix],
             radii[ordering][closest_n_resix],
         )
-    elif return_ordered_resids:
-        return full_shell, ordered_resids[closest_n_resix]
+    elif return_ordered_resix:
+        return full_shell, ordered_resix[closest_n_resix]
     elif return_radii:
         return full_shell, radii[ordering][closest_n_resix]
     else:

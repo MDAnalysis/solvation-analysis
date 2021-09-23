@@ -18,20 +18,31 @@ surrounding ions is especially important. By studying the solvation of interesti
 materials, scientists can better understand, engineer, and design new technologies. 
 
 Solvation analysis implements a 
-[robust, cohesive, and fast set of methods](https://summerofcode.withgoogle.com/projects/#6227159028334592) 
+[robust, cohesive, and fast set of methods] 
 for analyzing the solvation structure of a liquid. It seamlessly integrates with
-[MDAnalysis](https://www.mdanalysis.org/), making use of the core AtomGroup
+[MDAnalysis], making use of the core AtomGroup
 and Universe data structures to parse solvation information. If you are interested
 in understanding the solvation structure of a liquid, this package is for you!
 
 Main development by @orioncohen, with mentorship from @richardjgowers, @IAlibay, and 
 @hmacdope.
 
-Find the documentation on [readthedocs](https://solvation-analysis.readthedocs.io/en/latest/).
+Find the documentation on [readthedocs].
 
 ---
 
 #### Acknowledgements
- 
+
+[Google Summer of Code] and the [MDAnalysis] team provided funding and support for this project.
+
+Tingzheng Hou (@htz1992213) contributed invaluable scientific guidance and mentorship.
+
 Project based on the 
 [Computational Molecular Science Python Cookiecutter](https://github.com/molssi/cookiecutter-cms) version 1.5.
+
+
+
+[readthedocs]: (https://solvation-analysis.readthedocs.io/en/latest/)
+[robust, cohesive, and fast set of methods]:(https://summerofcode.withgoogle.com/projects/#6227159028334592)
+[Google Summer of Code]: https://summerofcode.withgoogle.com/
+[MDAnalysis]: https://www.mdanalysis.org/
