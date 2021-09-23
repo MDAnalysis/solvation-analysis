@@ -71,6 +71,7 @@ class Speciation:
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.speciation_data, self.speciation_percent = self._compute_speciation()
+        self.co_occurrence = self._solvent_co_occurrence()
 
     def _compute_speciation(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
@@ -159,13 +160,13 @@ class Speciation:
         # calculate the co-occurrence of solvent molecules.
         expected_solvents_list = []
         actual_solvents_list = []
-        for solvent in self.speciation.columns.values:
+        for solvent in self.speciation_data.columns.values:
             # calculate number of available coordinating solvent slots
-            shells_w_solvent = self.speciation.query(f'{solvent} > 0')
+            shells_w_solvent = self.speciation_data.query(f'{solvent} > 0')
             n_solvents = shells_w_solvent.sum()
             # calculate expected number of coordinating solvents
             n_coordination_slots = n_solvents.sum() - len(shells_w_solvent)
-            coordination_percentage = self.speciation.sum() / self.speciation.sum().sum()
+            coordination_percentage = self.speciation_data.sum() / self.speciation_data.sum().sum()
             expected_solvents = coordination_percentage * n_coordination_slots
             # calculate actual number of coordinating solvents
             actual_solvents = n_solvents.copy()
@@ -194,7 +195,7 @@ class Speciation:
         ax : matplotlib.Axes
 
         """
-        solvent_names = self.speciation.columns.values
+        solvent_names = self.speciation_data.columns.values
         fig, ax = plt.subplots()
         im = ax.imshow(self.co_occurrence)
         # We want to show all ticks...
@@ -268,7 +269,7 @@ class Coordination:
 
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes):
+    def __init__(self, solvation_data, n_frames, n_solutes, atom_group):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
