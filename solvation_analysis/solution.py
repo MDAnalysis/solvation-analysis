@@ -389,13 +389,13 @@ class Solution(AnalysisBase):
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
             is_mol = shell.res_name == mol_name
-            res_ids = shell[is_mol].res_id
-            mol_count = len(res_ids)
+            res_ix = shell[is_mol].res_id
+            mol_count = len(res_ix)
             n_remove = min(mol_count, n_remove)
             # then truncate resnames to remove mols
-            remove_ids = res_ids[(mol_count - n_remove):]
+            remove_ix = res_ix[(mol_count - n_remove):]
             # then apply to original shell
-            remove = shell.res_id.isin(remove_ids)
+            remove = shell.res_id.isin(remove_ix)
             shell = shell[np.invert(remove)]
         # filter based on length
         if closest_n_only:
@@ -409,7 +409,7 @@ class Solution(AnalysisBase):
 
     def _df_to_atom_group(self, df, solute_index=None):
         """
-        Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with res_ids.
+        Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with res_ix.
 
         Parameters
         ----------
