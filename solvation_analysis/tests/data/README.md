@@ -9,8 +9,8 @@ period followed by a 5 ns production run.
 
 ## Trajectory Files
 
-`bn_fec.data` was generated with the Pymatgen Python package using OPLS parameters downloaded
-from LigParGen.
+`bn_fec.data` was generated with the Pymatgen Python package. OPLS parameters for BN were downloaded
+from LigParGen and parameters for FEC were provided by Tingzheng Hou, see https://doi.org/10.1016/j.nanoen.2019.103881.
 `bn_fec_short_wrap.dcd` is the wrapped trajectory file from LAMMPS
 `bn_fec_short_unwrap.dcd` is the unwrapped trajectory file from LAMMPS
 `bn_fec_elements.csv` is a csv file with the element name of every atom name in the 

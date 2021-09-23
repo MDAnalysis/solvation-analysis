@@ -17,6 +17,7 @@ solvation data a non-issue.
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Speciation:
@@ -47,7 +48,7 @@ class Speciation:
 
     Attributes
     ----------
-    speciation_data : pandas.DataFrame
+    speciation : pandas.DataFrame
         a dataframe containing the speciation of every li ion at
         every trajectory frame. Indexed by frame and solute numbers.
         Columns are the solvent molecules and values are the number
@@ -57,6 +58,12 @@ class Speciation:
         molecules and and values are the number of solvent in the shell.
         The final column is the percentage of total shell of that
         particular composition.
+    co_occurrence : pandas.DataFrame
+        The actual co-occurrence of solvents divided by the expected co-occurrence.
+        In other words, given one molecule of solvent i in the shell, what is the
+        probability of finding a solvent j relative to choosing a solvent at random
+        from the pool of all coordinated solvents. This matrix will
+        likely not be symmetric.
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
@@ -64,9 +71,10 @@ class Speciation:
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.speciation_data, self.speciation_percent = self._compute_speciation()
+        self.co_occurrence = self._solvent_co_occurrence()
 
     def _compute_speciation(self):
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         counts_re = counts.reset_index(["res_name"])
         speciation_data = counts_re.pivot(columns=["res_name"]).fillna(0).astype(int)
         res_names = speciation_data.columns.levels[1]
@@ -148,6 +156,72 @@ class Speciation:
         query_counts = self.speciation_data.query(query)
         return query_counts
 
+    def _solvent_co_occurrence(self):
+        # calculate the co-occurrence of solvent molecules.
+        expected_solvents_list = []
+        actual_solvents_list = []
+        for solvent in self.speciation_data.columns.values:
+            # calculate number of available coordinating solvent slots
+            shells_w_solvent = self.speciation_data.query(f'{solvent} > 0')
+            n_solvents = shells_w_solvent.sum()
+            # calculate expected number of coordinating solvents
+            n_coordination_slots = n_solvents.sum() - len(shells_w_solvent)
+            coordination_percentage = self.speciation_data.sum() / self.speciation_data.sum().sum()
+            expected_solvents = coordination_percentage * n_coordination_slots
+            # calculate actual number of coordinating solvents
+            actual_solvents = n_solvents.copy()
+            actual_solvents[solvent] = actual_solvents[solvent] - len(shells_w_solvent)
+            # name series and append to list
+            expected_solvents.name = solvent
+            actual_solvents.name = solvent
+            expected_solvents_list.append(expected_solvents)
+            actual_solvents_list.append(actual_solvents)
+        # make DataFrames
+        actual_df = pd.concat(actual_solvents_list, axis=1)
+        expected_df = pd.concat(expected_solvents_list, axis=1)
+        # calculate correlation matrix
+        correlation = actual_df / expected_df
+        return correlation
+
+    def plot_co_occurrence(self):
+        """
+        Plot the co-occurrence matrix of the solution.
+
+        Co-occurrence as a heatmap with numerical values in addition to colors.
+
+        Returns
+        -------
+        fig : matplotlib.Figure
+        ax : matplotlib.Axes
+
+        """
+        solvent_names = self.speciation_data.columns.values
+        fig, ax = plt.subplots()
+        im = ax.imshow(self.co_occurrence)
+        # We want to show all ticks...
+        ax.set_xticks(np.arange(len(solvent_names)))
+        ax.set_yticks(np.arange(len(solvent_names)))
+        # ... and label them with the respective list entries
+        ax.set_xticklabels(solvent_names, fontsize=14)
+        ax.set_yticklabels(solvent_names, fontsize=14)
+        # Let the horizontal axes labeling appear on top.
+        ax.tick_params(top=True, bottom=False,
+                       labeltop=True, labelbottom=False,)
+        # Rotate the tick labels and set their alignment.
+        plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
+                 rotation_mode="anchor")
+        # Loop over data dimensions and create text annotations.
+        for i in range(len(solvent_names)):
+            for j in range(len(solvent_names)):
+                ax.text(j, i, round(self.co_occurrence.iloc[i, j], 2),
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                        color="black",
+                        fontsize=14,
+                        )
+        fig.tight_layout()
+        return fig, ax
+
 
 class Coordination:
     """
@@ -181,6 +255,9 @@ class Coordination:
     cn_by_frame : pd.DataFrame
         a dictionary tracking the average coordination number of each
         residue across frames.
+    coordinating_atoms : pd.DataFrame
+        percent of each atom_type participating in solvation, calculated
+         for each solvent.
 
     Examples
     --------
@@ -195,20 +272,46 @@ class Coordination:
 
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes):
+    def __init__(self, solvation_data, n_frames, n_solutes, atom_group):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.cn_dict, self.cn_by_frame = self._average_cn()
+        self.atom_group = atom_group
+        self.coordinating_atoms = self._calculate_coordinating_atoms()
 
     def _average_cn(self):
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         cn_series = counts.groupby(["res_name", "frame"]).sum() / (
             self.n_solutes * self.n_frames
         )
         cn_by_frame = cn_series.unstack()
         cn_dict = cn_series.groupby(["res_name"]).sum().to_dict()
         return cn_dict, cn_by_frame
+
+    def _calculate_coordinating_atoms(self, tol=0.005):
+        """
+        Determine which atom types are actually coordinating
+        return the types of those atoms
+        """
+        # lookup atom types
+        atom_types = self.solvation_data.reset_index(['atom_ix'])
+        atom_types['atom_type'] = self.atom_group[atom_types['atom_ix']].types
+        # count atom types
+        atoms_by_type = atom_types[['atom_type', 'res_name', 'atom_ix']]
+        type_counts = atoms_by_type.groupby(['res_name', 'atom_type']).count()
+        solvent_counts = type_counts.groupby(['res_name']).sum()['atom_ix']
+        # calculate percent of each
+        solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
+        type_percents = type_counts['atom_ix'] / solvent_counts_list
+        type_percents.name = 'percent'
+        # change index type
+        type_percents = (type_percents
+                         .reset_index(level=1)
+                         .astype({'atom_type': int})
+                         .set_index('atom_type', append=True)
+                         )
+        return type_percents[type_percents.percent > tol]
 
 
 class Pairing:
@@ -230,6 +333,8 @@ class Pairing:
         The number of frames in solvation_data.
     n_solutes : int
         The number of solutes in solvation_data.
+    n_solvents : dict of {str: int}
+        The number of each kind of solvent.
 
     Attributes
     ----------
@@ -239,6 +344,9 @@ class Pairing:
     pairing_by_frame : pd.DataFrame
         a dictionary tracking the average percentage of each
         residue across frames.
+    percent_free_solvents : dict of {str: float}
+        a dictionary containing the percent of each solvent that is free. e.g.
+        not coordinated to a solute.
 
     Examples
     --------
@@ -252,14 +360,17 @@ class Pairing:
         {'BN': 1.0, 'FEC': 0.210, 'PF6': 0.120}
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes):
+    def __init__(self, solvation_data, n_frames, n_solutes, n_solvents):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.pairing_dict, self.pairing_by_frame = self._percentage_coordinated()
+        self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
+        self.solvent_counts = n_solvents
+        self.percent_free_solvents = self._percent_free_solvent()
 
-    def _percentage_coordinated(self):
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+    def _percent_coordinated(self):
+        # calculate the percent of solute coordinated with each solvent
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
             self.n_solutes
         )  # average coordinated overall
@@ -267,3 +378,11 @@ class Pairing:
         pairing_normalized = pairing_series / self.n_frames
         pairing_dict = pairing_normalized.groupby(["res_name"]).sum().to_dict()
         return pairing_dict, pairing_by_frame
+
+    def _percent_free_solvent(self):
+        # calculate the percent of each solvent NOT coordinated with the solute
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
+        totals = counts.groupby(['res_name']).sum() / self.n_frames
+        n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
+        free_solvents = np.ones(len(totals)) - totals / n_solvents
+        return free_solvents.to_dict()
