@@ -109,13 +109,13 @@ class Solution(AnalysisBase):
         a dictionary of RDF data, keys are solvent names and values
         are (bins, data) tuples.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
-        "dist", "res_name", and "res_id". If multiple entries share a frame, solvated_atom,
-        and atom_id, all but the closest atom is dropped.
+        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
+        and atom_ix, all but the closest atom is dropped.
     solvation_data_dup : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
-        "dist", "res_name", and "res_id". If multiple entries share a frame, solvated_atom,
-        and atom_id, all atoms are kept.
+        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
+        and atom_ix, all atoms are kept.
     pairing : analysis_library.Pairing
         pairing provides an interface for finding the percent of solutes with
         each solvent in their solvation shell.
@@ -210,12 +210,12 @@ class Solution(AnalysisBase):
         pairs_array = np.concatenate(pairs_list, dtype=int)
         dist_array = np.concatenate(dist_list)
         res_name_array = np.concatenate(tags_list)
-        res_id_array = self.u.atoms[pairs_array[:, 1]].resindices
+        res_ix_array = self.u.atoms[pairs_array[:, 1]].resindices
         array_length = len(pairs_array)
         frame_number_array = np.full(array_length, self._ts.frame)
         # stack the data into one large array
         solvation_data_np = np.column_stack(
-            (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, res_id_array)
+            (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, res_ix_array)
         )
         # add the current frame to the growing list of solvation arrays
         self.solvation_frames.append(solvation_data_np)
@@ -228,15 +228,15 @@ class Solution(AnalysisBase):
         solvation_data_np = np.vstack(self.solvation_frames)
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
-            columns=["frame", "solvated_atom", "atom_id", "dist", "res_name", "res_id"]
+            columns=["frame", "solvated_atom", "atom_ix", "dist", "res_name", "res_ix"]
         )
         # clean up solvation_data df
-        for column in ["frame", "solvated_atom", "atom_id", "dist", "res_id"]:
+        for column in ["frame", "solvated_atom", "atom_ix", "dist", "res_ix"]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
         solvation_data_dup = solvation_data_df.sort_values(["frame", "solvated_atom", "dist"])
-        solvation_data = solvation_data_dup.drop_duplicates(["frame", "solvated_atom", "res_id"])
-        self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_id"])
-        self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_id"])
+        solvation_data = solvation_data_dup.drop_duplicates(["frame", "solvated_atom", "res_ix"])
+        self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_ix"])
+        self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_ix"])
         # create analysis classes
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
         self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
@@ -389,13 +389,13 @@ class Solution(AnalysisBase):
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
             is_mol = shell.res_name == mol_name
-            res_ix = shell[is_mol].res_id
+            res_ix = shell[is_mol].res_ix
             mol_count = len(res_ix)
             n_remove = min(mol_count, n_remove)
             # then truncate resnames to remove mols
             remove_ix = res_ix[(mol_count - n_remove):]
             # then apply to original shell
-            remove = shell.res_id.isin(remove_ix)
+            remove = shell.res_ix.isin(remove_ix)
             shell = shell[np.invert(remove)]
         # filter based on length
         if closest_n_only:
@@ -414,7 +414,7 @@ class Solution(AnalysisBase):
         Parameters
         ----------
         df : pandas.DataFrame
-            a df with a 'res_id' column
+            a df with a 'res_ix' column
         solute_index : int, optional
             if given, will include the solute with solute_index
 
@@ -422,7 +422,7 @@ class Solution(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        ix = df['res_id'].values  # -1 to go from res_id -> res_ix
+        ix = df['res_ix'].values  # -1 to go from res_ix -> res_ix
         atoms = self.u.residues[ix].atoms
         if solute_index is not None:
             atoms = atoms | self.solute[solute_index]

@@ -74,7 +74,7 @@ class Speciation:
         self.co_occurrence = self._solvent_co_occurrence()
 
     def _compute_speciation(self):
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         counts_re = counts.reset_index(["res_name"])
         speciation_data = counts_re.pivot(columns=["res_name"]).fillna(0).astype(int)
         res_names = speciation_data.columns.levels[1]
@@ -281,7 +281,7 @@ class Coordination:
         self.coordinating_atoms = self._calculate_coordinating_atoms()
 
     def _average_cn(self):
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         cn_series = counts.groupby(["res_name", "frame"]).sum() / (
             self.n_solutes * self.n_frames
         )
@@ -295,15 +295,15 @@ class Coordination:
         return the types of those atoms
         """
         # lookup atom types
-        atom_types = self.solvation_data.reset_index(['atom_id'])
-        atom_types['atom_type'] = self.atom_group[atom_types['atom_id']].types
+        atom_types = self.solvation_data.reset_index(['atom_ix'])
+        atom_types['atom_type'] = self.atom_group[atom_types['atom_ix']].types
         # count atom types
-        atoms_by_type = atom_types[['atom_type', 'res_name', 'atom_id']]
+        atoms_by_type = atom_types[['atom_type', 'res_name', 'atom_ix']]
         type_counts = atoms_by_type.groupby(['res_name', 'atom_type']).count()
-        solvent_counts = type_counts.groupby(['res_name']).sum()['atom_id']
+        solvent_counts = type_counts.groupby(['res_name']).sum()['atom_ix']
         # calculate percent of each
         solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
-        type_percents = type_counts['atom_id'] / solvent_counts_list
+        type_percents = type_counts['atom_ix'] / solvent_counts_list
         type_percents.name = 'percent'
         # change index type
         type_percents = (type_percents
@@ -370,7 +370,7 @@ class Pairing:
 
     def _percent_coordinated(self):
         # calculate the percent of solute coordinated with each solvent
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
             self.n_solutes
         )  # average coordinated overall
@@ -381,7 +381,7 @@ class Pairing:
 
     def _percent_free_solvent(self):
         # calculate the percent of each solvent NOT coordinated with the solute
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
+        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         totals = counts.groupby(['res_name']).sum() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents
