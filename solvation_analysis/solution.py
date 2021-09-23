@@ -210,7 +210,7 @@ class Solution(AnalysisBase):
         pairs_array = np.concatenate(pairs_list, dtype=int)
         dist_array = np.concatenate(dist_list)
         res_name_array = np.concatenate(tags_list)
-        res_id_array = self.u.atoms[pairs_array[:, 1]].resids
+        res_id_array = self.u.atoms[pairs_array[:, 1]].resindices
         array_length = len(pairs_array)
         frame_number_array = np.full(array_length, self._ts.frame)
         # stack the data into one large array
@@ -422,8 +422,8 @@ class Solution(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        ids = df['res_id'].values - 1  # -1 to go from res_id -> res_ix
-        atoms = self.u.residues[ids].atoms
+        ix = df['res_id'].values  # -1 to go from res_id -> res_ix
+        atoms = self.u.residues[ix].atoms
         if solute_index is not None:
             atoms = atoms | self.solute[solute_index]
         return atoms
