@@ -241,11 +241,13 @@ class Coordination:
         a dictionary tracking the average coordination number of each
         residue across frames.
     """
-    def __init__(self, solvation_data, n_frames, n_solutes):
+    def __init__(self, solvation_data, n_frames, n_solutes, atom_group):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.cn_dict, self.cn_by_frame = self._average_cn()
+        self.atom_group = atom_group
+        self.coordinating_atoms = self._calculate_coordinating_atoms()
 
     def _average_cn(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_id"]
@@ -256,11 +258,29 @@ class Coordination:
         cn_dict = cn_series.groupby(["res_name"]).sum().to_dict()
         return cn_dict, cn_by_frame
 
-    def _calculate_coordinating_atoms(self):
-        # determine which atoms are actually coordinating
-        # return the ids of those atoms
-        # maybe give an option to calculate by name / id of atoms
-        return
+    def _calculate_coordinating_atoms(self, tol=0.005):
+        """
+        Determine which atom types are actually coordinating
+        return the types of those atoms
+        """
+        # lookup atom types
+        atom_types = self.solvation_data.reset_index(['atom_id'])
+        atom_types['atom_type'] = self.atom_group[atom_types['atom_id'] - 1].types  # TODO: remove -1 after refactor to ix
+        # count atom types
+        atoms_by_type = atom_types[['atom_type', 'res_name', 'atom_id']]
+        type_counts = atoms_by_type.groupby(['res_name', 'atom_type']).count()
+        solvent_counts = type_counts.groupby(['res_name']).sum()['atom_id']
+        # calculate percent of each
+        solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
+        type_percents = type_counts['atom_id'] / solvent_counts_list
+        type_percents.name = 'percent'
+        # change index type
+        type_percents = (type_percents
+                         .reset_index(level=1)
+                         .astype({'atom_type': int})
+                         .set_index('atom_type', append=True)
+                         )
+        return type_percents[type_percents.percent > tol]
 
 
 class Pairing:
