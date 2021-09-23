@@ -296,7 +296,7 @@ class Coordination:
         """
         # lookup atom types
         atom_types = self.solvation_data.reset_index(['atom_id'])
-        atom_types['atom_type'] = self.atom_group[atom_types['atom_id'] - 1].types  # TODO: remove -1 after refactor to ix
+        atom_types['atom_type'] = self.atom_group[atom_types['atom_id']].types
         # count atom types
         atoms_by_type = atom_types[['atom_type', 'res_name', 'atom_id']]
         type_counts = atoms_by_type.groupby(['res_name', 'atom_type']).count()

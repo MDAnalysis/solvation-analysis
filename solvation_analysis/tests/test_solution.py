@@ -45,7 +45,7 @@ def test_run(pre_solution_mutable):
     pre_solution_mutable.run(step=1)
     assert len(pre_solution_mutable.solvation_frames) == 10
     assert len(pre_solution_mutable.solvation_frames[0]) == 228
-    assert len(pre_solution_mutable.solvation_data) == 2317
+    assert len(pre_solution_mutable.solvation_data) == 2312
 
 
 @pytest.mark.parametrize(
@@ -122,11 +122,12 @@ def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids,
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 175),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 2),
-        ({'bn': 3, 'fec': 0, 'pf6': 1}, 8),
+        ({'bn': 3, 'fec': 0, 'pf6': 1}, 13),
         ({'bn': 4}, 260),
     ],
 )
 def test_speciation_find_clusters(cluster, n_clusters, run_solution):
+    # duplicated to test in solution
     df = run_solution.speciation.find_shells(cluster)
     assert len(df) == n_clusters
 
@@ -140,6 +141,7 @@ def test_speciation_find_clusters(cluster, n_clusters, run_solution):
     ],
 )
 def test_coordination_numbers(name, cn, run_solution):
+    # duplicated to test in solution
     coord_dict = run_solution.coordination.cn_dict
     np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
 
@@ -153,5 +155,6 @@ def test_coordination_numbers(name, cn, run_solution):
     ],
 )
 def test_pairing(name, percent, run_solution):
+    # duplicated to test in solution
     pairing_dict = run_solution.pairing.pairing_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)

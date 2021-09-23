@@ -28,7 +28,7 @@ def test_speciation_cluster_percent(cluster, percent, solvation_data):
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 175),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 2),
-        ({'bn': 3, 'fec': 0, 'pf6': 1}, 8),
+        ({'bn': 3, 'fec': 0, 'pf6': 1}, 13),
         ({'bn': 4}, 260),
     ],
 )
