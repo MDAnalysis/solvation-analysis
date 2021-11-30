@@ -76,9 +76,9 @@ def test_coordination(name, cn, solvation_data, run_solution):
 @pytest.mark.parametrize(
     "name, atom_type, percent",
     [
-        ("fec", 19, 0.008),
-        ("bn", 5, 0.9976),
-        ("pf6", 21, 1.000),
+        ("fec", '19', 0.008),
+        ("bn", '5', 0.9976),
+        ("pf6", '21', 1.000),
     ],
 )
 def test_coordinating_atoms(name, atom_type, percent, solvation_data, run_solution):

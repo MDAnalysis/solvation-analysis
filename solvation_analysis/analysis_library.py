@@ -308,7 +308,7 @@ class Coordination:
         # change index type
         type_percents = (type_percents
                          .reset_index(level=1)
-                         .astype({'atom_type': int})
+                         .astype({'atom_type': str})
                          .set_index('atom_type', append=True)
                          )
         return type_percents[type_percents.percent > tol]
