@@ -165,6 +165,10 @@ class Solution(AnalysisBase):
         self.pairing = None
         self.coordination = None
         self.solvation_frames = []
+        assert self.u.trajectory.dimensions is not None, (
+            "Dimensions of the trajectory must be set to compute an rdf. Consider using "
+            "MDAnalysis.transformations.set_dimensions."
+        )
         for name, solvent in self.solvents.items():
             # generate and save RDFs
             rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
