@@ -20,10 +20,9 @@ Solution also provides several functions to select a particular solute and its s
 shell, returning an AtomGroup for visualization or further analysis.
 """
 
-
 import matplotlib.pyplot as plt
 import pandas as pd
-import warnings
+import json
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
@@ -127,16 +126,16 @@ class Solution(AnalysisBase):
     """
 
     def __init__(
-        self,
-        solute,
-        solvents,
-        radii=None,
-        solvent_counts=None,
-        rdf_kernel=None,
-        kernel_kwargs=None,
-        rdf_init_kwargs=None,
-        rdf_run_kwargs=None,
-        verbose=False,
+            self,
+            solute,
+            solvents,
+            radii=None,
+            solvent_counts=None,
+            rdf_kernel=None,
+            kernel_kwargs=None,
+            rdf_init_kwargs=None,
+            rdf_run_kwargs=None,
+            verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = {} if radii is None else radii
@@ -431,3 +430,22 @@ class Solution(AnalysisBase):
         if solute_index is not None:
             atoms = atoms | self.solute[solute_index]
         return atoms
+
+    def save(self, path=None):
+        data = {}
+        data['radii'] = self.radii
+        data['solvent_counts'] = self.solvent_counts
+        data['n_solute'] = self.n_solute
+        data['solvation_data'] = self.solvation_data.to_json()
+        data['speciation'] = self.speciation.save()
+        data['pairing'] = self.pairing.save()
+        data['coordination'] = self.coordination.save()
+        data['kernel_kwargs'] = self.kernel_kwargs
+        data['rdf_init_kwargs'] = self.rdf_init_kwargs
+        data['rdf_run_kwargs'] = self.rdf_run_kwargs
+
+        if not path:
+            return data
+        else:
+            with open(path) as f:
+                json.dump(data, f)

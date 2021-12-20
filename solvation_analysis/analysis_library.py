@@ -222,6 +222,8 @@ class Speciation:
         fig.tight_layout()
         return fig, ax
 
+    def save(self):
+        return
 
 class Coordination:
     """
@@ -313,6 +315,9 @@ class Coordination:
                          )
         return type_percents[type_percents.percent > tol]
 
+    def save(self):
+        return
+
 
 class Pairing:
     """
@@ -386,3 +391,6 @@ class Pairing:
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
+
+    def save(self):
+        return
