@@ -222,8 +222,13 @@ class Speciation:
         fig.tight_layout()
         return fig, ax
 
-    def save(self):
-        return
+    def as_dict(self):
+        data = {
+            'speciation_data': self.speciation_data.to_json(),
+            'speciation_percent': self.speciation_percent.to_json(),
+            'co_occurrence': self.co_occurrence.to_json(),
+        }
+        return data
 
 class Coordination:
     """
@@ -315,8 +320,13 @@ class Coordination:
                          )
         return type_percents[type_percents.percent > tol]
 
-    def save(self):
-        return
+    def as_dict(self):
+        data = {
+            'cn_dict': self.cn_dict,
+            'cn_by_frame': self.cn_by_frame.to_json(),
+            'coordinating_atoms': self.coordinating_atoms.to_json(),
+        }
+        return data
 
 
 class Pairing:
@@ -392,5 +402,10 @@ class Pairing:
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
 
-    def save(self):
-        return
+    def as_dict(self):
+        data = {
+            'pairing_dict': self.pairing_dict,
+            'pairing_by_frame': self.pairing_by_frame.to_json(),
+            'percent_free_solvents': self.percent_free_solvents,
+        }
+        return data
