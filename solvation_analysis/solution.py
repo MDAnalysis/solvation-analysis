@@ -432,18 +432,19 @@ class Solution(AnalysisBase):
         return atoms
 
     def save(self, path=None):
-        data = {}
-        data['radii'] = self.radii
-        data['solvent_counts'] = self.solvent_counts
-        data['n_solute'] = self.n_solute
-        data['solvation_data'] = self.solvation_data.to_json()
-        data['speciation'] = self.speciation.save()
-        data['pairing'] = self.pairing.save()
-        data['coordination'] = self.coordination.save()
-        data['kernel_kwargs'] = self.kernel_kwargs
-        data['rdf_init_kwargs'] = self.rdf_init_kwargs
-        data['rdf_run_kwargs'] = self.rdf_run_kwargs
-
+        data = {
+            'radii': self.radii,
+            'n_frames': self.n_frames,
+            'n_solute': self.n_solute,
+            'solvent_counts': self.solvent_counts,
+            'solvation_data': self.solvation_data.to_json(),
+            'speciation': self.speciation.as_dict(),
+            'pairing': self.pairing.as_dict(),
+            'coordination': self.coordination.as_dict(),
+            'kernel_kwargs': self.kernel_kwargs,
+            'rdf_init_kwargs': self.rdf_init_kwargs,
+            'rdf_run_kwargs': self.rdf_run_kwargs
+        }
         if not path:
             return data
         else:
