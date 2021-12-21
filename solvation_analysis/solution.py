@@ -20,9 +20,11 @@ Solution also provides several functions to select a particular solute and its s
 shell, returning an AtomGroup for visualization or further analysis.
 """
 
+import json
+import tempfile
+
 import matplotlib.pyplot as plt
 import pandas as pd
-import json
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
@@ -431,7 +433,7 @@ class Solution(AnalysisBase):
             atoms = atoms | self.solute[solute_index]
         return atoms
 
-    def as_dict(self):
+    def save_json(self, path):
         data = {
             'radii': self.radii,
             'n_frames': self.n_frames,
@@ -445,10 +447,13 @@ class Solution(AnalysisBase):
             'rdf_init_kwargs': self.rdf_init_kwargs,
             'rdf_run_kwargs': self.rdf_run_kwargs
         }
-        return data
+        with open(path, "w") as f:
+            json.dump(data, f)
 
     @staticmethod
-    def load_dict(solution_dict):
+    def load_json(path):
+        with open(path) as f:
+            solution_dict = json.load(f)
         data = {
             'radii': solution_dict['radii'],
             'n_frames': solution_dict['n_frames'],
@@ -462,5 +467,10 @@ class Solution(AnalysisBase):
             'rdf_init_kwargs': solution_dict['rdf_init_kwargs'],
             'rdf_run_kwargs': solution_dict['rdf_run_kwargs'],
         }
-        return dict
+        return data
 
+    def as_dict(self):
+        with tempfile.NamedTemporaryFile() as f:
+            self.save_json(f.name)
+            data = self.load_json(f.name)
+        return data
