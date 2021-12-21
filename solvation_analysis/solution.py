@@ -431,22 +431,36 @@ class Solution(AnalysisBase):
             atoms = atoms | self.solute[solute_index]
         return atoms
 
-    def save(self, path=None):
+    def as_dict(self):
         data = {
             'radii': self.radii,
             'n_frames': self.n_frames,
             'n_solute': self.n_solute,
             'solvent_counts': self.solvent_counts,
-            'solvation_data': self.solvation_data.to_json(),
-            'speciation': self.speciation.as_dict(),
-            'pairing': self.pairing.as_dict(),
-            'coordination': self.coordination.as_dict(),
+            'solvation_data': self.solvation_data.to_dict(),
+            'speciation': self.speciation._as_dict(),
+            'coordination': self.coordination._as_dict(),
+            'pairing': self.pairing._as_dict(),
             'kernel_kwargs': self.kernel_kwargs,
             'rdf_init_kwargs': self.rdf_init_kwargs,
             'rdf_run_kwargs': self.rdf_run_kwargs
         }
-        if not path:
-            return data
-        else:
-            with open(path) as f:
-                json.dump(data, f)
+        return data
+
+    @staticmethod
+    def load_dict(solution_dict):
+        data = {
+            'radii': solution_dict['radii'],
+            'n_frames': solution_dict['n_frames'],
+            'n_solute': solution_dict['n_solute'],
+            'solvent_counts': solution_dict['solvent_counts'],
+            'solvation_data': pd.DataFrame.from_dict(solution_dict['solvation_data']),
+            'speciation': Speciation._load_dict(solution_dict['speciation']),
+            'coordination': Coordination._load_dict(solution_dict['coordination']),
+            'pairing': Pairing._load_dict(solution_dict['pairing']),
+            'kernel_kwargs': solution_dict['kernel_kwargs'],
+            'rdf_init_kwargs': solution_dict['rdf_init_kwargs'],
+            'rdf_run_kwargs': solution_dict['rdf_run_kwargs'],
+        }
+        return dict
+
