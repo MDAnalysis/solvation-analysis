@@ -230,9 +230,9 @@ class Speciation:
         data = {
             'n_frames': self.n_frames,
             'n_solutes': self.n_solutes,
-            'speciation_data': self.speciation_data.to_dict(),
-            'speciation_percent': self.speciation_percent.to_dict(),
-            'co_occurrence': self.co_occurrence.to_dict(),
+            'speciation_data': self.speciation_data.to_json(),
+            'speciation_percent': self.speciation_percent.to_json(),
+            'co_occurrence': self.co_occurrence.to_json(),
         }
         return data
 
@@ -244,9 +244,9 @@ class Speciation:
         data = {
             'n_frames': speciation_dict['n_frames'],
             'n_solutes': speciation_dict['n_solutes'],
-            'speciation_data': pd.DataFrame.from_dict(speciation_dict['speciation_data']),
-            'speciation_percent': pd.DataFrame.from_dict(speciation_dict['speciation_percent']),
-            'co_occurrence': pd.DataFrame.from_dict(speciation_dict['co_occurrence']),
+            'speciation_data': pd.read_json(speciation_dict['speciation_data']),
+            'speciation_percent': pd.read_json(speciation_dict['speciation_percent']),
+            'co_occurrence': pd.read_json(speciation_dict['co_occurrence']),
         }
         return data
 
@@ -350,8 +350,8 @@ class Coordination:
             'n_frames': self.n_frames,
             'n_solutes': self.n_solutes,
             'cn_dict': self.cn_dict,
-            'cn_by_frame': self.cn_by_frame.to_dict(),
-            'coordinating_atoms': self.coordinating_atoms.to_dict(),
+            'cn_by_frame': self.cn_by_frame.to_json(),
+            'coordinating_atoms': self.coordinating_atoms.to_json(),
         }
         return data
 
@@ -364,8 +364,8 @@ class Coordination:
             'n_frames': coordination_dict['n_frames'],
             'n_solutes': coordination_dict['n_solutes'],
             'cn_dict': coordination_dict['cn_dict'],
-            'cn_by_frame': pd.DataFrame.from_dict(coordination_dict['cn_by_frame']),
-            'coordinating_atoms': pd.DataFrame.from_dict(coordination_dict['coordinating_atoms']),
+            'cn_by_frame': pd.read_json(coordination_dict['cn_by_frame']),
+            'coordinating_atoms': pd.read_json(coordination_dict['coordinating_atoms']),
         }
         return data
 
@@ -451,7 +451,7 @@ class Pairing:
             'n_frames': self.n_frames,
             'n_solutes': self.n_solutes,
             'pairing_dict': self.pairing_dict,
-            'pairing_by_frame': self.pairing_by_frame.to_dict(),
+            'pairing_by_frame': self.pairing_by_frame.to_json(),
             'percent_free_solvents': self.percent_free_solvents,
         }
         return data
@@ -465,7 +465,7 @@ class Pairing:
             'n_frames': pairing_dict['n_frames'],
             'n_solutes': pairing_dict['n_solutes'],
             'pairing_dict': pairing_dict['pairing_dict'],
-            'pairing_by_frame': pd.DataFrame.from_dict(pairing_dict['pairing_by_frame']),
+            'pairing_by_frame': pd.read_json(pairing_dict['pairing_by_frame']),
             'percent_free_solvents': pairing_dict['percent_free_solvents'],
         }
         return data
