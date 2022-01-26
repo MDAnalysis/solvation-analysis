@@ -144,7 +144,7 @@ def pre_solution_mutable(atom_groups):
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec}, radii={'pf6': 2.8})
+    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec})
 
 
 @pytest.fixture(scope='module')
@@ -161,3 +161,8 @@ def solvation_results(run_solution):
 @pytest.fixture
 def solvation_data(run_solution):
     return run_solution.solvation_data
+
+
+@pytest.fixture
+def solvation_data_dup(run_solution):
+    return run_solution.solvation_data_dup

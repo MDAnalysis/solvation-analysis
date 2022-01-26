@@ -1,7 +1,7 @@
 setuptools
 numpy>=1.16.0
 pandas
-mdanalysis
+mdanalysis>=2.0.0b0
 pytest
 pathlib
 matplotlib

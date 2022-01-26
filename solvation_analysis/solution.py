@@ -23,6 +23,7 @@ shell, returning an AtomGroup for visualization or further analysis.
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import warnings
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
@@ -76,6 +77,10 @@ class Solution(AnalysisBase):
         an optional dictionary of solvent names and associated solvation radii
         e.g. {"name_2": radius_2, "name_5": radius_5} Any radii not given will
         be calculated. The solvent names should match the solvents parameter.
+    solvent_counts : dict of {str: int}, optional
+        an optional dictionary of solvent counts e.g. the number of solvent. Any
+        solvents not included will be set equal to the number of residues in the
+        solvents AtomGroup.
     rdf_kernel : function, optional
         this function must take RDF bins and data as input and return
         a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
@@ -104,13 +109,13 @@ class Solution(AnalysisBase):
         a dictionary of RDF data, keys are solvent names and values
         are (bins, data) tuples.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
-        "dist", "res_name", and "res_id". If multiple entries share a frame, solvated_atom,
-        and atom_id, all but the closest atom is dropped.
+        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
+        and atom_ix, all but the closest atom is dropped.
     solvation_data_dup : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_id",
-        "dist", "res_name", and "res_id". If multiple entries share a frame, solvated_atom,
-        and atom_id, all atoms are kept.
+        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
+        and atom_ix, all atoms are kept.
     pairing : analysis_library.Pairing
         pairing provides an interface for finding the percent of solutes with
         each solvent in their solvation shell.
@@ -126,6 +131,7 @@ class Solution(AnalysisBase):
         solute,
         solvents,
         radii=None,
+        solvent_counts=None,
         rdf_kernel=None,
         kernel_kwargs=None,
         rdf_init_kwargs=None,
@@ -134,6 +140,10 @@ class Solution(AnalysisBase):
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = {} if radii is None else radii
+        self.solvent_counts = {} if solvent_counts is None else solvent_counts
+        for name in solvents.keys():
+            if name not in self.solvent_counts.keys():
+                self.solvent_counts[name] = len(solvents[name].residues)
         self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
         self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
@@ -155,6 +165,10 @@ class Solution(AnalysisBase):
         self.pairing = None
         self.coordination = None
         self.solvation_frames = []
+        assert self.u.trajectory.dimensions is not None, (
+            "Dimensions of the trajectory must be set to compute an rdf. Consider using "
+            "MDAnalysis.transformations.set_dimensions."
+        )
         for name, solvent in self.solvents.items():
             # generate and save RDFs
             rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
@@ -164,7 +178,15 @@ class Solution(AnalysisBase):
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
-        assert self.solvents.keys() == self.radii.keys(), "Radii missing."
+        calculated_radii = set([name for name, radius in self.radii.items()
+                                if not np.isnan(radius)])
+        missing_solvents = set(self.solvents.keys()) - calculated_radii
+        missing_solvents_str = ' '.join([str(i) for i in missing_solvents])
+        assert len(missing_solvents) == 0, (
+            f"Solution could not identify a solvation radius for "
+            f"{missing_solvents_str}. Please manually enter missing radii "
+            f"by editing the radii dict and rerun the analysis."
+        )
 
     def _single_frame(self):
         """
@@ -183,7 +205,7 @@ class Solution(AnalysisBase):
                 box=self.u.dimensions,
             )
             # replace local ids with absolute ids
-            pairs[:, 1] = solvent.ids[[pairs[:, 1]]]
+            pairs[:, 1] = solvent.ix[[pairs[:, 1]]]
             # extend
             pairs_list.append(pairs)
             dist_list.append(dist)
@@ -192,12 +214,12 @@ class Solution(AnalysisBase):
         pairs_array = np.concatenate(pairs_list, dtype=int)
         dist_array = np.concatenate(dist_list)
         res_name_array = np.concatenate(tags_list)
-        res_id_array = self.u.atoms[pairs_array[:, 1]].resids
+        res_ix_array = self.u.atoms[pairs_array[:, 1]].resindices
         array_length = len(pairs_array)
         frame_number_array = np.full(array_length, self._ts.frame)
         # stack the data into one large array
         solvation_data_np = np.column_stack(
-            (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, res_id_array)
+            (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, res_ix_array)
         )
         # add the current frame to the growing list of solvation arrays
         self.solvation_frames.append(solvation_data_np)
@@ -210,19 +232,19 @@ class Solution(AnalysisBase):
         solvation_data_np = np.vstack(self.solvation_frames)
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
-            columns=["frame", "solvated_atom", "atom_id", "dist", "res_name", "res_id"]
+            columns=["frame", "solvated_atom", "atom_ix", "dist", "res_name", "res_ix"]
         )
         # clean up solvation_data df
-        for column in ["frame", "solvated_atom", "atom_id", "dist", "res_id"]:
+        for column in ["frame", "solvated_atom", "atom_ix", "dist", "res_ix"]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
         solvation_data_dup = solvation_data_df.sort_values(["frame", "solvated_atom", "dist"])
-        solvation_data = solvation_data_dup.drop_duplicates(["frame", "solvated_atom", "res_id"])
-        self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_id"])
-        self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_id"])
+        solvation_data = solvation_data_dup.drop_duplicates(["frame", "solvated_atom", "res_ix"])
+        self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_ix"])
+        self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_ix"])
         # create analysis classes
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
-        self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute)
-        self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute)
+        self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
+        self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute, self.u.atoms)
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):
@@ -371,13 +393,13 @@ class Solution(AnalysisBase):
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
             is_mol = shell.res_name == mol_name
-            res_ids = shell[is_mol].res_id
-            mol_count = len(res_ids)
+            res_ix = shell[is_mol].res_ix
+            mol_count = len(res_ix)
             n_remove = min(mol_count, n_remove)
             # then truncate resnames to remove mols
-            remove_ids = res_ids[(mol_count - n_remove):]
+            remove_ix = res_ix[(mol_count - n_remove):]
             # then apply to original shell
-            remove = shell.res_id.isin(remove_ids)
+            remove = shell.res_ix.isin(remove_ix)
             shell = shell[np.invert(remove)]
         # filter based on length
         if closest_n_only:
@@ -391,12 +413,12 @@ class Solution(AnalysisBase):
 
     def _df_to_atom_group(self, df, solute_index=None):
         """
-        Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with res_ids.
+        Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with res_ix.
 
         Parameters
         ----------
         df : pandas.DataFrame
-            a df with a 'res_id' column
+            a df with a 'res_ix' column
         solute_index : int, optional
             if given, will include the solute with solute_index
 
@@ -404,8 +426,8 @@ class Solution(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        ids = df['res_id'].values - 1  # -1 to go from res_id -> res_ix
-        atoms = self.u.residues[ids].atoms
+        ix = df['res_ix'].values  # -1 to go from res_ix -> res_ix
+        atoms = self.u.residues[ix].atoms
         if solute_index is not None:
             atoms = atoms | self.solute[solute_index]
         return atoms

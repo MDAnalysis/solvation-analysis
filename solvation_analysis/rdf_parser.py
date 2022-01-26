@@ -159,5 +159,7 @@ def identify_solvation_cutoff(
             warnings.warn("No solvation shell detected.")
             return np.NaN
         if failure_behavior == "exception":
-            raise RuntimeError("No solvation shell detected.")
+            raise RuntimeError("Solution could not identify a solvation radius for at least one solvent. "
+                               "Please enter the missing radii manually by adding them to the radii dict"
+                               "and rerun the analysis.")
     return cr_pts[1]
