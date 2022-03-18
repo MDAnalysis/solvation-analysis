@@ -18,6 +18,7 @@ solvation data a non-issue.
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from monty.json import jsanitize
 
 
 class Speciation:
@@ -86,8 +87,8 @@ class Speciation:
         return speciation_data, speciation_percent
 
     @classmethod
-    def _average_speciation(cls, speciation_frames, solute_number, frame_number):
-        averages = speciation_frames.sum(axis=1) / (solute_number * frame_number)
+    def _average_speciation(cls, speciation_frames, n_frames, n_solute):
+        averages = speciation_frames.sum(axis=1) / (n_solute * n_frames)
         return averages
 
     def shell_percent(self, shell_dict):
@@ -222,6 +223,34 @@ class Speciation:
         fig.tight_layout()
         return fig, ax
 
+    def _as_dict(self):
+        """
+        this is a helper method intended to be called by solution.save
+        """
+        data = {
+            'n_frames': self.n_frames,
+            'n_solutes': self.n_solutes,
+            'speciation_data': self.speciation_data.to_json(),
+            'speciation_percent': self.speciation_percent.to_json(),
+            'co_occurrence': self.co_occurrence.to_json(),
+        }
+        return data
+
+    @staticmethod
+    def _load_dict(speciation_dict):
+        """
+        this is a helper method intended to be called by solution.load_dict
+        """
+        data = {
+            'n_frames': speciation_dict['n_frames'],
+            'n_solutes': speciation_dict['n_solutes'],
+            'speciation_data': pd.read_json(speciation_dict['speciation_data']),
+            'speciation_percent': pd.read_json(speciation_dict['speciation_percent']),
+            'co_occurrence': pd.read_json(speciation_dict['co_occurrence']),
+        }
+        return data
+
+
 
 class Coordination:
     """
@@ -313,6 +342,33 @@ class Coordination:
                          )
         return type_percents[type_percents.percent > tol]
 
+    def _as_dict(self):
+        """
+        this is a helper method intended to be called by solution.load_dict
+        """
+        data = {
+            'n_frames': self.n_frames,
+            'n_solutes': self.n_solutes,
+            'cn_dict': self.cn_dict,
+            'cn_by_frame': self.cn_by_frame.to_json(),
+            'coordinating_atoms': self.coordinating_atoms.to_json(),
+        }
+        return data
+
+    @staticmethod
+    def _load_dict(coordination_dict):
+        """
+        this is a helper method intended to be called by solution.load_dict
+        """
+        data = {
+            'n_frames': coordination_dict['n_frames'],
+            'n_solutes': coordination_dict['n_solutes'],
+            'cn_dict': coordination_dict['cn_dict'],
+            'cn_by_frame': pd.read_json(coordination_dict['cn_by_frame']),
+            'coordinating_atoms': pd.read_json(coordination_dict['coordinating_atoms']),
+        }
+        return data
+
 
 class Pairing:
     """
@@ -386,3 +442,30 @@ class Pairing:
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
+
+    def _as_dict(self):
+        """
+        this is a helper method intended to be called by solution.load_dict
+        """
+        data = {
+            'n_frames': self.n_frames,
+            'n_solutes': self.n_solutes,
+            'pairing_dict': self.pairing_dict,
+            'pairing_by_frame': self.pairing_by_frame.to_json(),
+            'percent_free_solvents': self.percent_free_solvents,
+        }
+        return data
+
+    @staticmethod
+    def _load_dict(pairing_dict):
+        """
+        this is a helper method intended to be called by solution.load_dict
+        """
+        data = {
+            'n_frames': pairing_dict['n_frames'],
+            'n_solutes': pairing_dict['n_solutes'],
+            'pairing_dict': pairing_dict['pairing_dict'],
+            'pairing_by_frame': pd.read_json(pairing_dict['pairing_by_frame']),
+            'percent_free_solvents': pairing_dict['percent_free_solvents'],
+        }
+        return data

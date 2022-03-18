@@ -1,3 +1,5 @@
+import tempfile
+
 import matplotlib.pyplot as plt
 import warnings
 import pytest
@@ -158,3 +160,13 @@ def test_pairing(name, percent, run_solution):
     # duplicated to test in solution
     pairing_dict = run_solution.pairing.pairing_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
+
+
+def test_solution_serialization(run_solution):
+    with tempfile.NamedTemporaryFile() as f:
+        run_solution.save_json(f.name)
+        data = run_solution.load_json(f.name)
+    np.testing.assert_allclose(
+        data['coordination']['cn_by_frame'].values,
+        run_solution.coordination.cn_by_frame.values,
+    )

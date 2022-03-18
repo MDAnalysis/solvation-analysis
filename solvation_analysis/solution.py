@@ -20,10 +20,11 @@ Solution also provides several functions to select a particular solute and its s
 shell, returning an AtomGroup for visualization or further analysis.
 """
 
+import json
+import tempfile
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import warnings
 
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
@@ -127,16 +128,16 @@ class Solution(AnalysisBase):
     """
 
     def __init__(
-        self,
-        solute,
-        solvents,
-        radii=None,
-        solvent_counts=None,
-        rdf_kernel=None,
-        kernel_kwargs=None,
-        rdf_init_kwargs=None,
-        rdf_run_kwargs=None,
-        verbose=False,
+            self,
+            solute,
+            solvents,
+            radii=None,
+            solvent_counts=None,
+            rdf_kernel=None,
+            kernel_kwargs=None,
+            rdf_init_kwargs=None,
+            rdf_run_kwargs=None,
+            verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = {} if radii is None else radii
@@ -431,3 +432,45 @@ class Solution(AnalysisBase):
         if solute_index is not None:
             atoms = atoms | self.solute[solute_index]
         return atoms
+
+    def save_json(self, path):
+        data = {
+            'radii': self.radii,
+            'n_frames': self.n_frames,
+            'n_solute': self.n_solute,
+            'solvent_counts': self.solvent_counts,
+            'solvation_data': self.solvation_data.to_json(),
+            'speciation': self.speciation._as_dict(),
+            'coordination': self.coordination._as_dict(),
+            'pairing': self.pairing._as_dict(),
+            'kernel_kwargs': self.kernel_kwargs,
+            'rdf_init_kwargs': self.rdf_init_kwargs,
+            'rdf_run_kwargs': self.rdf_run_kwargs
+        }
+        with open(path, "w") as f:
+            json.dump(data, f)
+
+    @staticmethod
+    def load_json(path):
+        with open(path) as f:
+            solution_dict = json.load(f)
+        data = {
+            'radii': solution_dict['radii'],
+            'n_frames': solution_dict['n_frames'],
+            'n_solute': solution_dict['n_solute'],
+            'solvent_counts': solution_dict['solvent_counts'],
+            'solvation_data': pd.read_json(solution_dict['solvation_data']),
+            'speciation': Speciation._load_dict(solution_dict['speciation']),
+            'coordination': Coordination._load_dict(solution_dict['coordination']),
+            'pairing': Pairing._load_dict(solution_dict['pairing']),
+            'kernel_kwargs': solution_dict['kernel_kwargs'],
+            'rdf_init_kwargs': solution_dict['rdf_init_kwargs'],
+            'rdf_run_kwargs': solution_dict['rdf_run_kwargs'],
+        }
+        return data
+
+    def as_dict(self):
+        with tempfile.NamedTemporaryFile() as f:
+            self.save_json(f.name)
+            data = self.load_json(f.name)
+        return data

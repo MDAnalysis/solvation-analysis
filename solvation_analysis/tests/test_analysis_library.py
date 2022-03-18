@@ -113,3 +113,28 @@ def test_pairing_dict(name, percent, solvation_data):
 def test_pairing_participating(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
     np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)
+
+
+def test_speciation_serialization(solvation_data):
+    speciation = Speciation(solvation_data, 10, 49)
+    speciation_dict = speciation._as_dict()
+    loaded = speciation._load_dict(speciation_dict)
+    np.testing.assert_allclose(loaded['speciation_data'].values, speciation.speciation_data.values)
+    np.testing.assert_allclose(loaded['speciation_percent'].values, speciation.speciation_percent.values)
+    np.testing.assert_allclose(loaded['co_occurrence'].values, speciation.co_occurrence.values)
+
+
+def test_coordination_serialization(solvation_data, run_solution):
+    atoms = run_solution.u.atoms
+    coordination = Coordination(solvation_data, 10, 49, atoms)
+    coordination_dict = coordination._as_dict()
+    loaded = coordination._load_dict(coordination_dict)
+    np.testing.assert_allclose(loaded['cn_by_frame'].values, coordination.cn_by_frame.values)
+    np.testing.assert_allclose(loaded['coordinating_atoms'].values, coordination.coordinating_atoms.values)
+
+
+def test_pairing_serialization(solvation_data):
+    pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
+    pairing_dict = pairing._as_dict()
+    loaded = pairing._load_dict(pairing_dict)
+    np.testing.assert_allclose(loaded['pairing_by_frame'].values, pairing.pairing_by_frame.values)
