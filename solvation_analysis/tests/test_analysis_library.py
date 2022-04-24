@@ -118,3 +118,19 @@ def test_pairing_participating(name, percent, solvation_data):
 
 def test_residence_times(solvation_data):
     residence = Residence(solvation_data)
+    return
+
+def test_timing_benchmark(solvation_data_large):
+    """
+    # total timing of 30 seconds
+    # 36% get_loc, which I believe is the loc slicing operation
+    # 25% crosstab
+    # not bad!
+
+    """
+    import time
+    start = time.time()
+    residence = Residence(solvation_data_large)
+    times = residence.residence_times
+    total_time = time.time() - start
+    return

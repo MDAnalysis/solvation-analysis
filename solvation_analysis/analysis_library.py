@@ -2,7 +2,7 @@
 ================
 Analysis Library
 ================
-:Author: Orion Cohen
+:Author: Orion Cohen, Tingzheng Hou
 :Year: 2021
 :Copyright: GNU Public License v3
 
@@ -19,6 +19,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import acovf
+from scipy.optimize import curve_fit
 
 
 class Speciation:
@@ -408,15 +409,51 @@ class Residence:
 
     def __init__(self, solvation_data):
         self.solvation_data = solvation_data
-        self._calculate_residence_coordination()
+        self.residence_times, self.fit_parameters = self._calculate_residence_coordination()
 
     def _calculate_residence_coordination(self):
         unique_solvents = np.unique(self.solvation_data.res_name.values)
+        frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
+        residence_times = {}
+        fit_parameters = {}
         for res_name in unique_solvents:
             res_solvation_data = self.solvation_data[self.solvation_data.res_name == res_name]
-            adjacency_matrix = Residence._calculate_adjacency_matrix(res_solvation_data)
+            adjacency_mini = Residence._calculate_adjacency_matrix(res_solvation_data)
+            adjacency_matrix = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_matrix)
-            return
+            res_time, params = Residence._calculate_residence_time(auto_covariance)
+            residence_times[res_name], fit_parameters[res_name] = res_time, params
+        return residence_times, fit_parameters
+
+    @staticmethod
+    def exp(x, a, b, c):
+        """
+        An exponential decay function
+
+        Args:
+            x: Independent variable.
+            a: Initial quantity.
+            b: Exponential decay constant.
+            c: Constant.
+
+        Returns:
+            The acf
+        """
+        return a * np.exp(-b * x) + c
+
+    @staticmethod
+    def _calculate_residence_time(auto_covariance):
+        # Exponential fit of solvent-Li ACF
+        auto_covariance_norm = auto_covariance / auto_covariance[0]
+        # TODO: add cutoff time?
+        params, param_covariance = curve_fit(
+            Residence.exp,
+            np.arange(len(auto_covariance_norm)),
+            auto_covariance_norm,
+            p0=(1, 0.1, 0.01),
+        )
+        tau = 1 / params[1]  # ps
+        return tau, params
 
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
@@ -424,19 +461,16 @@ class Residence:
         auto_covariances = []
         for solute_ix in unique_solute_ix:
             for res_ix in adjacency_matrix.columns.values:
-                single_col = adjacency_matrix.xs(solute_ix, level=1)[res_ix]
+                single_col = adjacency_matrix.loc[pd.IndexSlice[:, solute_ix], res_ix].values
                 if single_col.sum() == 0:
                     continue  # TODO: can I make this less expensive, move up a level?
                 auto_covariances.append(acovf(single_col, demean=False, unbiased=True, fft=True))
         auto_covariance = np.mean(auto_covariances, axis=0)
-        return
+        return auto_covariance
 
     @staticmethod
     def _calculate_adjacency_matrix(solvation_data):
-        # solvation_data = self.solvation_data
-        unique_solvents = solvation_data.index.get_level_values(1).unique()
         dropped_index = solvation_data.index.droplevel(2)
-        single_dimension = pd.crosstab(solvation_data.index.get_level_values(1), solvation_data.res_ix)
         adjacency_matrix = pd.crosstab(dropped_index.values, solvation_data.res_ix)
         multi_index = pd.MultiIndex.from_tuples(adjacency_matrix.index)
         adjacency_matrix_multi = adjacency_matrix.set_index(multi_index)
