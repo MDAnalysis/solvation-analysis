@@ -1,6 +1,7 @@
 import sys
 import MDAnalysis as mda
 import numpy as np
+import pandas as pd
 import pytest
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
@@ -15,6 +16,7 @@ from solvation_analysis.tests.datafiles import (
     hard_rdf_data,
     non_solv_rdf_bins,
     non_solv_rdf_data,
+    bn_fec_solv_df_large,
 )
 from solvation_analysis.solution import Solution
 
@@ -99,6 +101,21 @@ def atom_groups(u_real):
     return atom_groups
 
 
+def test_temporary(solvation_data_large):
+    path = "/Users/orioncohen/projects/lowt/data/for_lammps_EL_production_BN_EC/BN10_EC_LiPF6"
+    data = path + "/" + "BN10_EC_LiPF6.data"
+    dcd = path + "/" + "data_nvt.dcd"
+    u = mda.Universe(data, dcd)
+    li_atoms = u.atoms.select_atoms("type 22")
+    pf6_atoms = u.atoms.select_atoms("byres type 20")
+    bn_atoms = u.atoms.select_atoms("byres type 5")
+    fec_atoms = u.atoms.select_atoms("byres type 19")
+    solution = Solution(li_atoms, {'pf6': pf6_atoms, 'bn': bn_atoms, 'fec': fec_atoms}, radii={'pf6': 2.8})
+    # solution.run(start=500)
+    pd.read_csv('data/test.csv', index_col=[0,1,2])
+    return
+
+
 def rdf_loading_helper(bins_files, data_files):
     """
     Creates dictionary of bin and data arrays with a rdf tag as key
@@ -166,3 +183,8 @@ def solvation_data(run_solution):
 @pytest.fixture
 def solvation_data_dup(run_solution):
     return run_solution.solvation_data_dup
+
+
+@pytest.fixture
+def solvation_data_large():
+    return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2])
