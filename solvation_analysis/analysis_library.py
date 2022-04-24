@@ -408,3 +408,16 @@ class Residence:
         single_col = adjacency_matrix_multi.xs(0, level=1)[0]
         return
 
+class Clustering:
+    """
+    1.  filter out all solvents that we don't want to be involved in clustering
+        and store intermediate solvation data df
+    2.  matrix multiple to get Li adjacency matrix
+    3.  subgraph search to identify clusters
+    4.  extract ids of participating solvents in each cluster
+    5.  index on intermediate df to extract resix of anions in each cluster,
+        call .unique().sum() to extract number of anions in each cluster
+    6. save results in convenient format.
+    """
+    def __init__(self):
+        return
