@@ -116,9 +116,16 @@ def test_pairing_participating(name, percent, solvation_data):
     np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)
 
 
+def test_diluent_composition(self):
+    # TODO: implement real test
+    return
+
+
 def test_residence_times(solvation_data):
     residence = Residence(solvation_data)
+    # TODO: implement real testing
     return
+
 
 def test_timing_benchmark(solvation_data_large):
     """

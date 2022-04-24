@@ -366,9 +366,10 @@ class Pairing:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.solvent_counts = n_solvents
+        self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.percent_free_solvents = self._percent_free_solvent()
+        self.diluent_composition, self.diluent_by_frame = self._diluent_composition()
 
     def _percent_coordinated(self):
         # calculate the percent of solute coordinated with each solvent
@@ -388,6 +389,16 @@ class Pairing:
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
+
+    def _diluent_composition(self):
+        coordinated_solvents = self.solvation_data.groupby(["frame", "res_name"]).count()["res_ix"]
+        solvent_counts = pd.Series(self.solvent_counts)
+        total_solvents = solvent_counts.reindex(coordinated_solvents.index, level=1)
+        diluent_solvents = total_solvents - coordinated_solvents
+        diluent_by_frame = diluent_solvents / diluent_solvents.groupby(['frame']).sum()
+        diluent_composition = diluent_by_frame.groupby(['res_name']).mean().to_dict()
+        return diluent_composition, diluent_by_frame
+
 
 
 class Residence:
