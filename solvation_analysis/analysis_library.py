@@ -386,3 +386,25 @@ class Pairing:
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
+
+
+class Residence:
+    """
+    A residence time calculator:
+    """
+
+    def __init__(self, solvation_data):
+        self.solvation_data = solvation_data
+        self._calculate_residence_coordination()
+
+    def _calculate_residence_coordination(self):
+        solvation_data = self.solvation_data
+        unique_solvents = solvation_data.index.get_level_values(1).unique()
+        dropped_index = solvation_data.index.droplevel(2)
+        single_dimension = pd.crosstab(solvation_data.index.get_level_values(1), solvation_data.res_ix)
+        adjacency_matrix = pd.crosstab(dropped_index.values, solvation_data.res_ix)
+        multi_index = pd.MultiIndex.from_tuples(adjacency_matrix.index)
+        adjacency_matrix_multi = adjacency_matrix.set_index(multi_index)
+        single_col = adjacency_matrix_multi.xs(0, level=1)[0]
+        return
+

@@ -5,6 +5,7 @@ from solvation_analysis.analysis_library import (
     Speciation,
     Coordination,
     Pairing,
+    Residence,
 )
 
 
@@ -113,3 +114,7 @@ def test_pairing_dict(name, percent, solvation_data):
 def test_pairing_participating(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
     np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)
+
+
+def test_residence_times(solvation_data):
+    residence = Residence(solvation_data)
