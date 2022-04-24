@@ -18,6 +18,7 @@ solvation data a non-issue.
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import acovf
 
 
 class Speciation:
@@ -391,6 +392,18 @@ class Pairing:
 class Residence:
     """
     A residence time calculator:
+
+    1.  filter on each solvent id
+        2.  generate adjacency matrix for each frame
+        3.  for each solute ix
+                for each solvent ix
+                    a. select frame-by-frame adjacency
+                    b. calculate auto-covariance function
+                    c. add to storage datastructure
+        4. average all auto-covariance functions
+        5. fit exponential function to averaged auto-covariance function
+        6. calculate residence times and add to dict
+    7. save residence times and finish
     """
 
     def __init__(self, solvation_data):
@@ -398,15 +411,37 @@ class Residence:
         self._calculate_residence_coordination()
 
     def _calculate_residence_coordination(self):
-        solvation_data = self.solvation_data
+        unique_solvents = np.unique(self.solvation_data.res_name.values)
+        for res_name in unique_solvents:
+            res_solvation_data = self.solvation_data[self.solvation_data.res_name == res_name]
+            adjacency_matrix = Residence._calculate_adjacency_matrix(res_solvation_data)
+            auto_covariance = Residence._calculate_auto_covariance(adjacency_matrix)
+            return
+
+    @staticmethod
+    def _calculate_auto_covariance(adjacency_matrix):
+        unique_solute_ix = np.unique(adjacency_matrix.index.get_level_values(1))
+        auto_covariances = []
+        for solute_ix in unique_solute_ix:
+            for res_ix in adjacency_matrix.columns.values:
+                single_col = adjacency_matrix.xs(solute_ix, level=1)[res_ix]
+                if single_col.sum() == 0:
+                    continue  # TODO: can I make this less expensive, move up a level?
+                auto_covariances.append(acovf(single_col, demean=False, unbiased=True, fft=True))
+        auto_covariance = np.mean(auto_covariances, axis=0)
+        return
+
+    @staticmethod
+    def _calculate_adjacency_matrix(solvation_data):
+        # solvation_data = self.solvation_data
         unique_solvents = solvation_data.index.get_level_values(1).unique()
         dropped_index = solvation_data.index.droplevel(2)
         single_dimension = pd.crosstab(solvation_data.index.get_level_values(1), solvation_data.res_ix)
         adjacency_matrix = pd.crosstab(dropped_index.values, solvation_data.res_ix)
         multi_index = pd.MultiIndex.from_tuples(adjacency_matrix.index)
         adjacency_matrix_multi = adjacency_matrix.set_index(multi_index)
-        single_col = adjacency_matrix_multi.xs(0, level=1)[0]
-        return
+        return adjacency_matrix_multi
+
 
 class Clustering:
     """
