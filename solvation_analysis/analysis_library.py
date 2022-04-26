@@ -520,9 +520,9 @@ class Clustering:
         adjacency_matrix = Residence._calculate_adjacency_matrix(solvation_subset)
 
         for frame, df in adjacency_matrix.groupby('frame'):
-            solvent_ix = df.index.get_level_values(1).values
-            li_adjacency_matrix = np.matmul(df.values, df.values.T)
-            graph = csr_matrix(li_adjacency_matrix)
+            solute_ix = df.index.get_level_values(1).values
+            solute_adjacency_matrix = np.matmul(df.values, df.values.T)
+            graph = csr_matrix(solute_adjacency_matrix)
             n_components, labels = connected_components(
                 csgraph=graph,
                 directed=False,
