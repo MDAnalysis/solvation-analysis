@@ -6,6 +6,7 @@ from solvation_analysis.analysis_library import (
     Coordination,
     Pairing,
     Residence,
+    Clustering,
 )
 
 
@@ -127,13 +128,19 @@ def test_residence_times(solvation_data):
     return
 
 
+def test_cluster_finder(solvation_data):
+    clustering = Clustering(solvation_data)
+    clustering.generate_clusters('pf6')
+    # TODO: implement real testing
+    return
+
+
 def test_timing_benchmark(solvation_data_large):
     """
     # total timing of 30 seconds
     # 36% get_loc, which I believe is the loc slicing operation
     # 25% crosstab
     # not bad!
-
     """
     import time
     start = time.time()

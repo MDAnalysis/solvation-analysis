@@ -20,6 +20,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import acovf
 from scipy.optimize import curve_fit
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
 
 
 class Speciation:
@@ -391,7 +393,7 @@ class Pairing:
         return free_solvents.to_dict()
 
     def _diluent_composition(self):
-        coordinated_solvents = self.solvation_data.groupby(["frame", "res_name"]).count()["res_ix"]
+        coordinated_solvents = self.solvation_data.groupby(["frame", "res_name"]).nunique()["res_ix"]
         solvent_counts = pd.Series(self.solvent_counts)
         total_solvents = solvent_counts.reindex(coordinated_solvents.index, level=1)
         diluent_solvents = total_solvents - coordinated_solvents
@@ -457,13 +459,16 @@ class Residence:
         # Exponential fit of solvent-Li ACF
         auto_covariance_norm = auto_covariance / auto_covariance[0]
         # TODO: add cutoff time?
-        params, param_covariance = curve_fit(
-            Residence.exp,
-            np.arange(len(auto_covariance_norm)),
-            auto_covariance_norm,
-            p0=(1, 0.1, 0.01),
-        )
-        tau = 1 / params[1]  # ps
+        try:
+            params, param_covariance = curve_fit(
+                Residence.exp,
+                np.arange(len(auto_covariance_norm)),
+                auto_covariance_norm,
+                p0=(1, 0.1, 0.01),
+            )
+            tau = 1 / params[1]  # p
+        except RuntimeError:
+            tau, params = np.nan, (np.nan, np.nan, np.nan)
         return tau, params
 
     @staticmethod
@@ -484,6 +489,7 @@ class Residence:
         dropped_index = solvation_data.index.droplevel(2)
         adjacency_matrix = pd.crosstab(dropped_index.values, solvation_data.res_ix)
         multi_index = pd.MultiIndex.from_tuples(adjacency_matrix.index)
+        multi_index.names = dropped_index.names
         adjacency_matrix_multi = adjacency_matrix.set_index(multi_index)
         return adjacency_matrix_multi
 
@@ -498,6 +504,32 @@ class Clustering:
     5.  index on intermediate df to extract resix of anions in each cluster,
         call .unique().sum() to extract number of anions in each cluster
     6. save results in convenient format.
+
+    # TODO: add low temp solvation data to test clustering more effectively
     """
-    def __init__(self):
+    def __init__(self, solvation_data):
+        self.solvation_data = solvation_data
+
+
+    def generate_clusters(self, solvents):
+        """
+        solvents is a string or list of strings
+        """
+        solvents = [solvents] if isinstance(solvents, str) else solvents
+        solvation_subset = self.solvation_data.query('res_name in @solvents')
+        adjacency_matrix = Residence._calculate_adjacency_matrix(solvation_subset)
+
+        for frame, df in adjacency_matrix.groupby('frame'):
+            solvent_ix = df.index.get_level_values(1).values
+            li_adjacency_matrix = np.matmul(df.values, df.values.T)
+            graph = csr_matrix(li_adjacency_matrix)
+            n_components, labels = connected_components(
+                csgraph=graph,
+                directed=False,
+                return_labels=True
+            )
+            # wooo! continue implementation later
+
         return
+
+
