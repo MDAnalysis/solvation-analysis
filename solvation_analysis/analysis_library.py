@@ -472,15 +472,19 @@ class Residence:
 
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
-        unique_solute_ix = np.unique(adjacency_matrix.index.get_level_values(1))
         auto_covariances = []
-        for solute_ix in unique_solute_ix:
-            for res_ix in adjacency_matrix.columns.values:
-                single_col = adjacency_matrix.loc[pd.IndexSlice[:, solute_ix], res_ix].values
-                if single_col.sum() == 0:
-                    continue  # TODO: can I make this less expensive, move up a level?
-                auto_covariances.append(acovf(single_col, demean=False, unbiased=True, fft=True))
-        auto_covariance = np.mean(auto_covariances, axis=0)
+        for solute_ix, df in adjacency_matrix.groupby(['solvated_atom']):
+            non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
+            auto_covariance_df = non_zero_cols.apply(
+                acovf,
+                axis=0,
+                result_type='expand',
+                demean=False,
+                unbiased=True,
+                fft=True
+            )
+            auto_covariances.append(auto_covariance_df.values)
+        auto_covariance = np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
         return auto_covariance
 
     @staticmethod
