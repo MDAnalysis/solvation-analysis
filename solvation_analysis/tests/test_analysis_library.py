@@ -125,6 +125,7 @@ def test_diluent_composition(self):
 def test_residence_times(solvation_data):
     residence = Residence(solvation_data)
     # TODO: implement real testing
+    np.testing.assert_almost_equal(4.016, residence.residence_times['bn'], 3)
     return
 
 

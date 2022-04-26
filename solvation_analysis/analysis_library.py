@@ -429,8 +429,7 @@ class Residence:
         frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
         residence_times = {}
         fit_parameters = {}
-        for res_name in unique_solvents:
-            res_solvation_data = self.solvation_data[self.solvation_data.res_name == res_name]
+        for res_name, res_solvation_data in self.solvation_data.groupby(['res_name']):
             adjacency_mini = Residence._calculate_adjacency_matrix(res_solvation_data)
             adjacency_matrix = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_matrix)
