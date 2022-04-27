@@ -14,7 +14,7 @@ While the classes in analysis_library can be used in isolation, they are meant t
 as attributes of the Solution class. This makes instantiating them and calculating the
 solvation data a non-issue.
 """
-
+import collections
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -210,7 +210,7 @@ class Speciation:
         ax.set_yticklabels(solvent_names, fontsize=14)
         # Let the horizontal axes labeling appear on top.
         ax.tick_params(top=True, bottom=False,
-                       labeltop=True, labelbottom=False,)
+                       labeltop=True, labelbottom=False, )
         # Rotate the tick labels and set their alignment.
         plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
                  rotation_mode="anchor")
@@ -287,7 +287,7 @@ class Coordination:
     def _average_cn(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         cn_series = counts.groupby(["res_name", "frame"]).sum() / (
-            self.n_solutes * self.n_frames
+                self.n_solutes * self.n_frames
         )
         cn_by_frame = cn_series.unstack()
         cn_dict = cn_series.groupby(["res_name"]).sum().to_dict()
@@ -402,7 +402,6 @@ class Pairing:
         return diluent_composition, diluent_by_frame
 
 
-
 class Residence:
     """
     A residence time calculator:
@@ -425,14 +424,13 @@ class Residence:
         self.residence_times, self.fit_parameters = self._calculate_residence_coordination()
 
     def _calculate_residence_coordination(self):
-        unique_solvents = np.unique(self.solvation_data.res_name.values)
         frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
         residence_times = {}
         fit_parameters = {}
         for res_name, res_solvation_data in self.solvation_data.groupby(['res_name']):
-            adjacency_mini = Residence._calculate_adjacency_matrix(res_solvation_data)
-            adjacency_matrix = adjacency_mini.reindex(frame_solute_index, fill_value=0)
-            auto_covariance = Residence._calculate_auto_covariance(adjacency_matrix)
+            adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
+            adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
+            auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
             res_time, params = Residence._calculate_residence_time(auto_covariance)
             residence_times[res_name], fit_parameters[res_name] = res_time, params
         return residence_times, fit_parameters
@@ -488,13 +486,10 @@ class Residence:
         return auto_covariance
 
     @staticmethod
-    def _calculate_adjacency_matrix(solvation_data):
-        dropped_index = solvation_data.index.droplevel(2)
-        adjacency_matrix = pd.crosstab(dropped_index.values, solvation_data.res_ix)
-        multi_index = pd.MultiIndex.from_tuples(adjacency_matrix.index)
-        multi_index.names = dropped_index.names
-        adjacency_matrix_multi = adjacency_matrix.set_index(multi_index)
-        return adjacency_matrix_multi
+    def calculate_adjacency_dataframe(solvation_data):
+        adjacency_group = solvation_data.groupby(['frame', 'solvated_atom', 'res_ix'])
+        adjacency_df = adjacency_group['dist'].count().unstack(fill_value=0)
+        return adjacency_df
 
 
 class Clustering:
@@ -510,29 +505,62 @@ class Clustering:
 
     # TODO: add low temp solvation data to test clustering more effectively
     """
-    def __init__(self, solvation_data):
+
+    def __init__(self, solvation_data, solute_res_ix, res_name_map):
         self.solvation_data = solvation_data
-
-
-    def generate_clusters(self, solvents):
+        self.solute_res_ix = solute_res_ix
+        self.res_name_map = res_name_map
+    
+    @staticmethod
+    def unwrap_adjacency_dataframe(df):
+        connections = df.reset_index(level=0).drop(columns='frame')
+        idx = connections.columns.append(connections.index)
+        directed = connections.reindex(index=idx, columns=idx, fill_value=0)
+        undirected = directed.values + directed.values.T
+        adjacency_matrix = csr_matrix(undirected)
+        return adjacency_matrix
+            
+    def generate_clusters(self, solvents, solute_res_ix, res_name_map):
         """
         solvents is a string or list of strings
         """
         solvents = [solvents] if isinstance(solvents, str) else solvents
-        solvation_subset = self.solvation_data.query('res_name in @solvents')
-        adjacency_matrix = Residence._calculate_adjacency_matrix(solvation_subset)
-
-        for frame, df in adjacency_matrix.groupby('frame'):
-            solute_ix = df.index.get_level_values(1).values
-            solute_adjacency_matrix = np.matmul(df.values, df.values.T)
-            graph = csr_matrix(solute_adjacency_matrix)
-            n_components, labels = connected_components(
-                csgraph=graph,
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, solvents)]
+        # reindex solvated_atom to residue indexes
+        reindexed_subset = solvation_subset.reset_index(level=1)
+        reindexed_subset.solvated_atom = solute_res_ix[reindexed_subset.solvated_atom]
+        dropped_reindexed = reindexed_subset.set_index(['solvated_atom'], append=True)
+        reindexed_subset = dropped_reindexed.reorder_levels(['frame', 'solvated_atom', 'atom_ix'])
+        # create adjacency matrix from reindexed df
+        graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
+        cluster_arrays = []
+        # loop through each time step / frame
+        for frame, df in graph.groupby('frame'):
+            # drop empty columns
+            df = df.loc[:, (df != 0).any(axis=0)]
+            # save map from local index to residue index
+            solute_map = df.index.get_level_values(1).values
+            solvent_map = df.columns.values
+            ix_to_res_ix = np.concatenate([solvent_map, solute_map])
+            adjacency_df = Clustering.unwrap_adjacency_dataframe(df)
+            _, clusters = connected_components(
+                csgraph=adjacency_df,
                 directed=False,
                 return_labels=True
             )
-            # wooo! continue implementation later
-
-        return
-
-
+            cluster_array = np.vstack([
+                np.full(len(clusters), frame),  # frame
+                clusters,  # clusters
+                res_name_map[ix_to_res_ix],  # res_names
+                ix_to_res_ix,  # res index
+            ]).T
+            cluster_arrays.append(cluster_array)
+            # TODO: reshape all the clusters into a dataframe?
+        # create and return clusters dataframe
+        all_clusters = np.concatenate(cluster_arrays)
+        cluster_df = (
+            pd.DataFrame(all_clusters, columns=['frame', 'cluster', 'res_name', 'res_ix'])
+            .set_index(['frame', 'cluster'])
+            .sort_values(['frame', 'cluster'])
+        )
+        return cluster_df

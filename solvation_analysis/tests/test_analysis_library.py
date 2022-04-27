@@ -117,7 +117,7 @@ def test_pairing_participating(name, percent, solvation_data):
     np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)
 
 
-def test_diluent_composition(self):
+def test_diluent_composition():
     # TODO: implement real test
     return
 
@@ -129,18 +129,20 @@ def test_residence_times(solvation_data):
     return
 
 
-def test_cluster_finder(solvation_data):
-    clustering = Clustering(solvation_data)
-    clustering.generate_clusters('pf6')
+def test_cluster_finder(run_solution, solvation_data):
+    # solvation_data = run_solution.solvation_data
+    solute_res_ix = run_solution.solute_res_ix
+    res_name_map = run_solution.res_name_map
+    clustering = Clustering(solvation_data, solute_res_ix, res_name_map)
+    cluster_df = clustering.generate_clusters('pf6', solute_res_ix, res_name_map)
+    assert len(cluster_df) == 128
     # TODO: implement real testing
     return
 
 
 def test_timing_benchmark(solvation_data_large):
     """
-    # total timing of 30 seconds
-    # 36% get_loc, which I believe is the loc slicing operation
-    # 25% crosstab
+    # total timing of 1.7 seconds!!! fuck yeah!!!
     # not bad!
     """
     import time
