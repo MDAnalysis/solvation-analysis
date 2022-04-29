@@ -596,7 +596,7 @@ class Networking:
 
     def _calculate_solute_status(self):
         status = self.network_sizes.rename(columns={2: 'paired'})
-        status['in_network'] = status.loc[:, 3:].sum(axis=1)
+        status['in_network'] = status.iloc[:, 1:].sum(axis=1).astype(int)
         status['alone'] = self.n_solute - status.loc[:, ['paired', 'in_network']].sum(axis=1)
         status = status.loc[:, ['alone', 'paired', 'in_network']]
         solute_status_by_frame = status / self.n_solute
