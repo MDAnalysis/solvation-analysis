@@ -498,7 +498,7 @@ class Residence:
         return adjacency_df
 
 
-class Clustering:
+class Networking:
     """
     1.  filter out all solvents that we don't want to be involved in clustering
         and store intermediate solvation data df
@@ -518,21 +518,21 @@ class Clustering:
         self.solute_res_ix = solute_res_ix
         self.res_name_map = res_name_map
         self.n_solute = n_solute
-        self.cluster_df = self._generate_clusters()
-        # TODO: calculate statistics on cluster_df
-        self.cluster_sizes = self._calculate_cluster_sizes()
+        self.network_df = self._generate_networks()
+        # TODO: calculate statistics on network_df
+        self.network_sizes = self._calculate_network_sizes()
         self.solute_status, self.solute_status_by_frame = self._calculate_solute_status()
 
     @staticmethod
     def from_solution(solution, solvents):
-        return Clustering(
+        return Networking(
             solvents,
             solution.solvation_data,
             solution.solute_res_ix,
             solution.res_name_map,
             solution.n_solute
         )
-    
+
     @staticmethod
     def unwrap_adjacency_dataframe(df):
         connections = df.reset_index(level=0).drop(columns='frame')
@@ -541,8 +541,8 @@ class Clustering:
         undirected = directed.values + directed.values.T
         adjacency_matrix = csr_matrix(undirected)
         return adjacency_matrix
-            
-    def _generate_clusters(self):
+
+    def _generate_networks(self):
         """
         solvents is a string or list of strings
         """
@@ -555,7 +555,7 @@ class Clustering:
         reindexed_subset = dropped_reindexed.reorder_levels(['frame', 'solvated_atom', 'atom_ix'])
         # create adjacency matrix from reindexed df
         graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
-        cluster_arrays = []
+        network_arrays = []
         # loop through each time step / frame
         for frame, df in graph.groupby('frame'):
             # drop empty columns
@@ -564,41 +564,45 @@ class Clustering:
             solute_map = df.index.get_level_values(1).values
             solvent_map = df.columns.values
             ix_to_res_ix = np.concatenate([solvent_map, solute_map])
-            adjacency_df = Clustering.unwrap_adjacency_dataframe(df)
-            _, clusters = connected_components(
+            adjacency_df = Networking.unwrap_adjacency_dataframe(df)
+            _, network = connected_components(
                 csgraph=adjacency_df,
                 directed=False,
                 return_labels=True
             )
-            cluster_array = np.vstack([
-                np.full(len(clusters), frame),  # frame
-                clusters,  # clusters
+            network_array = np.vstack([
+                np.full(len(network), frame),  # frame
+                network,  # network
                 self.res_name_map[ix_to_res_ix],  # res_names
                 ix_to_res_ix,  # res index
             ]).T
-            cluster_arrays.append(cluster_array)
-            # TODO: reshape all the clusters into a dataframe?
-        # create and return clusters dataframe
-        all_clusters = np.concatenate(cluster_arrays)
+            network_arrays.append(network_array)
+            # TODO: reshape all the network into a dataframe?
+        # create and return network dataframe
+        all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=['frame', 'cluster', 'res_name', 'res_ix'])
-            .set_index(['frame', 'cluster'])
-            .sort_values(['frame', 'cluster'])
+            pd.DataFrame(all_clusters, columns=['frame', 'network', 'res_name', 'res_ix'])
+                .set_index(['frame', 'network'])
+                .sort_values(['frame', 'network'])
         )
         return cluster_df
 
-    def _calculate_cluster_sizes(self):
-        cluster_df = self.cluster_df
-        cluster_sizes = cluster_df.groupby(['frame', 'cluster']).count()
+    def _calculate_network_sizes(self):
+        cluster_df = self.network_df
+        cluster_sizes = cluster_df.groupby(['frame', 'network']).count()
         size_counts = cluster_sizes.groupby(['frame', 'res_name']).count().unstack(fill_value=0)
         size_counts.columns = size_counts.columns.droplevel()
         return size_counts
 
     def _calculate_solute_status(self):
-        status = self.cluster_sizes.rename(columns={2: 'paired'})
-        status['in_cluster'] = status.loc[:, 3:].sum(axis=1)
-        status['alone'] = self.n_solute - status.loc[:, ['paired', 'in_cluster']].sum(axis=1)
-        status = status.loc[:, ['alone', 'paired', 'in_cluster']]
+        status = self.network_sizes.rename(columns={2: 'paired'})
+        status['in_network'] = status.loc[:, 3:].sum(axis=1)
+        status['alone'] = self.n_solute - status.loc[:, ['paired', 'in_network']].sum(axis=1)
+        status = status.loc[:, ['alone', 'paired', 'in_network']]
         solute_status_by_frame = status / self.n_solute
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame
+
+    def select_cluster(self, cluster, frame):
+        res_ix = self.network_df.loc[pd.IndexSlice[frame, cluster], 'res_ix'].values
+        return res_ix.astype(int)
