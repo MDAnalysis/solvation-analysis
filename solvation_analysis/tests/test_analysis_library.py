@@ -129,14 +129,12 @@ def test_residence_times(solvation_data):
     return
 
 
-def test_cluster_finder(run_solution, solvation_data):
-    # solvation_data = run_solution.solvation_data
-    solute_res_ix = run_solution.solute_res_ix
-    res_name_map = run_solution.res_name_map
-    clustering = Clustering(solvation_data, solute_res_ix, res_name_map)
-    cluster_df = clustering.generate_clusters('pf6', solute_res_ix, res_name_map)
+def test_cluster_finder(run_solution):
+    clustering = Clustering.from_solution(run_solution, ['pf6'])
+    cluster_df = clustering.cluster_df
     assert len(cluster_df) == 128
     # TODO: implement real testing
+
     return
 
 

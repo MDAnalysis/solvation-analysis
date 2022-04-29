@@ -423,6 +423,12 @@ class Residence:
         self.solvation_data = solvation_data
         self.residence_times, self.fit_parameters = self._calculate_residence_coordination()
 
+    @staticmethod
+    def from_solution(solution):
+        return Residence(
+            solution.solvation_data,
+        )
+
     def _calculate_residence_coordination(self):
         frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
         residence_times = {}
@@ -506,10 +512,26 @@ class Clustering:
     # TODO: add low temp solvation data to test clustering more effectively
     """
 
-    def __init__(self, solvation_data, solute_res_ix, res_name_map):
+    def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map, n_solute):
+        self.solvents = solvents
         self.solvation_data = solvation_data
         self.solute_res_ix = solute_res_ix
         self.res_name_map = res_name_map
+        self.n_solute = n_solute
+        self.cluster_df = self._generate_clusters()
+        # TODO: calculate statistics on cluster_df
+        self.cluster_sizes = self._calculate_cluster_sizes()
+        self.solute_status, self.solute_status_by_frame = self._calculate_solute_status()
+
+    @staticmethod
+    def from_solution(solution, solvents):
+        return Clustering(
+            solvents,
+            solution.solvation_data,
+            solution.solute_res_ix,
+            solution.res_name_map,
+            solution.n_solute
+        )
     
     @staticmethod
     def unwrap_adjacency_dataframe(df):
@@ -520,15 +542,15 @@ class Clustering:
         adjacency_matrix = csr_matrix(undirected)
         return adjacency_matrix
             
-    def generate_clusters(self, solvents, solute_res_ix, res_name_map):
+    def _generate_clusters(self):
         """
         solvents is a string or list of strings
         """
-        solvents = [solvents] if isinstance(solvents, str) else solvents
-        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, solvents)]
+        solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, self.solvents)]
         # reindex solvated_atom to residue indexes
         reindexed_subset = solvation_subset.reset_index(level=1)
-        reindexed_subset.solvated_atom = solute_res_ix[reindexed_subset.solvated_atom]
+        reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom]
         dropped_reindexed = reindexed_subset.set_index(['solvated_atom'], append=True)
         reindexed_subset = dropped_reindexed.reorder_levels(['frame', 'solvated_atom', 'atom_ix'])
         # create adjacency matrix from reindexed df
@@ -551,7 +573,7 @@ class Clustering:
             cluster_array = np.vstack([
                 np.full(len(clusters), frame),  # frame
                 clusters,  # clusters
-                res_name_map[ix_to_res_ix],  # res_names
+                self.res_name_map[ix_to_res_ix],  # res_names
                 ix_to_res_ix,  # res index
             ]).T
             cluster_arrays.append(cluster_array)
@@ -564,3 +586,19 @@ class Clustering:
             .sort_values(['frame', 'cluster'])
         )
         return cluster_df
+
+    def _calculate_cluster_sizes(self):
+        cluster_df = self.cluster_df
+        cluster_sizes = cluster_df.groupby(['frame', 'cluster']).count()
+        size_counts = cluster_sizes.groupby(['frame', 'res_name']).count().unstack(fill_value=0)
+        size_counts.columns = size_counts.columns.droplevel()
+        return size_counts
+
+    def _calculate_solute_status(self):
+        status = self.cluster_sizes.rename(columns={2: 'paired'})
+        status['in_cluster'] = status.loc[:, 3:].sum(axis=1)
+        status['alone'] = self.n_solute - status.loc[:, ['paired', 'in_cluster']].sum(axis=1)
+        status = status.loc[:, ['alone', 'paired', 'in_cluster']]
+        solute_status_by_frame = status / self.n_solute
+        solute_status = solute_status_by_frame.mean()
+        return solute_status, solute_status_by_frame
