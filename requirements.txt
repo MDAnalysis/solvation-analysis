@@ -6,3 +6,4 @@ pytest
 pathlib
 matplotlib
 scipy
+plotly
