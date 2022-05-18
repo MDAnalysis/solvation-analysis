@@ -17,7 +17,7 @@ from solvation_analysis.analysis_library import (
         ({'bn': 4}, 0.531),
     ],
 )
-def test_speciation_cluster_percent(cluster, percent, solvation_data):
+def test_speciation_shell_percent(cluster, percent, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
     percentage = speciation.shell_percent(cluster)
     np.testing.assert_allclose(percent, percentage, atol=0.05)
@@ -32,7 +32,7 @@ def test_speciation_cluster_percent(cluster, percent, solvation_data):
         ({'bn': 4}, 260),
     ],
 )
-def test_speciation_find_clusters(cluster, n_clusters, solvation_data):
+def test_speciation_find_shells(cluster, n_clusters, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
     df = speciation.find_shells(cluster)
     assert len(df) == n_clusters
@@ -46,7 +46,7 @@ def test_speciation_find_clusters(cluster, n_clusters, solvation_data):
         ('fec', 'pf6', 0.15),
     ],
 )
-def test_speciation_correlation(solvent_one, solvent_two, correlation, solvation_data):
+def test_speciation_co_occurrence(solvent_one, solvent_two, correlation, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
     df = speciation.co_occurrence
     np.testing.assert_allclose(df[solvent_one][solvent_two], correlation, atol=0.05)
