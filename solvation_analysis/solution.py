@@ -153,6 +153,7 @@ class Solution(AnalysisBase):
         self.n_solute = len(self.solute.residues)
         self.solvents = solvents
         self.u = self.solute.universe
+        self.has_run = False
 
     def _prepare(self):
         """
@@ -245,6 +246,7 @@ class Solution(AnalysisBase):
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
         self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
         self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute, self.u.atoms)
+        self.has_run = True
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):
