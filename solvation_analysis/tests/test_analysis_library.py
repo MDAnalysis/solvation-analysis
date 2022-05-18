@@ -52,7 +52,7 @@ def test_speciation_co_occurrence(solvent_one, solvent_two, correlation, solvati
     np.testing.assert_allclose(df[solvent_one][solvent_two], correlation, atol=0.05)
 
 
-def test_plot_correlation(solvation_data):
+def test_plot_co_occurrence(solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
     fig, ax = speciation.plot_co_occurrence()
     # fig.show()
@@ -72,6 +72,12 @@ def test_coordination(name, cn, solvation_data, run_solution):
     np.testing.assert_allclose(cn, coordination.cn_dict[name], atol=0.05)
     assert len(coordination.cn_by_frame) == 3
 
+
+# def test_test(run_solution, pre_solution_mutable, u_real, u_real_named):
+#     pre_solution_mutable.radii = {'pf6': 2.8}
+#     pre_solution_mutable.run()
+#     assert run_solution.u is pre_solution_mutable.u
+#     print('hi')
 
 @pytest.mark.parametrize(
     "name, atom_type, percent",
@@ -110,6 +116,6 @@ def test_pairing_dict(name, percent, solvation_data):
         ("pf6", 0.853),
     ],
 )
-def test_pairing_participating(name, percent, solvation_data):
+def test_pairing_free_solvents(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
     np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)
