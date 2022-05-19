@@ -54,7 +54,7 @@ def compare_pairing(solutions):
 
 
 def compare_coordination_numbers(solutions):
-    # this should be a stacked bar chart
+    # this should be a stacked bar chart, horizontal?
     fig = compare_solvent_dicts()
     return
 
@@ -64,10 +64,18 @@ def compare_coordination_to_random(solutions):
     return
 
 
-def compare_residence_time(solutions):
+def compare_residence_times(solutions):
     # not in this branch yet
+    # this should be a grouped vertical bar chart or a line chart
+    fig = compare_solvent_dicts()
     return
 
+
+def compare_solute_status(solutions):
+    # not in this branch yet
+    # this should be a grouped vertical bar chart or a line chart
+    fig = compare_solvent_dicts()
+    return
 
 def compare_speciation(solutions, series=True):
     # stacked bars
