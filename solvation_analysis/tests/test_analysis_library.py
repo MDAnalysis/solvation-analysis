@@ -141,7 +141,7 @@ def test_cluster_finder(run_solution):
 
 def test_timing_benchmark(solvation_data_large):
     """
-    # total timing of 1.7 seconds!!! fuck yeah!!!
+    # total timing of 1.07 seconds!!! wooo!!!
     # not bad!
     """
     import time
@@ -149,4 +149,5 @@ def test_timing_benchmark(solvation_data_large):
     residence = Residence(solvation_data_large)
     times = residence.residence_times
     total_time = time.time() - start
+    print(total_time)
     return

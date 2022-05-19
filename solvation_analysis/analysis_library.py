@@ -476,6 +476,8 @@ class Residence:
 
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
+        # TODO: plot decay curve
+        # TODO: switch to a 1/e based implementation
         auto_covariances = []
         for solute_ix, df in adjacency_matrix.groupby(['solvated_atom']):
             non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
