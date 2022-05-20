@@ -2,18 +2,45 @@
 import plotly
 import plotly.graph_objects as go
 import plotly.express as px
+import matplotlib
+
+import numpy as np
 
 
+def square_area(data, labels, cutoff=1):
+    data = np.floor(100 * data / np.sum(data)).astype(int)
+    do_exceed_cutoff = data > cutoff
+    label_array_short = np.repeat(labels[do_exceed_cutoff], data[do_exceed_cutoff])
+    # label_array = np.pad(
+    #     label_array_short,
+    #     (0, 100 - len(label_array_short)),
+    #     'constant',
+    #     constant_values=(np.nan, 'other'),
+    # )
+    colors = px.colors.qualitative.Dark24
+    color_array_short = np.repeat(colors[:sum(do_exceed_cutoff)], data[do_exceed_cutoff])
+    color_array = np.pad(
+        color_array_short,
+        (0, 100 - len(label_array_short)),
+        'constant',
+        constant_values=("000000", '#EEEEEE'),
+    )
+    rgb_array_unwrapped = [np.array(plotly.colors.hex_to_rgb(color)) for color in color_array]
+    rgb_values = np.reshape(rgb_array_unwrapped, (10,10,3))
+    fig = px.imshow(rgb_values, zmin=0, zmax=255)
+    fig.show()
+    return
 
 # single solution
+
+def plot_histogram(solution):
+    # histogram of what?
+    return
 
 
 def plot_speciation(solution):
     # square area
-    return
-
-
-def plot_coordination_number(solution):
+    # should be doable with plotly.express.imshow and go.add_annotations
     return
 
 
@@ -27,6 +54,10 @@ def plot_clustering(solution):
 
 
 def plot_coordinating_atoms(solution):
+    # for each solvent
+    # by atom type? could allow by element or other features?
+    # bar chart with one bar for each solvent
+    # normalized
     return
 
 
@@ -57,6 +88,7 @@ def compare_coordination_numbers(solutions):
     # this should be a stacked bar chart, horizontal?
     fig = compare_solvent_dicts()
     return
+
 
 def compare_coordination_to_random(solutions):
     # this should compare the actual coordination numbers relative to a
