@@ -5,6 +5,8 @@ from solvation_analysis.analysis_library import (
     Speciation,
     Coordination,
     Pairing,
+    Residence,
+    Networking,
 )
 
 
@@ -73,12 +75,6 @@ def test_coordination(name, cn, solvation_data, run_solution):
     assert len(coordination.cn_by_frame) == 3
 
 
-# def test_test(run_solution, pre_solution_mutable, u_real, u_real_named):
-#     pre_solution_mutable.radii = {'pf6': 2.8}
-#     pre_solution_mutable.run()
-#     assert run_solution.u is pre_solution_mutable.u
-#     print('hi')
-
 @pytest.mark.parametrize(
     "name, atom_type, percent",
     [
@@ -119,3 +115,39 @@ def test_pairing_dict(name, percent, solvation_data):
 def test_pairing_free_solvents(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
     np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)
+
+
+def test_diluent_composition():
+    # TODO: implement real test
+    return
+
+
+def test_residence_times(solvation_data):
+    residence = Residence(solvation_data)
+    # TODO: implement real testing
+    np.testing.assert_almost_equal(4.016, residence.residence_times['bn'], 3)
+    return
+
+
+def test_network_finder(run_solution):
+    networking = Networking.from_solution(run_solution, ['pf6'])
+    network_df = networking.network_df
+    assert len(network_df) == 128
+    # TODO: implement real testing
+    res_ix = networking.get_cluster_res_ix(0, 0)
+    run_solution.u.residues[res_ix.astype(int)].atoms
+    return
+
+
+def test_timing_benchmark(solvation_data_large):
+    """
+    # total timing of 1.07 seconds!!! wooo!!!
+    # not bad!
+    """
+    import time
+    start = time.time()
+    residence = Residence(solvation_data_large)
+    times = residence.residence_times
+    total_time = time.time() - start
+    print(total_time)
+    return

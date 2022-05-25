@@ -1,6 +1,7 @@
 import sys
 import MDAnalysis as mda
 import numpy as np
+import pandas as pd
 import pytest
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
@@ -15,6 +16,7 @@ from solvation_analysis.tests.datafiles import (
     hard_rdf_data,
     non_solv_rdf_bins,
     non_solv_rdf_data,
+    bn_fec_solv_df_large,
 )
 from solvation_analysis.solution import Solution
 
@@ -166,3 +168,8 @@ def solvation_data(run_solution):
 @pytest.fixture
 def solvation_data_dup(run_solution):
     return run_solution.solvation_data_dup
+
+
+@pytest.fixture
+def solvation_data_large():
+    return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2])

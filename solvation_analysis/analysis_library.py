@@ -2,7 +2,7 @@
 ================
 Analysis Library
 ================
-:Author: Orion Cohen
+:Author: Orion Cohen, Tingzheng Hou
 :Year: 2021
 :Copyright: GNU Public License v3
 
@@ -14,10 +14,14 @@ While the classes in analysis_library can be used in isolation, they are meant t
 as attributes of the Solution class. This makes instantiating them and calculating the
 solvation data a non-issue.
 """
-
+import collections
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import acovf
+from scipy.optimize import curve_fit
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
 
 
 class Speciation:
@@ -206,7 +210,7 @@ class Speciation:
         ax.set_yticklabels(solvent_names, fontsize=14)
         # Let the horizontal axes labeling appear on top.
         ax.tick_params(top=True, bottom=False,
-                       labeltop=True, labelbottom=False,)
+                       labeltop=True, labelbottom=False, )
         # Rotate the tick labels and set their alignment.
         plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
                  rotation_mode="anchor")
@@ -283,7 +287,7 @@ class Coordination:
     def _average_cn(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         cn_series = counts.groupby(["res_name", "frame"]).sum() / (
-            self.n_solutes * self.n_frames
+                self.n_solutes * self.n_frames
         )
         cn_by_frame = cn_series.unstack()
         cn_dict = cn_series.groupby(["res_name"]).sum().to_dict()
@@ -364,9 +368,10 @@ class Pairing:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.solvent_counts = n_solvents
+        self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.percent_free_solvents = self._percent_free_solvent()
+        self.diluent_composition, self.diluent_by_frame = self._diluent_composition()
 
     def _percent_coordinated(self):
         # calculate the percent of solute coordinated with each solvent
@@ -386,3 +391,362 @@ class Pairing:
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
+
+    def _diluent_composition(self):
+        coordinated_solvents = self.solvation_data.groupby(["frame", "res_name"]).nunique()["res_ix"]
+        solvent_counts = pd.Series(self.solvent_counts)
+        total_solvents = solvent_counts.reindex(coordinated_solvents.index, level=1)
+        diluent_solvents = total_solvents - coordinated_solvents
+        diluent_by_frame = diluent_solvents / diluent_solvents.groupby(['frame']).sum()
+        diluent_composition = diluent_by_frame.groupby(['res_name']).mean().to_dict()
+        return diluent_composition, diluent_by_frame
+
+
+class Residence:
+    """
+    Calculate the residence times of solvents.
+
+    This class calculates the residence time of each solvent on the solute.
+    The residence time is in units of Solution frames, so if the Solution object
+    has 1000 frames over 1 nanosecond, then each frame will be 1 picosecond.
+    Thus a residence time of 100 would translate to 100 picoseconds.
+
+    To do this, it finds the solute-solvent autocorrelation function for each
+    solute-solvent pair, averages over the solvents of each type, and fits an
+    exponential function to the decay. The decay constant of this exponential
+    function is the residence time of the solvent.
+
+    Parameters
+    ----------
+    solvation_data : pandas.DataFrame
+        The solvation data frame output by Solution.
+
+    Attributes
+    ----------
+    residence_times : dict of {str: float}
+        a dictionary where keys are residue names (str) and values are the
+        residence times of the that residue on the solute (float).
+    fit_parameters : pd.DataFrame
+
+    Examples
+    --------
+
+     .. code-block:: python
+
+        # first define Li, BN, and FEC AtomGroups
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> residence = Residence.from_solution(solution)
+        >>> residence.residence_times
+        {'BN': 4.02, 'FEC': 3.79, 'PF6': 1.15}
+    """
+
+    def __init__(self, solvation_data):
+        self.solvation_data = solvation_data
+        self.residence_times, self.fit_parameters = self._calculate_residence_coordination()
+
+    @staticmethod
+    def from_solution(solution):
+        """
+        Generate a Residence object from a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+
+        Returns
+        -------
+        Residence
+        """
+        assert solution.has_run, "The solution must be run before calling from_solution"
+        return Residence(
+            solution.solvation_data,
+        )
+
+    def _calculate_residence_coordination(self):
+        # calculate the residence times
+        frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
+        residence_times = {}
+        fit_parameters = {}
+        for res_name, res_solvation_data in self.solvation_data.groupby(['res_name']):
+            adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
+            adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
+            auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
+            res_time, params = Residence._calculate_residence_time(auto_covariance)
+            residence_times[res_name], fit_parameters[res_name] = res_time, params
+        return residence_times, fit_parameters
+
+    @staticmethod
+    def _exponential_decay(x, a, b, c):
+        """
+        An exponential decay function
+
+        Args:
+            x: Independent variable.
+            a: Initial quantity.
+            b: Exponential decay constant.
+            c: Constant.
+
+        Returns:
+            The acf
+        """
+        return a * np.exp(-b * x) + c
+
+    @staticmethod
+    def _calculate_residence_time(auto_covariance):
+        # Exponential fit of solvent-Li ACF
+        auto_covariance_norm = auto_covariance / auto_covariance[0]
+        # TODO: add cutoff time?
+        try:
+            params, param_covariance = curve_fit(
+                Residence._exponential_decay,
+                np.arange(len(auto_covariance_norm)),
+                auto_covariance_norm,
+                p0=(1, 0.1, 0.01),
+            )
+            tau = 1 / params[1]  # p
+        except RuntimeError:
+            tau, params = np.nan, (np.nan, np.nan, np.nan)
+        return tau, params
+
+    @staticmethod
+    def _calculate_auto_covariance(adjacency_matrix):
+        # TODO: plot decay curve
+        # TODO: switch to a 1/e based implementation
+        auto_covariances = []
+        for solute_ix, df in adjacency_matrix.groupby(['solvated_atom']):
+            non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
+            auto_covariance_df = non_zero_cols.apply(
+                acovf,
+                axis=0,
+                result_type='expand',
+                demean=False,
+                unbiased=True,
+                fft=True
+            )
+            auto_covariances.append(auto_covariance_df.values)
+        auto_covariance = np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
+        return auto_covariance
+
+    @staticmethod
+    def calculate_adjacency_dataframe(solvation_data):
+        # generate an adjacency matrix from the solvation data
+        adjacency_group = solvation_data.groupby(['frame', 'solvated_atom', 'res_ix'])
+        adjacency_df = adjacency_group['dist'].count().unstack(fill_value=0)
+        return adjacency_df
+
+
+class Networking:
+    """
+    Calculate the number and size of solute-solvent networks.
+
+    A network is defined as a bipartite graph of solutes and solvents, where edges
+    are defined by coordination in the solvation_data DataFrame. A single solvent
+    or multiple solvents can be selected, but coordination between solvents will
+    not be included, only coordination between solutes and solvents.
+
+    Networking uses the solvation_data to construct an adjacency matrix and then
+    extracts the connected subgraphs within it. These connected subgraphs are stored
+    in a DataFrame in Networking.network_df.
+
+    Several other representations of the networking data are included in the attributes.
+
+    Parameters
+    ----------
+    solvation_data : pandas.DataFrame
+        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        "dist", "res_name", and "res_ix".
+    solute_res_ix : np.ndarray
+        the residue indices of the solutes in solvation_data
+    res_name_map : pd.Series
+        a mapping between residue indices and the solute & solvent names in a Solution.
+
+    Attributes
+    ----------
+    network_df : pd.DataFrame
+        the dataframe containing all networking data. the indices are the frame and
+        network index, respectively. the columns are the res_name and res_ix.
+    network_sizes : pd.DataFrame
+        a dataframe of network sizes. the index is the frame. the column headers
+        are network sizes, or the number of solutes + solvents in the network, so
+        the columns might be [2, 3, 4, ...]. the values in each column are the
+        number of networks with that size in each frame.
+    solute_status : dict of {str: float}
+        a dictionary where the keys are the "status" of the solute and the values
+        are the fraction of solute with that status, averaged over all frames.
+        "alone" means that the solute not coordinated with any of the networking
+        solvents, network size is 1.
+        "paired" means the solute and is coordinated with a single networking
+        solvent and that solvent is not coordinated to any other solutes, network
+        size is 2.
+        "in_network" means that the solute is coordinated to more than one solvent
+        or its solvent is coordinated to more than one solute, network size >= 3.
+    solute_status_by_frame : pd.DataFrame
+        as described above, except organized into a dataframe where each
+        row is a unique frame and the columns are "alone", "paired", and "in_network".
+
+    # TODO: consider transposing all other x_by_frame attributes to match this one
+
+    Examples
+    --------
+     .. code-block:: python
+
+        # first define Li, BN, and FEC AtomGroups
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> networking = Networking.from_solution(solution, 'PF6')
+    """
+
+    def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map, n_solute):
+        # TODO: add low temp solvation data to test clustering more effectively
+        self.solvents = solvents
+        self.solvation_data = solvation_data
+        self.solute_res_ix = solute_res_ix
+        self.res_name_map = res_name_map
+        self.n_solute = len(solute_res_ix)
+        self.network_df = self._generate_networks()
+        # TODO: calculate statistics on network_df
+        self.network_sizes = self._calculate_network_sizes()
+        self.solute_status, self.solute_status_by_frame = self._calculate_solute_status()
+        self.solute_status = self.solute_status.as_dict()
+
+    @staticmethod
+    def from_solution(solution, solvents):
+        """
+        Generate a Networking object from a solution and solvent names.
+
+        Parameters
+        ----------
+        solution : Solution
+        solvents : str or list of str
+            the strings should be the name of solvents in the Solution. The
+            strings must match exactly for Networking to work properly. The
+            selected solvents will be used to construct the networking graph
+            that is described in documentation for the Networking class.
+
+        Returns
+        -------
+        Networking
+        """
+        return Networking(
+            solvents,
+            solution.solvation_data,
+            solution.solute_res_ix,
+            solution.res_name_map,
+            solution.n_solute
+        )
+
+    @staticmethod
+    def _unwrap_adjacency_dataframe(df):
+        # this class will transform the biadjacency matrix into a proper adjacency matrix
+        connections = df.reset_index(level=0).drop(columns='frame')
+        idx = connections.columns.append(connections.index)
+        directed = connections.reindex(index=idx, columns=idx, fill_value=0)
+        undirected = directed.values + directed.values.T
+        adjacency_matrix = csr_matrix(undirected)
+        return adjacency_matrix
+
+    def _generate_networks(self):
+        """
+        This function generates a dataframe containing all the solute-solvent networks
+        in every frame of the simulation. The rough approach is as follows:
+
+        1. transform the solvation_data DataFrame into an adjacency matrix
+        2. determine the connected subgraphs in the adjacency matrix
+        3. tabulate the res_ix involved in each network and store in a DataFrame
+        """
+        solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
+        # TODO, make this fail loudly if solvents are not present
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, self.solvents)]
+        # reindex solvated_atom to residue indexes
+        reindexed_subset = solvation_subset.reset_index(level=1)
+        reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom]
+        dropped_reindexed = reindexed_subset.set_index(['solvated_atom'], append=True)
+        reindexed_subset = dropped_reindexed.reorder_levels(['frame', 'solvated_atom', 'atom_ix'])
+        # create adjacency matrix from reindexed df
+        graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
+        network_arrays = []
+        # loop through each time step / frame
+        for frame, df in graph.groupby('frame'):
+            # drop empty columns
+            df = df.loc[:, (df != 0).any(axis=0)]
+            # save map from local index to residue index
+            solute_map = df.index.get_level_values(1).values
+            solvent_map = df.columns.values
+            ix_to_res_ix = np.concatenate([solvent_map, solute_map])
+            adjacency_df = Networking._unwrap_adjacency_dataframe(df)
+            _, network = connected_components(
+                csgraph=adjacency_df,
+                directed=False,
+                return_labels=True
+            )
+            network_array = np.vstack([
+                np.full(len(network), frame),  # frame
+                network,  # network
+                self.res_name_map[ix_to_res_ix],  # res_names
+                ix_to_res_ix,  # res index
+            ]).T
+            network_arrays.append(network_array)
+            # TODO: reshape all the network into a dataframe?
+        # create and return network dataframe
+        all_clusters = np.concatenate(network_arrays)
+        cluster_df = (
+            pd.DataFrame(all_clusters, columns=['frame', 'network', 'res_name', 'res_ix'])
+                .set_index(['frame', 'network'])
+                .sort_values(['frame', 'network'])
+        )
+        return cluster_df
+
+    def _calculate_network_sizes(self):
+        # This utility calculates the network sizes and returns a convenient dataframe.
+        cluster_df = self.network_df
+        cluster_sizes = cluster_df.groupby(['frame', 'network']).count()
+        size_counts = cluster_sizes.groupby(['frame', 'res_name']).count().unstack(fill_value=0)
+        size_counts.columns = size_counts.columns.droplevel()
+        return size_counts
+
+    def _calculate_solute_status(self):
+        """
+        This utility calculates the percentage of each solute with a given "status".
+        Namely, whether the solvent is "alone", "paired" (with a single solvent), or
+        "in_network" of > 2 species.
+        """
+        status = self.network_sizes.rename(columns={2: 'paired'})
+        status['in_network'] = status.iloc[:, 1:].sum(axis=1).astype(int)
+        status['alone'] = self.n_solute - status.loc[:, ['paired', 'in_network']].sum(axis=1)
+        status = status.loc[:, ['alone', 'paired', 'in_network']]
+        solute_status_by_frame = status / self.n_solute
+        solute_status = solute_status_by_frame.mean()
+        return solute_status, solute_status_by_frame
+
+    def get_cluster_res_ix(self, network_index, frame):
+        """
+        Return the indexes of all residues in a selected network.
+
+        The network_index and frame must be provided to fully specify the network.
+        Once the indexes are returned, they can be used to select an AtomGroup with
+        the species of interest, see Examples.
+
+        Parameters
+        ----------
+        network_index : int
+            The index of the network of interest
+        frame : int
+            the frame in the trajectory to perform selection at. Defaults to the
+            current trajectory frame.
+        Returns
+        -------
+        res_ix : np.ndarray
+
+        Examples
+        --------
+         .. code-block:: python
+
+            # first define Li, BN, and FEC AtomGroups
+            >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+            >>> networking = Networking.from_solution(solution, 'PF6')
+            >>> res_ix = networking.get_cluster_res_ix(1, 5)
+            >>> solution.u.residues[res_ix].atoms
+            <AtomGroup with 126 Atoms>
+
+        """
+        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], 'res_ix'].values
+        return res_ix.astype(int)

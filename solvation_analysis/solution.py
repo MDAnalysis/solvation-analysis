@@ -136,6 +136,7 @@ class Solution(AnalysisBase):
         kernel_kwargs=None,
         rdf_init_kwargs=None,
         rdf_run_kwargs=None,
+        solute_name="solute",
         verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
@@ -148,12 +149,23 @@ class Solution(AnalysisBase):
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
         self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
-        # TODO: save solute numbers somewhere
+        self.has_run = False
+        self.u = solute.universe
         self.solute = solute
         self.n_solute = len(self.solute.residues)
+        self.solute_res_ix = solute.residues.ix
+        self.solute_atom_ix = solute.atoms.ix
         self.solvents = solvents
-        self.u = self.solute.universe
-        self.has_run = False
+        self.solute_name = solute_name
+        self.res_name_map = pd.Series(['none'] * len(self.u.residues))
+        self.res_name_map[self.solute.residues.ix] = self.solute_name
+        for name, solvent in solvents.items():
+            self.res_name_map[solvent.residues.ix] = name
+        # TODO: add documentation! for solute_res_ix, solute_atom_ix, and res_name_map
+        # we could make it into an array operation by
+        # constructing an array of all res where the
+        # value is the res name if present and nan if
+        # not in the solution.
 
     def _prepare(self):
         """

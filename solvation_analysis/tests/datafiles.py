@@ -6,6 +6,9 @@ bn_fec_data = resource_filename(__name__, "data/bn_fec.data")
 bn_fec_dcd_unwrap = resource_filename(__name__, "data/bn_fec_short_unwrap.dcd")
 bn_fec_dcd_wrap = resource_filename(__name__, "data/bn_fec_short_wrap.dcd")
 bn_fec_atom_types = resource_filename(__name__, "data/bn_fec_elements.csv")
+bn_fec_solv_df_large = resource_filename(__name__, "data/bn_solv_df_large.csv")
+ea_fec_dcd = resource_filename(__name__, "data/ea_fec.dcd")
+ea_fec_pdb = resource_filename(__name__, "data/ea_fec.pdb")
 
 test_dir = Path(__file__).parent
 data_dir = test_dir / "data"
