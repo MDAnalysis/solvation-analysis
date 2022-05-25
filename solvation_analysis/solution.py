@@ -136,6 +136,7 @@ class Solution(AnalysisBase):
         kernel_kwargs=None,
         rdf_init_kwargs=None,
         rdf_run_kwargs=None,
+        solute_name="solute",
         verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
@@ -155,9 +156,9 @@ class Solution(AnalysisBase):
         self.solute_res_ix = solute.residues.ix
         self.solute_atom_ix = solute.atoms.ix
         self.solvents = solvents
-        # self.res_name_map = np.full(len(self.u.residues), 'none')
+        self.solute_name = solute_name
         self.res_name_map = pd.Series(['none'] * len(self.u.residues))
-        self.res_name_map[self.solute.residues.ix] = 'solute'
+        self.res_name_map[self.solute.residues.ix] = self.solute_name
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
         # TODO: add documentation! for solute_res_ix, solute_atom_ix, and res_name_map
