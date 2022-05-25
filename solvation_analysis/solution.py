@@ -148,6 +148,7 @@ class Solution(AnalysisBase):
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
         self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
+        self.has_run = False
         self.u = solute.universe
         self.solute = solute
         self.n_solute = len(self.solute.residues)
@@ -162,7 +163,7 @@ class Solution(AnalysisBase):
         # TODO: add documentation! for solute_res_ix, solute_atom_ix, and res_name_map
         # we could make it into an array operation by
         # constructing an array of all res where the
-        # value is teh res name if present and nan if
+        # value is the res name if present and nan if
         # not in the solution.
 
     def _prepare(self):
@@ -256,6 +257,7 @@ class Solution(AnalysisBase):
         self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
         self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
         self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute, self.u.atoms)
+        self.has_run = True
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):
