@@ -11,7 +11,7 @@ from solvation_analysis.analysis_library import (
 
 
 @pytest.mark.parametrize(
-    "network, percent",
+    "shell, percent",
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 0.357),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 0.004),
@@ -19,14 +19,14 @@ from solvation_analysis.analysis_library import (
         ({'bn': 4}, 0.531),
     ],
 )
-def test_speciation_cluster_percent(network, percent, solvation_data):
+def test_speciation_cluster_percent(shell, percent, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    percentage = speciation.shell_percent(network)
+    percentage = speciation.shell_percent(shell)
     np.testing.assert_allclose(percent, percentage, atol=0.05)
 
 
 @pytest.mark.parametrize(
-    "network, n_networks",
+    "shell, n_shells",
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 175),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 2),
@@ -34,10 +34,10 @@ def test_speciation_cluster_percent(network, percent, solvation_data):
         ({'bn': 4}, 260),
     ],
 )
-def test_speciation_find_clusters(network, n_networks, solvation_data):
+def test_speciation_find_clusters(shell, n_shells, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    df = speciation.find_shells(network)
-    assert len(df) == n_networks
+    df = speciation.find_shells(shell)
+    assert len(df) == n_shells
 
 
 @pytest.mark.parametrize(
