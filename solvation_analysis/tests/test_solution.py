@@ -118,7 +118,7 @@ def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids,
 
 
 @pytest.mark.parametrize(
-    "cluster, n_clusters",
+    "network, n_clusters",
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 175),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 2),

@@ -11,7 +11,7 @@ from solvation_analysis.analysis_library import (
 
 
 @pytest.mark.parametrize(
-    "cluster, percent",
+    "network, percent",
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 0.357),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 0.004),
@@ -26,7 +26,7 @@ def test_speciation_cluster_percent(cluster, percent, solvation_data):
 
 
 @pytest.mark.parametrize(
-    "cluster, n_clusters",
+    "network, n_clusters",
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 175),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 2),
@@ -134,7 +134,7 @@ def test_cluster_finder(run_solution):
     network_df = networking.network_df
     assert len(network_df) == 128
     # TODO: implement real testing
-    res_ix = networking.select_cluster(0, 0)
+    res_ix = networking.get_cluster_res_ix(0, 0)
     run_solution.u.residues[res_ix.astype(int)].atoms
     return
 
