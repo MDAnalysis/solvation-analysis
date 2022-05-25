@@ -3,6 +3,8 @@ import MDAnalysis as mda
 import numpy as np
 import pandas as pd
 import pytest
+
+from solvation_analysis.analysis_library import Networking, Residence
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
@@ -173,3 +175,15 @@ def solvation_data_dup(run_solution):
 @pytest.fixture
 def solvation_data_large():
     return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2])
+
+
+@pytest.fixture
+def networking(run_solution):
+    # look at network of PF6 and FEC to make denser adjacency matrix
+    return Networking.from_solution(run_solution, ['PF6', 'FEC'])
+
+
+@pytest.fixture
+def residence(run_solution):
+    return Residence.from_solution(run_solution)
+

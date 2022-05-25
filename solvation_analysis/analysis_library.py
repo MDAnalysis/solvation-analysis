@@ -606,7 +606,7 @@ class Networking:
         # TODO: calculate statistics on network_df
         self.network_sizes = self._calculate_network_sizes()
         self.solute_status, self.solute_status_by_frame = self._calculate_solute_status()
-        self.solute_status = self.solute_status.as_dict()
+        self.solute_status = self.solute_status.to_dict()
 
     @staticmethod
     def from_solution(solution, solvents):

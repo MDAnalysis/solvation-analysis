@@ -38,6 +38,14 @@ def plot_histogram(solution):
     return
 
 
+def plot_network_size_histogram(networking):
+    return
+
+
+def plot_shell_size_histogram(solution):
+    return
+
+
 def plot_speciation(solution):
     # square area
     # should be doable with plotly.express.imshow and go.add_annotations
