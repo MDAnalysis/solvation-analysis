@@ -404,7 +404,7 @@ class Pairing:
 
 class Residence:
     """
-    A residence time calculator.
+    Calculate the residence times of solvents.
 
     This class calculates the residence time of each solvent on the solute.
     The residence time is in units of Solution frames, so if the Solution object
@@ -540,18 +540,21 @@ class Residence:
 
 class Networking:
     """
+    Calculate the number and size of solute-solvent networks.
+
+
+
     1.  filter out all solvents that we don't want to be involved in clustering
         and store intermediate solvation data df
     2.  matrix multiple to get Li adjacency matrix
     3.  subgraph search to identify clusters
-    4.  extract ids of participating solvents in each cluster
-    5.  index on intermediate df to extract resix of anions in each cluster,
-        call .unique().sum() to extract number of anions in each cluster
+    4.  extract ids of participating solvents in each network
+    5.  index on intermediate df to extract resix of anions in each network,
+        call .unique().sum() to extract number of anions in each network
     6. save results in convenient format.
 
     # TODO: add low temp solvation data to test clustering more effectively
     """
-
     def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map, n_solute):
         self.solvents = solvents
         self.solvation_data = solvation_data
@@ -565,6 +568,31 @@ class Networking:
 
     @staticmethod
     def from_solution(solution, solvents):
+        """
+        Generate a Networking object from a solution and solvent names.
+
+        Parameters
+        ----------
+        solution : Solution
+        solvents : str or list of str
+            the strings should be the name of solvents in the Solution. The
+            strings must match exactly for Networking to work properly. The
+            selected solvents will be used to construct the networking graph
+            that is described in documentation for the Networking class.
+
+        Returns
+        -------
+        Networking
+
+        Examples
+        --------
+
+         .. code-block:: python
+
+            # first define Li, BN, and FEC AtomGroups
+            >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+            >>> networking = Networking.from_solution(solution, 'PF6')
+        """
         return Networking(
             solvents,
             solution.solvation_data,
@@ -574,7 +602,8 @@ class Networking:
         )
 
     @staticmethod
-    def unwrap_adjacency_dataframe(df):
+    def _unwrap_adjacency_dataframe(df):
+        # this class will transform the biadjacency matrix into a proper adjacency matrix
         connections = df.reset_index(level=0).drop(columns='frame')
         idx = connections.columns.append(connections.index)
         directed = connections.reindex(index=idx, columns=idx, fill_value=0)
@@ -584,9 +613,15 @@ class Networking:
 
     def _generate_networks(self):
         """
-        solvents is a string or list of strings
+        This function generates a dataframe containing all the solute-solvent networks
+        in every frame of the simulation. The rough approach is as follows:
+
+        1. transform the solvation_data DataFrame into an adjacency matrix
+        2. determine the connected subgraphs in the adjacency matrix
+        3. tabulate the res_ix involved in each network and store in a DataFrame
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
+        # TODO, make this fail loudly if solvents are not present
         solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, self.solvents)]
         # reindex solvated_atom to residue indexes
         reindexed_subset = solvation_subset.reset_index(level=1)
@@ -604,7 +639,7 @@ class Networking:
             solute_map = df.index.get_level_values(1).values
             solvent_map = df.columns.values
             ix_to_res_ix = np.concatenate([solvent_map, solute_map])
-            adjacency_df = Networking.unwrap_adjacency_dataframe(df)
+            adjacency_df = Networking._unwrap_adjacency_dataframe(df)
             _, network = connected_components(
                 csgraph=adjacency_df,
                 directed=False,
@@ -628,6 +663,7 @@ class Networking:
         return cluster_df
 
     def _calculate_network_sizes(self):
+        # This utility calculates the network sizes and returns a convenient dataframe.
         cluster_df = self.network_df
         cluster_sizes = cluster_df.groupby(['frame', 'network']).count()
         size_counts = cluster_sizes.groupby(['frame', 'res_name']).count().unstack(fill_value=0)
@@ -635,6 +671,11 @@ class Networking:
         return size_counts
 
     def _calculate_solute_status(self):
+        """
+        This utility calculates the percentage of each solute with a given "status".
+        Namely, whether the solvent is "alone", "paired" (with a single solvent), or
+        "in_network" of > 2 species.
+        """
         status = self.network_sizes.rename(columns={2: 'paired'})
         status['in_network'] = status.iloc[:, 1:].sum(axis=1).astype(int)
         status['alone'] = self.n_solute - status.loc[:, ['paired', 'in_network']].sum(axis=1)
@@ -643,6 +684,36 @@ class Networking:
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame
 
-    def select_cluster(self, cluster, frame):
-        res_ix = self.network_df.loc[pd.IndexSlice[frame, cluster], 'res_ix'].values
+    def get_cluster_res_ix(self, network_index, frame):
+        """
+        Return the indexes of all residues in a selected network.
+
+        The network_index and frame must be provided to fully specify the network.
+        Once the indexes are returned, they can be used to select an AtomGroup with
+        the species of interest, see Examples.
+
+        Parameters
+        ----------
+        network_index : int
+            The index of the network of interest
+        frame : int
+            the frame in the trajectory to perform selection at. Defaults to the
+            current trajectory frame.
+        Returns
+        -------
+        res_ix : np.ndarray
+
+        Examples
+        --------
+         .. code-block:: python
+
+            # first define Li, BN, and FEC AtomGroups
+            >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+            >>> networking = Networking.from_solution(solution, 'PF6')
+            >>> res_ix = networking.get_cluster_res_ix(1, 5)
+            >>> solution.u.residues[res_ix].atoms
+            <AtomGroup with 126 Atoms>
+
+        """
+        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], 'res_ix'].values
         return res_ix.astype(int)
