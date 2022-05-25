@@ -404,19 +404,42 @@ class Pairing:
 
 class Residence:
     """
-    A residence time calculator:
+    A residence time calculator.
 
-    1.  filter on each solvent id
-        2.  generate adjacency matrix for each frame
-        3.  for each solute ix
-                for each solvent ix
-                    a. select frame-by-frame adjacency
-                    b. calculate auto-covariance function
-                    c. add to storage datastructure
-        4. average all auto-covariance functions
-        5. fit exponential function to averaged auto-covariance function
-        6. calculate residence times and add to dict
-    7. save residence times and finish
+    This class calculates the residence time of each solvent on the solute.
+    The residence time is in units of Solution frames, so if the Solution object
+    has 1000 frames over 1 nanosecond, then each frame will be 1 picosecond.
+    Thus a residence time of 100 would translate to 100 picoseconds.
+
+    To do this, it finds the solute-solvent autocorrelation function for each
+    solute-solvent pair, averages over the solvents of each type, and fits an
+    exponential function to the decay. The decay constant of this exponential
+    function is the residence time of the solvent.
+
+    Parameters
+    ----------
+    solvation_data : pandas.DataFrame
+        The solvation data frame output by Solution.
+
+    Attributes
+    ----------
+    residence_times : dict of {str: float}
+        a dictionary where keys are residue names (str) and values are the
+        residence times of the that residue on the solute (float).
+    fit_parameters : pd.DataFrame
+
+
+
+    Examples
+    --------
+
+     .. code-block:: python
+
+        # first define Li, BN, and FEC AtomGroups
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> residence = Residence.from_solution(solution)
+        >>> residence.residence_times
+        {'BN': 4.02, 'FEC': 3.79, 'PF6': 1.15}
     """
 
     def __init__(self, solvation_data):
@@ -425,11 +448,25 @@ class Residence:
 
     @staticmethod
     def from_solution(solution):
+        """
+        Generate a Residence object from a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+
+        Returns
+        -------
+        Residence
+
+        """
+        assert solution.has_run, "The solution must be run before calling from_solution"
         return Residence(
             solution.solvation_data,
         )
 
     def _calculate_residence_coordination(self):
+        # calculate the residence times
         frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
         residence_times = {}
         fit_parameters = {}
@@ -442,7 +479,7 @@ class Residence:
         return residence_times, fit_parameters
 
     @staticmethod
-    def exp(x, a, b, c):
+    def _exponential_decay(x, a, b, c):
         """
         An exponential decay function
 
@@ -464,7 +501,7 @@ class Residence:
         # TODO: add cutoff time?
         try:
             params, param_covariance = curve_fit(
-                Residence.exp,
+                Residence._exponential_decay,
                 np.arange(len(auto_covariance_norm)),
                 auto_covariance_norm,
                 p0=(1, 0.1, 0.01),
@@ -495,6 +532,7 @@ class Residence:
 
     @staticmethod
     def calculate_adjacency_dataframe(solvation_data):
+        # generate an adjacency matrix from the solvation data
         adjacency_group = solvation_data.groupby(['frame', 'solvated_atom', 'res_ix'])
         adjacency_df = adjacency_group['dist'].count().unstack(fill_value=0)
         return adjacency_df
