@@ -180,7 +180,7 @@ def solvation_data_large():
 @pytest.fixture
 def networking(run_solution):
     # look at network of PF6 and FEC to make denser adjacency matrix
-    return Networking.from_solution(run_solution, ['PF6', 'FEC'])
+    return Networking.from_solution(run_solution, ['pf6', 'fec'])
 
 
 @pytest.fixture

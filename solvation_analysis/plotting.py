@@ -39,10 +39,40 @@ def plot_histogram(solution):
 
 
 def plot_network_size_histogram(networking):
+    """
+    Returns a histogram of network sizes.
+
+    Parameters
+    ----------
+    networking : Networking
+
+    Returns
+    -------
+    fig : Plotly.Figure
+
+    """
+    network_sizes = networking.network_sizes
+    # TODO: do some stuff and make plot
     return
 
 
 def plot_shell_size_histogram(solution):
+    """
+    Returns a histogram of shell sizes.
+
+    Parameters
+    ----------
+    solution : Solution
+
+    Returns
+    -------
+    fig : Plotly.Figure
+
+    """
+    speciation_data = solution.speciation.speciation_data
+    # I suggest using the groupby operation
+    # df.groupby('solute_index').sum()
+    # TODO:
     return
 
 
