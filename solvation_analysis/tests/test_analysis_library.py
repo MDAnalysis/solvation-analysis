@@ -19,7 +19,7 @@ from solvation_analysis.analysis_library import (
         ({'bn': 4}, 0.531),
     ],
 )
-def test_speciation_cluster_percent(shell, percent, solvation_data):
+def test_speciation_shell_percent(shell, percent, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
     percentage = speciation.shell_percent(shell)
     np.testing.assert_allclose(percent, percentage, atol=0.05)
@@ -34,7 +34,7 @@ def test_speciation_cluster_percent(shell, percent, solvation_data):
         ({'bn': 4}, 260),
     ],
 )
-def test_speciation_find_clusters(shell, n_shells, solvation_data):
+def test_speciation_find_shells(shell, n_shells, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
     df = speciation.find_shells(shell)
     assert len(df) == n_shells
