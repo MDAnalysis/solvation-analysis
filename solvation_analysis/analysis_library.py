@@ -428,8 +428,6 @@ class Residence:
         residence times of the that residue on the solute (float).
     fit_parameters : pd.DataFrame
 
-
-
     Examples
     --------
 
@@ -458,7 +456,6 @@ class Residence:
         Returns
         -------
         Residence
-
         """
         assert solution.has_run, "The solution must be run before calling from_solution"
         return Residence(
@@ -542,20 +539,44 @@ class Networking:
     """
     Calculate the number and size of solute-solvent networks.
 
+    A network is defined as a bipartite graph of solutes and solvents, where edges
+    are defined by coordination in the solvation_data DataFrame. A single solvent
+    or multiple solvents can be selected, but coordination between solvents will
+    not be included, only coordination between solutes and solvents.
 
+    Networking uses the solvation_data to construct an adjacency matrix and then
+    extracts the connected subgraphs within it. These connected subgraphs are stored
+    in a DataFrame in Networking.network_df.
 
-    1.  filter out all solvents that we don't want to be involved in clustering
-        and store intermediate solvation data df
-    2.  matrix multiple to get Li adjacency matrix
-    3.  subgraph search to identify clusters
-    4.  extract ids of participating solvents in each network
-    5.  index on intermediate df to extract resix of anions in each network,
-        call .unique().sum() to extract number of anions in each network
-    6. save results in convenient format.
+    Several other representations of the networking data are included in the attributes.
 
-    # TODO: add low temp solvation data to test clustering more effectively
+    Parameters
+    ----------
+    solvation_data : pandas.DataFrame
+        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        "dist", "res_name", and "res_ix".
+    solute_res_ix :
+    res_name_map :
+    n_solute :
+
+    Attributes
+    ----------
+    network_df:
+    network_sizes :
+    solute_status :
+    solute_status_by_frame :
+
+    Examples
+    --------
+     .. code-block:: python
+
+        # first define Li, BN, and FEC AtomGroups
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> networking = Networking.from_solution(solution, 'PF6')
     """
+
     def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map, n_solute):
+        # TODO: add low temp solvation data to test clustering more effectively
         self.solvents = solvents
         self.solvation_data = solvation_data
         self.solute_res_ix = solute_res_ix
@@ -583,15 +604,6 @@ class Networking:
         Returns
         -------
         Networking
-
-        Examples
-        --------
-
-         .. code-block:: python
-
-            # first define Li, BN, and FEC AtomGroups
-            >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-            >>> networking = Networking.from_solution(solution, 'PF6')
         """
         return Networking(
             solvents,
