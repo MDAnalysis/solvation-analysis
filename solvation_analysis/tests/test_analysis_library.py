@@ -19,14 +19,14 @@ from solvation_analysis.analysis_library import (
         ({'bn': 4}, 0.531),
     ],
 )
-def test_speciation_cluster_percent(cluster, percent, solvation_data):
+def test_speciation_cluster_percent(network, percent, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    percentage = speciation.shell_percent(cluster)
+    percentage = speciation.shell_percent(network)
     np.testing.assert_allclose(percent, percentage, atol=0.05)
 
 
 @pytest.mark.parametrize(
-    "network, n_clusters",
+    "network, n_networks",
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 175),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 2),
@@ -34,10 +34,10 @@ def test_speciation_cluster_percent(cluster, percent, solvation_data):
         ({'bn': 4}, 260),
     ],
 )
-def test_speciation_find_clusters(cluster, n_clusters, solvation_data):
+def test_speciation_find_clusters(network, n_networks, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    df = speciation.find_shells(cluster)
-    assert len(df) == n_clusters
+    df = speciation.find_shells(network)
+    assert len(df) == n_networks
 
 
 @pytest.mark.parametrize(
@@ -129,7 +129,7 @@ def test_residence_times(solvation_data):
     return
 
 
-def test_cluster_finder(run_solution):
+def test_network_finder(run_solution):
     networking = Networking.from_solution(run_solution, ['pf6'])
     network_df = networking.network_df
     assert len(network_df) == 128
