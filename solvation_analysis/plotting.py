@@ -52,6 +52,7 @@ def plot_network_size_histogram(networking):
 
     """
     network_sizes = networking.network_sizes
+    print('hello')
     # TODO: do some stuff and make plot
     return
 
