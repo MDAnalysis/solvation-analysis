@@ -125,7 +125,7 @@ def test_diluent_composition():
 def test_residence_times(solvation_data):
     residence = Residence(solvation_data)
     # TODO: implement real testing
-    np.testing.assert_almost_equal(4.016, residence.residence_times['bn'], 3)
+    np.testing.assert_almost_equal(4, residence.residence_times['bn'], 3)
     return
 
 
@@ -147,6 +147,12 @@ def test_timing_benchmark(solvation_data_large):
     import time
     start = time.time()
     residence = Residence(solvation_data_large)
+    fig, ax = residence.plot_auto_covariance('pf6')
+    fig.show()
+    fig, ax = residence.plot_auto_covariance('bn')
+    fig.show()
+    fig, ax = residence.plot_auto_covariance('fec')
+    fig.show()
     times = residence.residence_times
     total_time = time.time() - start
     print(total_time)

@@ -475,13 +475,16 @@ class Residence:
             adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
-            auto_covariance_dict[res_name] = auto_covariance / np.max(auto_covariance) # is this right?
+            auto_covariance = auto_covariance - np.min(auto_covariance)
+            auto_covariance = auto_covariance / np.max(auto_covariance)
+            auto_covariance_dict[res_name] = auto_covariance  # is this right?
+            # auto_covariance_dict[res_name] = auto_covariance / np.max(auto_covariance) # is this right?
         return auto_covariance_dict
 
     @staticmethod
     def _calculate_residence_times_with_cutoff(auto_covariances):
         residence_times = {}
-        for res_name, auto_covariance in auto_covariances:
+        for res_name, auto_covariance in auto_covariances.items():
             unassigned = True
             for frame, val in enumerate(auto_covariance):
                 if val < 1 / math.e:
@@ -499,27 +502,25 @@ class Residence:
         # calculate the residence times
         residence_times = {}
         fit_parameters = {}
-        for res_name, auto_covariance in auto_covariances:
-            plt.plot(np.arange(len(auto_covariance)), auto_covariance)
-            plt.show()
+        for res_name, auto_covariance in auto_covariances.items():
             res_time, params = Residence._fit_exponential(auto_covariance)
             residence_times[res_name], fit_parameters[res_name] = res_time, params
         return residence_times, fit_parameters
 
     def plot_auto_covariance(self, res_name):
         auto_covariance = self.auto_covariances[res_name]
-        frame = np.arange(len(auto_covariance))
+        frames = np.arange(len(auto_covariance))
         params = self.fit_parameters[res_name]
         exp_func = lambda x: self._exponential_decay(x, *params)
-        exp_fit = np.array(map(exp_func, frame))
+        exp_fit = np.array(map(exp_func, frames))
         fig, ax = plt.subplots()
-        ax.plot(frame, auto_covariance, "b-", label="auto covariance")
+        ax.plot(frames, auto_covariance, "b-", label="auto covariance")
         try:
-            ax.scatter(frame, exp_fit, label="exponential fit")
+            ax.scatter(frames, exp_fit, label="exponential fit")
         except:
             warnings.warn(f'The fit for {res_name} failed so the exponential '
                           f'fit will not be plotted.')
-        ax.hlines(y=1/math.e, label='1/e cutoff')
+        ax.hlines(y=1/math.e, xmin=frames[0], xmax=frames[-1], label='1/e cutoff')
         ax.set_xlabel("Timestep (frames)")
         ax.set_ylabel("Normalized Autocovariance")
         ax.legend()
