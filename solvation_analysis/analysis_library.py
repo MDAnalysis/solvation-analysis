@@ -15,6 +15,9 @@ as attributes of the Solution class. This makes instantiating them and calculati
 solvation data a non-issue.
 """
 import collections
+import math
+import warnings
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -442,7 +445,10 @@ class Residence:
 
     def __init__(self, solvation_data):
         self.solvation_data = solvation_data
-        self.residence_times, self.fit_parameters = self._calculate_residence_coordination()
+        self.auto_covariances = self._calculate_auto_covariance_dict()
+        self.residence_times = self._calculate_residence_times_with_cutoff(self.auto_covariances)
+        self.residence_times_fit, self.fit_parameters = self._calculate_residence_times_with_fit(self.auto_covariances)
+
 
     @staticmethod
     def from_solution(solution):
@@ -462,18 +468,62 @@ class Residence:
             solution.solvation_data,
         )
 
-    def _calculate_residence_coordination(self):
-        # calculate the residence times
+    def _calculate_auto_covariance_dict(self):
         frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
-        residence_times = {}
-        fit_parameters = {}
+        auto_covariance_dict = {}
         for res_name, res_solvation_data in self.solvation_data.groupby(['res_name']):
             adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
-            res_time, params = Residence._calculate_residence_time(auto_covariance)
+            auto_covariance_dict[res_name] = auto_covariance / np.max(auto_covariance) # is this right?
+        return auto_covariance_dict
+
+    @staticmethod
+    def _calculate_residence_times_with_cutoff(auto_covariances):
+        residence_times = {}
+        for res_name, auto_covariance in auto_covariances:
+            unassigned = True
+            for frame, val in enumerate(auto_covariance):
+                if val < 1 / math.e:
+                    residence_times[res_name] = frame
+                    unassigned = False
+                    break
+            if unassigned:
+                residence_times[res_name] = np.nan
+                warnings.warn('no autocovariance values are less than 1 / e '
+                              'so a residence time cannot be calculated.')
+        return residence_times
+
+    @staticmethod
+    def _calculate_residence_times_with_fit(auto_covariances):
+        # calculate the residence times
+        residence_times = {}
+        fit_parameters = {}
+        for res_name, auto_covariance in auto_covariances:
+            plt.plot(np.arange(len(auto_covariance)), auto_covariance)
+            plt.show()
+            res_time, params = Residence._fit_exponential(auto_covariance)
             residence_times[res_name], fit_parameters[res_name] = res_time, params
         return residence_times, fit_parameters
+
+    def plot_auto_covariance(self, res_name):
+        auto_covariance = self.auto_covariances[res_name]
+        frame = np.arange(len(auto_covariance))
+        params = self.fit_parameters[res_name]
+        exp_func = lambda x: self._exponential_decay(x, *params)
+        exp_fit = np.array(map(exp_func, frame))
+        fig, ax = plt.subplots()
+        ax.plot(frame, auto_covariance, "b-", label="auto covariance")
+        try:
+            ax.scatter(frame, exp_fit, label="exponential fit")
+        except:
+            warnings.warn(f'The fit for {res_name} failed so the exponential '
+                          f'fit will not be plotted.')
+        ax.hlines(y=1/math.e, label='1/e cutoff')
+        ax.set_xlabel("Timestep (frames)")
+        ax.set_ylabel("Normalized Autocovariance")
+        ax.legend()
+        return fig, ax
 
     @staticmethod
     def _exponential_decay(x, a, b, c):
@@ -492,10 +542,12 @@ class Residence:
         return a * np.exp(-b * x) + c
 
     @staticmethod
-    def _calculate_residence_time(auto_covariance):
+    def _fit_exponential(auto_covariance):
         # Exponential fit of solvent-Li ACF
         auto_covariance_norm = auto_covariance / auto_covariance[0]
         # TODO: add cutoff time?
+        # TODO: plot decay curve
+        # TODO: switch to a 1/e based implementation
         try:
             params, param_covariance = curve_fit(
                 Residence._exponential_decay,
@@ -510,8 +562,6 @@ class Residence:
 
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
-        # TODO: plot decay curve
-        # TODO: switch to a 1/e based implementation
         auto_covariances = []
         for solute_ix, df in adjacency_matrix.groupby(['solvated_atom']):
             non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
