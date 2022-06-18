@@ -475,6 +475,7 @@ class Residence:
             adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
+            # TODO: talk to Kara to see if this is valid
             auto_covariance = auto_covariance - np.min(auto_covariance)
             auto_covariance = auto_covariance / np.max(auto_covariance)
             auto_covariance_dict[res_name] = auto_covariance  # is this right?
