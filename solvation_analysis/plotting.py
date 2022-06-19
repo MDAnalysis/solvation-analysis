@@ -147,6 +147,7 @@ def compare_solute_status(solutions):
     fig = compare_solvent_dicts()
     return
 
+
 def compare_speciation(solutions, series=True):
     # stacked bars
     # or square areas?
@@ -157,6 +158,5 @@ def compare_rdfs(solutions, atoms):
     # can atom groups be matched to solutions / universes behind the scenes?
     # yes we can use atom.u is universe
     return
-
 
 
