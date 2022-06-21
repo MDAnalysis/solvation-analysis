@@ -604,6 +604,7 @@ class Networking:
 
     Parameters
     ----------
+    solvents : str or list[str]
     solvation_data : pandas.DataFrame
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix".
@@ -647,7 +648,7 @@ class Networking:
         >>> networking = Networking.from_solution(solution, 'PF6')
     """
 
-    def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map, n_solute):
+    def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
         # TODO: add low temp solvation data to test clustering more effectively
         self.solvents = solvents
         self.solvation_data = solvation_data
@@ -683,7 +684,6 @@ class Networking:
             solution.solvation_data,
             solution.solute_res_ix,
             solution.res_name_map,
-            solution.n_solute
         )
 
     @staticmethod
