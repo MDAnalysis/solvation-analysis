@@ -52,9 +52,12 @@ def plot_network_size_histogram(networking):
 
     """
     network_sizes = networking.network_sizes
-    print('hello')
-    # TODO: do some stuff and make plot
-    return
+    sums = network_sizes.sum(axis=0)
+    fig = px.histogram(network_sizes.columns, x=sums.index, y=sums.values, nbins=sums.size,
+                       title="Histogram of Network Sizes")
+    fig.update_layout(xaxis_title_text="Network Size", yaxis_title_text="Frequency")
+    fig.update_xaxes(type="category")
+    return fig
 
 
 def plot_shell_size_histogram(solution):
@@ -70,10 +73,12 @@ def plot_shell_size_histogram(solution):
     fig : Plotly.Figure
 
     """
-    speciation_data = solution.speciation.speciation_data
-    # I suggest using the groupby operation
-    # df.groupby('solute_index').sum()
-    # TODO:
+    speciation_data = solution.speciation.speciation_data # DataFrame
+    bn = speciation_data.groupby("bn").sum()
+    fec = speciation_data.groupby("fec").sum()
+    pf6 = speciation_data.groupby("pf6").sum()
+    fig = px.histogram(speciation_data)
+    fig.update_layout(barmode="overlay") # groups bins together in one column
     return
 
 
