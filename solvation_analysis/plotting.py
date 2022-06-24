@@ -102,7 +102,7 @@ def plot_coordinating_atoms(solution):
 # multiple solution
 
 
-def compare_solvent_dicts(solutions, series=True, ignore_solvents=None):
+def compare_solvent_dicts(solutions, series=True, solvents_on_x=True, ignore_solvents=None):
     # generalist plotter, this can plot either bar or line charts of the
     # same data
     return 1
@@ -131,6 +131,7 @@ def compare_coordination_numbers(solutions):
 def compare_coordination_to_random(solutions):
     # this should compare the actual coordination numbers relative to a
     # statistically determined "random" distribution, ignoring sterics
+    # compare to a straight line
     return
 
 
