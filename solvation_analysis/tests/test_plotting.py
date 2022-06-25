@@ -12,7 +12,6 @@ def test_plot_network_size_histogram(networking):
     fig.show()
     assert True
 
-
 def test_plot_shell_size_histogram(run_solution):
     fig = plot_shell_size_histogram(run_solution)
     fig.show()
