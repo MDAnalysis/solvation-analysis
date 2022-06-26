@@ -173,3 +173,9 @@ def solvation_data_dup(run_solution):
 @pytest.fixture
 def solvation_data_large():
     return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2])
+
+
+@pytest.fixture
+def solvation_data_sparse(solvation_data_large):
+    step = 10
+    return solvation_data_large.loc[pd.IndexSlice[::step, :, :], :]
