@@ -443,11 +443,14 @@ class Residence:
         {'BN': 4.02, 'FEC': 3.79, 'PF6': 1.15}
     """
 
-    def __init__(self, solvation_data):
+    def __init__(self, solvation_data, step):
         self.solvation_data = solvation_data
         self.auto_covariances = self._calculate_auto_covariance_dict()
-        self.residence_times = self._calculate_residence_times_with_cutoff(self.auto_covariances)
-        self.residence_times_fit, self.fit_parameters = self._calculate_residence_times_with_fit(self.auto_covariances)
+        self.residence_times = self._calculate_residence_times_with_cutoff(self.auto_covariances, step)
+        self.residence_times_fit, self.fit_parameters = self._calculate_residence_times_with_fit(
+            self.auto_covariances,
+            step
+        )
 
 
     @staticmethod
@@ -466,6 +469,7 @@ class Residence:
         assert solution.has_run, "The solution must be run before calling from_solution"
         return Residence(
             solution.solvation_data,
+            solution.step
         )
 
     def _calculate_auto_covariance_dict(self):
@@ -475,21 +479,24 @@ class Residence:
             adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
-            # TODO: talk to Kara to see if this is valid
-            auto_covariance = auto_covariance - np.min(auto_covariance)
+            # normalize
             auto_covariance = auto_covariance / np.max(auto_covariance)
-            auto_covariance_dict[res_name] = auto_covariance  # is this right?
-            # auto_covariance_dict[res_name] = auto_covariance / np.max(auto_covariance) # is this right?
+            auto_covariance_dict[res_name] = auto_covariance
         return auto_covariance_dict
 
     @staticmethod
-    def _calculate_residence_times_with_cutoff(auto_covariances):
+    def _calculate_residence_times_with_cutoff(auto_covariances, step, convergence_cutoff=0.1):
         residence_times = {}
         for res_name, auto_covariance in auto_covariances.items():
+            if np.min(auto_covariance) > convergence_cutoff:
+                residence_times[res_name] = np.nan
+                warnings.warn(f'the autocovariance for {res_name} does not converge to zero '
+                              'so a residence time cannot be calculated. A longer simulation '
+                              'is required to get a valid estimate of the residence time.')
             unassigned = True
             for frame, val in enumerate(auto_covariance):
                 if val < 1 / math.e:
-                    residence_times[res_name] = frame
+                    residence_times[res_name] = frame * step
                     unassigned = False
                     break
             if unassigned:
@@ -499,13 +506,13 @@ class Residence:
         return residence_times
 
     @staticmethod
-    def _calculate_residence_times_with_fit(auto_covariances):
+    def _calculate_residence_times_with_fit(auto_covariances, step):
         # calculate the residence times
         residence_times = {}
         fit_parameters = {}
         for res_name, auto_covariance in auto_covariances.items():
             res_time, params = Residence._fit_exponential(auto_covariance)
-            residence_times[res_name], fit_parameters[res_name] = res_time, params
+            residence_times[res_name], fit_parameters[res_name] = res_time * step, params
         return residence_times, fit_parameters
 
     def plot_auto_covariance(self, res_name):
@@ -524,6 +531,7 @@ class Residence:
         ax.hlines(y=1/math.e, xmin=frames[0], xmax=frames[-1], label='1/e cutoff')
         ax.set_xlabel("Timestep (frames)")
         ax.set_ylabel("Normalized Autocovariance")
+        ax.set_ylim(0, 1)
         ax.legend()
         return fig, ax
 
