@@ -101,7 +101,7 @@ def test_coordinating_atoms(name, atom_type, percent, solvation_data, run_soluti
 )
 def test_pairing_dict(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
-    np.testing.assert_allclose([percent], pairing.pairing_dict[name], atol=0.05)
+    np.testing.assert_allclose(percent, pairing.pairing_dict[name], atol=0.05)
     assert len(pairing.pairing_by_frame) == 3
 
 
@@ -115,12 +115,21 @@ def test_pairing_dict(name, percent, solvation_data):
 )
 def test_pairing_participating(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
-    np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)
+    np.testing.assert_allclose(percent, pairing.percent_free_solvents[name], atol=0.05)
 
 
-def test_diluent_composition():
-    # TODO: implement real test
-    return
+@pytest.mark.parametrize(
+    "name, diluent_percent",
+    [
+        ("fec", 0.54),
+        ("bn", 0.36),
+        ("pf6", 0.10),
+    ],
+)
+def test_diluent_composition(name, diluent_percent, solvation_data):
+    pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
+    np.testing.assert_allclose(diluent_percent, pairing.diluent_composition[name], atol=0.05)
+    np.testing.assert_allclose(sum(pairing.diluent_composition.values()), 1, atol=0.05)
 
 
 def test_from_solution(run_solution):
@@ -170,7 +179,7 @@ def test_timing_benchmark(solvation_data_large):
     """
     import time
     start = time.time()
-    residence = Residence(solvation_data_large)
+    residence = Residence(solvation_data_large, step=1)
     fig, ax = residence.plot_auto_covariance('pf6')
     fig.show()
     fig, ax = residence.plot_auto_covariance('bn')
