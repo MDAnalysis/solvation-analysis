@@ -123,6 +123,12 @@ def test_diluent_composition():
     return
 
 
+def test_from_solution(run_solution):
+    residence = Residence.from_solution(run_solution)
+    assert len(residence.residence_times) == 3
+    assert len(residence.residence_times_fit) == 3
+
+
 @pytest.mark.parametrize(
     "name, res_time",
     [
@@ -137,12 +143,6 @@ def test_residence_times(name, res_time, solvation_data_large):
     solvation_data = solvation_data_large.loc[pd.IndexSlice[::fake_step, :, :], :]
     residence = Residence(solvation_data, fake_step)
     np.testing.assert_almost_equal(residence.residence_times[name], res_time, 3)
-
-
-def test_from_solution(run_solution):
-    residence = Residence.from_solution(run_solution)
-    assert len(residence.residence_times) == 3
-    assert len(residence.residence_times_fit) == 3
 
 
 def test_residence_time_warning(solvation_data_large):
