@@ -93,9 +93,9 @@ class Speciation:
         return speciation_data, speciation_percent
 
     @classmethod
-    def _average_speciation(cls, speciation_frames, solute_number, frame_number):
-        averages = speciation_frames.sum(axis=1) / (solute_number * frame_number)
-        return averages
+    def _mean_speciation(cls, speciation_frames, solute_number, frame_number):
+        means = speciation_frames.sum(axis=1) / (solute_number * frame_number)
+        return means
 
     def shell_percent(self, shell_dict):
         """
@@ -242,7 +242,7 @@ class Coordination:
     number of mol1 is 3.2, there are on average 3.2 mol1 residues within the solvation
     distance of each solute.
 
-    The coordination numbers are made available as an average over the whole
+    The coordination numbers are made available as an mean over the whole
     simulation and by frame.
 
     Parameters
@@ -258,9 +258,9 @@ class Coordination:
     ----------
     cn_dict : dict of {str: float}
         a dictionary where keys are residue names (str) and values are the
-        average coordination number of that residue (float).
+        mean coordination number of that residue (float).
     cn_by_frame : pd.DataFrame
-        a dictionary tracking the average coordination number of each
+        a dictionary tracking the mean coordination number of each
         residue across frames.
     coordinating_atoms : pd.DataFrame
         percent of each atom_type participating in solvation, calculated
@@ -283,11 +283,11 @@ class Coordination:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.cn_dict, self.cn_by_frame = self._average_cn()
+        self.cn_dict, self.cn_by_frame = self._mean_cn()
         self.atom_group = atom_group
         self.coordinating_atoms = self._calculate_coordinating_atoms()
 
-    def _average_cn(self):
+    def _mean_cn(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         cn_series = counts.groupby(["res_name", "frame"]).sum() / (
                 self.n_solutes * self.n_frames
@@ -329,7 +329,7 @@ class Pairing:
     ANY solvent with matching type. So if the pairing of mol1 is 0.5, then 50% of
     solutes are coordinated with at least 1 mol1.
 
-    The pairing percentages are made available as an average over the whole
+    The pairing percentages are made available as an mean over the whole
     simulation and by frame.
 
     Parameters
@@ -349,11 +349,16 @@ class Pairing:
         a dictionary where keys are residue names (str) and values are the
         percentage of solutes that contain that residue (float).
     pairing_by_frame : pd.DataFrame
-        a dictionary tracking the average percentage of each
+        a dictionary tracking the mean percentage of each
         residue across frames.
     percent_free_solvents : dict of {str: float}
         a dictionary containing the percent of each solvent that is free. e.g.
         not coordinated to a solute.
+    diluent_compsition : dict of {str: float}
+
+    diluent_composition_by_frame : pd.DataFrame
+        a dictionary tracking the composition of the diluent
+        across frames.
 
     Examples
     --------
@@ -381,7 +386,7 @@ class Pairing:
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
             self.n_solutes
-        )  # average coordinated overall
+        )  # mean coordinated overall
         pairing_by_frame = pairing_series.unstack()
         pairing_normalized = pairing_series / self.n_frames
         pairing_dict = pairing_normalized.groupby(["res_name"]).sum().to_dict()
@@ -415,7 +420,7 @@ class Residence:
     Thus a residence time of 100 would translate to 100 picoseconds.
 
     To do this, it finds the solute-solvent autocorrelation function for each
-    solute-solvent pair, averages over the solvents of each type, and fits an
+    solute-solvent pair, means over the solvents of each type, and fits an
     exponential function to the decay. The decay constant of this exponential
     function is the residence time of the solvent.
 
@@ -640,7 +645,7 @@ class Networking:
     extracts the connected subgraphs within it. These connected subgraphs are stored
     in a DataFrame in Networking.network_df.
 
-    Several other representations of the networking data are included in the attributes.
+Several other representations of the networking data are included in the attributes.
 
     Parameters
     ----------
@@ -677,8 +682,6 @@ class Networking:
         as described above, except organized into a dataframe where each
         row is a unique frame and the columns are "alone", "paired", and "in_network".
 
-    # TODO: consider transposing all other x_by_frame attributes to match this one
-
     Examples
     --------
      .. code-block:: python
@@ -689,17 +692,18 @@ class Networking:
     """
 
     def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
-        # TODO: add low temp solvation data to test clustering more effectively
         self.solvents = solvents
         self.solvation_data = solvation_data
+        solvent_present = np.isin(self.solvents, self.solvation_data['res_name'].unique())
+        if not solvent_present.all():
+            raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
         self.solute_res_ix = solute_res_ix
         self.res_name_map = res_name_map
         self.n_solute = len(solute_res_ix)
         self.network_df = self._generate_networks()
-        # TODO: calculate statistics on network_df
         self.network_sizes = self._calculate_network_sizes()
         self.solute_status, self.solute_status_by_frame = self._calculate_solute_status()
-        self.solute_status = self.solute_status.as_dict()
+        self.solute_status = self.solute_status.to_dict()
 
     @staticmethod
     def from_solution(solution, solvents):
@@ -746,8 +750,7 @@ class Networking:
         3. tabulate the res_ix involved in each network and store in a DataFrame
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
-        # TODO, make this fail loudly if solvents are not present
-        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, self.solvents)]
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, solvents)]
         # reindex solvated_atom to residue indexes
         reindexed_subset = solvation_subset.reset_index(level=1)
         reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom]
@@ -777,7 +780,6 @@ class Networking:
                 ix_to_res_ix,  # res index
             ]).T
             network_arrays.append(network_array)
-            # TODO: reshape all the network into a dataframe?
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
