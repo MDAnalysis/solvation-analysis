@@ -245,6 +245,7 @@ class Solution(AnalysisBase):
         solvation_data_np = np.vstack(self.solvation_frames)
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
+            # TODO: replace solvated_atom with solute?
             columns=["frame", "solvated_atom", "atom_ix", "dist", "res_name", "res_ix"]
         )
         # clean up solvation_data df

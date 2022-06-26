@@ -516,6 +516,24 @@ class Residence:
         return residence_times, fit_parameters
 
     def plot_auto_covariance(self, res_name):
+        """
+        Plot the autocovariance of a solvent on the solute.
+
+        It is highly recommended that you visually validate the shape of the auto-covariance.
+        It should be an exponential that decays to zero with a long tail. If the exponential
+        does not decay to zero or its slope does not level off, it is recommended that you
+        increase the simulation time.
+
+        Parameters
+        ----------
+        res_name : str
+            the name of a solvent in the solution.
+
+        Returns
+        -------
+        fig : matplotlib.Figure
+        ax : matplotlib.Axes
+        """
         auto_covariance = self.auto_covariances[res_name]
         frames = np.arange(len(auto_covariance))
         params = self.fit_parameters[res_name]
@@ -538,7 +556,7 @@ class Residence:
     @staticmethod
     def _exponential_decay(x, a, b, c):
         """
-        An exponential decay function
+        An exponential decay function.
 
         Args:
             x: Independent variable.
@@ -555,9 +573,6 @@ class Residence:
     def _fit_exponential(auto_covariance):
         # Exponential fit of solvent-Li ACF
         auto_covariance_norm = auto_covariance / auto_covariance[0]
-        # TODO: add cutoff time?
-        # TODO: plot decay curve
-        # TODO: switch to a 1/e based implementation
         try:
             params, param_covariance = curve_fit(
                 Residence._exponential_decay,
@@ -589,6 +604,23 @@ class Residence:
 
     @staticmethod
     def calculate_adjacency_dataframe(solvation_data):
+        """
+        Calculate a frame-by-frame adjacency matrix from the solvation data.
+
+        This will calculate the adjacency matrix of the solute and all possible
+        solvents. It will maintain an index of ['frame', 'solvated_atom', 'res_ix']
+        where each 'frame' is a sparse adjacency matrix between solvated atom ix
+        and residue ix.
+
+        Parameters
+        ----------
+        solvation_data : pd.DataFrame
+            the solvation_data from a Solution.
+
+        Returns
+        -------
+        adjacency_df : pandas.DataFrame
+        """
         # generate an adjacency matrix from the solvation data
         adjacency_group = solvation_data.groupby(['frame', 'solvated_atom', 'res_ix'])
         adjacency_df = adjacency_group['dist'].count().unstack(fill_value=0)
