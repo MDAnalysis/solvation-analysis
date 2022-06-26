@@ -138,21 +138,29 @@ def test_from_solution(run_solution):
     assert len(residence.residence_times_fit) == 3
 
 
-def test_residence_times(solvation_data_sparse):
-    residence = Residence(solvation_data_sparse, step=10)
+@pytest.fixture(scope='module')
+def residence(solvation_data_sparse):
+    return Residence(solvation_data_sparse, step=10)
+
+
+@pytest.mark.parametrize(
+    "name, res_time",
+    [
+        ("fec", 10),
+        ("bn", 80),
+        ("pf6", np.nan),
+    ],
+)
+def test_residence_times(name, res_time, residence):
     times = residence.residence_times
     # we do not use a parameterization because this operation is expensive
-    np.testing.assert_almost_equal(times['fec'], 10, 3)
-    np.testing.assert_almost_equal(times['bn'], 80, 3)
-    np.testing.assert_almost_equal(times['pf6'], np.nan, 3)
+    np.testing.assert_almost_equal(residence.residence_times[name], res_time, 3)
 
 
-def test_plot_auto_covariance(solvation_data_sparse):
-    residence = Residence(solvation_data_sparse, step=10)
+@pytest.mark.parametrize("name", ['fec', 'bn', 'pf6'])
+def test_plot_auto_covariance(name, residence):
     # we do not use a parameterization because this operation is expensive
-    residence.plot_auto_covariance('fec')
-    residence.plot_auto_covariance('bn')
-    residence.plot_auto_covariance('pf6')
+    residence.plot_auto_covariance(name)
 
 
 def test_residence_time_warning(solvation_data_sparse):
@@ -172,14 +180,11 @@ def test_network_finder(run_solution):
 
 
 def test_timing_benchmark(solvation_data_large):
-    """
-    # total timing of 1.07 seconds!!! wooo!!!
-    # not bad!
-    """
+    pass
+    # last test ~1.1 seconds
     import time
     start = time.time()
-    # uncomment these to perform a benchmarking
-    # residence = Residence(solvation_data_large, step=1)
-    # times = residence.residence_times
+    residence = Residence(solvation_data_large, step=1)
+    times = residence.residence_times
     total_time = time.time() - start
-    return
+    print(f"Total time: {total_time}")
