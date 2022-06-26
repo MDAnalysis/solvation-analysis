@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 
 from solvation_analysis.analysis_library import (
@@ -122,11 +123,34 @@ def test_diluent_composition():
     return
 
 
-def test_residence_times(solvation_data):
-    residence = Residence(solvation_data)
-    # TODO: implement real testing
-    np.testing.assert_almost_equal(4, residence.residence_times['bn'], 3)
-    return
+@pytest.mark.parametrize(
+    "name, res_time",
+    [
+        ("fec", 10),
+        ("bn", 80),
+        ("pf6", np.nan),
+    ],
+)
+def test_residence_times(name, res_time, solvation_data_large):
+    # we step through the data frame to speed up the tests
+    fake_step = 10
+    solvation_data = solvation_data_large.loc[pd.IndexSlice[::fake_step, :, :], :]
+    residence = Residence(solvation_data, fake_step)
+    np.testing.assert_almost_equal(residence.residence_times[name], res_time, 3)
+
+
+def test_from_solution(run_solution):
+    residence = Residence.from_solution(run_solution)
+    assert len(residence.residence_times) == 3
+    assert len(residence.residence_times_fit) == 3
+
+
+def test_residence_time_warning(solvation_data_large):
+    # we step through the data frame to speed up the tests
+    fake_step = 10
+    solvation_data = solvation_data_large.loc[pd.IndexSlice[::fake_step, :, :], :]
+    with pytest.warns(UserWarning, match="the autocovariance for pf6 does not converge"):
+        Residence(solvation_data, fake_step)
 
 
 def test_network_finder(run_solution):
