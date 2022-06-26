@@ -138,28 +138,27 @@ def test_from_solution(run_solution):
     assert len(residence.residence_times_fit) == 3
 
 
-@pytest.mark.parametrize(
-    "name, res_time",
-    [
-        ("fec", 10),
-        ("bn", 80),
-        ("pf6", np.nan),
-    ],
-)
-def test_residence_times(name, res_time, solvation_data_large):
-    # we step through the data frame to speed up the tests
-    fake_step = 10
-    solvation_data = solvation_data_large.loc[pd.IndexSlice[::fake_step, :, :], :]
-    residence = Residence(solvation_data, fake_step)
-    np.testing.assert_almost_equal(residence.residence_times[name], res_time, 3)
+def test_residence_times(solvation_data_sparse):
+    residence = Residence(solvation_data_sparse, step=10)
+    times = residence.residence_times
+    # we do not use a parameterization because this operation is expensive
+    np.testing.assert_almost_equal(times['fec'], 10, 3)
+    np.testing.assert_almost_equal(times['bn'], 80, 3)
+    np.testing.assert_almost_equal(times['pf6'], np.nan, 3)
 
 
-def test_residence_time_warning(solvation_data_large):
+def test_plot_auto_covariance(solvation_data_sparse):
+    residence = Residence(solvation_data_sparse, step=10)
+    # we do not use a parameterization because this operation is expensive
+    residence.plot_auto_covariance('fec')
+    residence.plot_auto_covariance('bn')
+    residence.plot_auto_covariance('pf6')
+
+
+def test_residence_time_warning(solvation_data_sparse):
     # we step through the data frame to speed up the tests
-    fake_step = 10
-    solvation_data = solvation_data_large.loc[pd.IndexSlice[::fake_step, :, :], :]
     with pytest.warns(UserWarning, match="the autocovariance for pf6 does not converge"):
-        Residence(solvation_data, fake_step)
+        Residence(solvation_data_sparse, step=10)
 
 
 def test_network_finder(run_solution):
@@ -179,14 +178,8 @@ def test_timing_benchmark(solvation_data_large):
     """
     import time
     start = time.time()
-    residence = Residence(solvation_data_large, step=1)
-    fig, ax = residence.plot_auto_covariance('pf6')
-    fig.show()
-    fig, ax = residence.plot_auto_covariance('bn')
-    fig.show()
-    fig, ax = residence.plot_auto_covariance('fec')
-    fig.show()
-    times = residence.residence_times
+    # uncomment these to perform a benchmarking
+    # residence = Residence(solvation_data_large, step=1)
+    # times = residence.residence_times
     total_time = time.time() - start
-    print(total_time)
     return
