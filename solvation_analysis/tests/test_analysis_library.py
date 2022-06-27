@@ -132,7 +132,7 @@ def test_diluent_composition(name, diluent_percent, solvation_data):
     np.testing.assert_allclose(sum(pairing.diluent_composition.values()), 1, atol=0.05)
 
 
-def test_from_solution(run_solution):
+def test_residence_from_solution(run_solution):
     residence = Residence.from_solution(run_solution)
     assert len(residence.residence_times) == 3
     assert len(residence.residence_times_fit) == 3
@@ -169,14 +169,39 @@ def test_residence_time_warning(solvation_data_sparse):
         Residence(solvation_data_sparse, step=10)
 
 
-def test_network_finder(run_solution):
-    networking = Networking.from_solution(run_solution, ['pf6'])
-    network_df = networking.network_df
-    assert len(network_df) == 128
-    # TODO: implement real testing
-    res_ix = networking.get_cluster_res_ix(0, 0)
-    run_solution.u.residues[res_ix.astype(int)].atoms
-    return
+def test_networking_from_solution(run_solution):
+    networking = Networking.from_solution(run_solution, 'pf6')
+    assert len(networking.network_df) == 128
+
+
+@pytest.fixture(scope='module')
+def networking(run_solution):
+    return Networking.from_solution(run_solution, 'pf6')
+
+
+@pytest.mark.parametrize(
+    "status, percent",
+    [
+        ('alone', 0.876),
+        ('paired', 0.112),
+        ('in_network', 0.012),
+    ],
+)
+def test_get_cluster_res_ix(status, percent, networking):
+    np.testing.assert_almost_equal(networking.solute_status[status], percent, 3)
+
+
+@pytest.mark.parametrize(
+    "network_ix, frame, n_res",
+    [
+        (0, 0, 3),
+        (5, 1, 2),
+        (1, 8, 3),
+    ],
+)
+def test_get_cluster_res_ix(network_ix, frame, n_res, networking):
+    res_ix = networking.get_cluster_res_ix(network_ix, frame)
+    assert len(res_ix) == n_res
 
 
 def test_timing_benchmark(solvation_data_large):

@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from solvation_analysis.analysis_library import Residence
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
