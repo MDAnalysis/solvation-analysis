@@ -51,39 +51,6 @@ def get_atom_group(selection):
     return selection
 
 
-def _get_n_shells(central_species, n_shell=2, radius=3, ignore_atoms=None):
-    """
-    # TODO: complete this class
-
-    A list containing the nth shell at the nth index. Note that the shells
-    have 0 intersection. For example, calling get_n_shells with n_shell = 2
-    would return: [central_species, first_shell, second_shell]. This scales
-    factorially so probably don't go over n_shell = 3
-
-    Parameters
-    ----------
-    central_species : MDAnalysis.Atom, MDAnalysis.AtomGroup, MDAnalysis.Residue or MDAnalysis.ResidueGroup
-    n_shell : int
-        number of shells to return
-    radius : float or int
-        radius used to select atoms in next shell
-    ignore_atoms : MDAnalysis.AtomGroup
-        these atoms will be ignored
-
-    Returns
-    -------
-    List of MDAnalysis.AtomGroups
-
-
-    """
-    u = central_species.universe
-    if n_shell > 3:
-        warnings.warn("get_n_shells scales factorially, very slow")
-    central_species = get_atom_group(central_species)
-    if not ignore_atoms:
-        ignore_atoms = u.select_atoms("")
-
-
 def get_closest_n_mol(
     central_species,
     n_mol,
