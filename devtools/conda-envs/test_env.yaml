@@ -16,6 +16,7 @@ dependencies:
       - numpy
       - pandas
       - matplotlib
+      - statsmodels
       # testing #
       - pytest
       - pytest-cov
