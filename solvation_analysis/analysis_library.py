@@ -420,7 +420,7 @@ class Pairing:
         self.solvent_counts = n_solvents
         self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.percent_free_solvents = self._percent_free_solvent()
-        self.diluent_composition, self.diluent_by_frame = self._diluent_composition()
+        self.diluent_dict, self.diluent_by_frame, self.diluent_counts = self._diluent_composition()
 
     @staticmethod
     def from_solution(solution):
@@ -467,9 +467,11 @@ class Pairing:
         solvent_counts = pd.Series(self.solvent_counts)
         total_solvents = solvent_counts.reindex(coordinated_solvents.index, level=1)
         diluent_solvents = total_solvents - coordinated_solvents
-        diluent_by_frame = diluent_solvents / diluent_solvents.groupby(['frame']).sum()
-        diluent_composition = diluent_by_frame.groupby(['res_name']).mean().to_dict()
-        return diluent_composition, diluent_by_frame
+        diluent_series = diluent_solvents / diluent_solvents.groupby(['frame']).sum()
+        diluent_by_frame = diluent_series.unstack().T
+        diluent_counts = diluent_solvents.unstack().T
+        diluent_dict = diluent_by_frame.mean(axis=1).to_dict()
+        return diluent_dict, diluent_by_frame, diluent_counts
 
 
 class Residence:

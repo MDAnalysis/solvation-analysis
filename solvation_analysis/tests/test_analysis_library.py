@@ -142,8 +142,8 @@ def test_pairing_participating(name, percent, solvation_data):
 )
 def test_diluent_composition(name, diluent_percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
-    np.testing.assert_allclose(diluent_percent, pairing.diluent_composition[name], atol=0.05)
-    np.testing.assert_allclose(sum(pairing.diluent_composition.values()), 1, atol=0.05)
+    np.testing.assert_allclose(diluent_percent, pairing.diluent_dict[name], atol=0.05)
+    np.testing.assert_allclose(sum(pairing.diluent_dict.values()), 1, atol=0.05)
 
 
 def test_residence_from_solution(run_solution):
@@ -166,14 +166,11 @@ def residence(solvation_data_sparse):
     ],
 )
 def test_residence_times(name, res_time, residence):
-    times = residence.residence_times
-    # we do not use a parameterization because this operation is expensive
     np.testing.assert_almost_equal(residence.residence_times[name], res_time, 3)
 
 
 @pytest.mark.parametrize("name", ['fec', 'bn', 'pf6'])
 def test_plot_auto_covariance(name, residence):
-    # we do not use a parameterization because this operation is expensive
     residence.plot_auto_covariance(name)
 
 
