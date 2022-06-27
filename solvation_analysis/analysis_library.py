@@ -280,11 +280,9 @@ class Coordination:
         a dictionary where keys are residue names (str) and values are the
         mean coordination number of that residue (float).
     cn_by_frame : pd.DataFrame
-        a dictionary tracking the mean coordination number of each
-        residue across frames.
+        a DataFrame of the mean coordination number of in each frame of the trajectory.
     coordinating_atoms : pd.DataFrame
-        percent of each atom_type participating in solvation, calculated
-         for each solvent.
+        percent of each atom_type participating in solvation, calculated for each solvent.
 
     Examples
     --------
@@ -390,16 +388,18 @@ class Pairing:
         a dictionary where keys are residue names (str) and values are the
         percentage of solutes that contain that residue (float).
     pairing_by_frame : pd.DataFrame
-        a dictionary tracking the mean percentage of each
-        residue across frames.
+        a dictionary tracking the mean percentage of each residue across frames.
     percent_free_solvents : dict of {str: float}
         a dictionary containing the percent of each solvent that is free. e.g.
         not coordinated to a solute.
-    diluent_compsition : dict of {str: float}
+    diluent_dict : dict of {str: float}
+        the fraction of the diluent constituted by each solvent. The diluent is
+        defined as everything that is not coordinated with the solute.
+    diluent_by_frame : pd.DataFrame
+        a DataFrame of the diluent composition in each frame of the trajectory.
+    diluent_counts : pd.DataFrame
+        a DataFrame of the raw solvent counts in the diluentin each frame of the trajectory.
 
-    diluent_composition_by_frame : pd.DataFrame
-        a dictionary tracking the composition of the diluent
-        across frames.
 
     Examples
     --------
