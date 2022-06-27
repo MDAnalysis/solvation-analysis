@@ -118,7 +118,7 @@ def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids,
 
 
 @pytest.mark.parametrize(
-    "network, n_clusters",
+    "shell, n_shells",
     [
         ({'bn': 5, 'fec': 0, 'pf6': 0}, 175),
         ({'bn': 3, 'fec': 3, 'pf6': 0}, 2),
@@ -126,10 +126,10 @@ def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids,
         ({'bn': 4}, 260),
     ],
 )
-def test_speciation_find_clusters(cluster, n_clusters, run_solution):
+def test_speciation_find_shells(shell, n_shells, run_solution):
     # duplicated to test in solution
-    df = run_solution.speciation.find_shells(cluster)
-    assert len(df) == n_clusters
+    df = run_solution.speciation.find_shells(shell)
+    assert len(df) == n_shells
 
 
 @pytest.mark.parametrize(
