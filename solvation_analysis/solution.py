@@ -95,6 +95,11 @@ class Solution(AnalysisBase):
     rdf_run_kwargs : dict, optional
         kwargs passed to the internal MDAnalysis.InterRDF.run() command
         e.g. inner_rdf.run(**rdf_run_kwargs)
+    solute_name: str
+        the name of the solute, used for labeling.
+    analysis_classes : List[str]
+        a list of the analysis classes to be instantiated, current options are:
+        "pairing", "coordination", "speciation", "residence", and "networking".
     verbose : bool, optional
        Turn on more logging and debugging, default ``False``
 
@@ -118,6 +123,14 @@ class Solution(AnalysisBase):
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
         and atom_ix, all atoms are kept.
+    solute_res_ix : np.array
+        a numpy array of the residue indices of every solute.
+    solute_atom_ix : np.array
+        a numpy array of the atom indices of every solute.
+    res_name_map : pd.Series
+        a map from residue indices in the Universe to solvent and solute names from
+        the solution. For example, if the first residue in the universe was in
+        self.solvent['res_one'], then res_name_map[0] == 'res_one'.
     pairing : analysis_library.Pairing
         pairing provides an interface for finding the percent of solutes with
         each solvent in their solvation shell.
@@ -126,11 +139,6 @@ class Solution(AnalysisBase):
         each solvent.
     speciation : analysis_library.Speciation
         speciation provides an interface for parsing the solvation shells of each solute.
-    solute_name: str
-        the name of the solute, used for labeling.
-    analysis_classes : List[str]
-        a list of the analysis classes to be instantiated, current options are:
-        "pairing", "coordination", "speciation", "residence", and "networking".
     """
 
     def __init__(
@@ -173,11 +181,6 @@ class Solution(AnalysisBase):
             self.analysis_classes = ["pairing", "coordination", "speciation"]
         else:
             self.analysis_classes = [cls.lower() for cls in analysis_classes]
-        # TODO: add documentation! for solute_res_ix, solute_atom_ix, and res_name_map, analysis_classes
-        # we could make it into an array operation by
-        # constructing an array of all res where the
-        # value is the res name if present and nan if
-        # not in the solution.
 
     def _prepare(self):
         """
