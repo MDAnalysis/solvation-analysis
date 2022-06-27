@@ -80,6 +80,26 @@ class Speciation:
         self.speciation_data, self.speciation_percent = self._compute_speciation()
         self.co_occurrence = self._solvent_co_occurrence()
 
+    @staticmethod
+    def from_solution(solution):
+        """
+        Generate a Speciation object from a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+
+        Returns
+        -------
+        Pairing
+        """
+        assert solution.has_run, "The solution must be run before calling from_solution"
+        return Speciation(
+            solution.solvation_data,
+            solution.n_frames,
+            solution.n_solute,
+        )
+
     def _compute_speciation(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         counts_re = counts.reset_index(["res_name"])
@@ -287,6 +307,27 @@ class Coordination:
         self.atom_group = atom_group
         self.coordinating_atoms = self._calculate_coordinating_atoms()
 
+    @staticmethod
+    def from_solution(solution):
+        """
+        Generate a Coordination object from a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+
+        Returns
+        -------
+        Pairing
+        """
+        assert solution.has_run, "The solution must be run before calling from_solution"
+        return Coordination(
+            solution.solvation_data,
+            solution.n_frames,
+            solution.n_solute,
+            solution.u.atoms,
+        )
+
     def _mean_cn(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         cn_series = counts.groupby(["res_name", "frame"]).sum() / (
@@ -380,6 +421,27 @@ class Pairing:
         self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.percent_free_solvents = self._percent_free_solvent()
         self.diluent_composition, self.diluent_by_frame = self._diluent_composition()
+
+    @staticmethod
+    def from_solution(solution):
+        """
+        Generate a Pairing object from a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+
+        Returns
+        -------
+        Pairing
+        """
+        assert solution.has_run, "The solution must be run before calling from_solution"
+        return Pairing(
+            solution.solvation_data,
+            solution.n_frames,
+            solution.n_solute,
+            solution.solvent_counts
+        )
 
     def _percent_coordinated(self):
         # calculate the percent of solute coordinated with each solvent

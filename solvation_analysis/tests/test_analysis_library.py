@@ -10,6 +10,10 @@ from solvation_analysis.analysis_library import (
     Networking,
 )
 
+def test_speciation_from_solution(run_solution):
+    speciation = Speciation.from_solution(run_solution)
+    assert len(speciation.speciation_data) == 490
+
 
 @pytest.mark.parametrize(
     "shell, percent",
@@ -61,6 +65,11 @@ def test_plot_correlation(solvation_data):
     # fig.show()
 
 
+def test_coordination_from_solution(run_solution):
+    coordination = Coordination.from_solution(run_solution)
+    assert len(coordination.cn_dict) == 3
+
+
 @pytest.mark.parametrize(
     "name, cn",
     [
@@ -90,6 +99,11 @@ def test_coordinating_atoms(name, atom_type, percent, solvation_data, run_soluti
     calculated_percent = coordination.coordinating_atoms.loc[(name, atom_type)]
     np.testing.assert_allclose(percent, calculated_percent, atol=0.05)
 
+
+def test_pairing_from_solution(run_solution):
+    pairing = Pairing.from_solution(run_solution)
+    assert len(pairing.pairing_dict) == 3
+    assert len(pairing.percent_free_solvents) == 3
 
 @pytest.mark.parametrize(
     "name, percent",
