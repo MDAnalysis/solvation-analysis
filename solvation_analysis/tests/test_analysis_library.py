@@ -213,14 +213,3 @@ def test_get_cluster_res_ix(status, percent, networking):
 def test_get_cluster_res_ix(network_ix, frame, n_res, networking):
     res_ix = networking.get_cluster_res_ix(network_ix, frame)
     assert len(res_ix) == n_res
-
-
-def test_timing_benchmark(solvation_data_large):
-    pass
-    # last test ~1.1 seconds
-    import time
-    start = time.time()
-    residence = Residence(solvation_data_large, step=1)
-    times = residence.residence_times
-    total_time = time.time() - start
-    print(f"Total time: {total_time}")

@@ -398,7 +398,7 @@ class Pairing:
     diluent_by_frame : pd.DataFrame
         a DataFrame of the diluent composition in each frame of the trajectory.
     diluent_counts : pd.DataFrame
-        a DataFrame of the raw solvent counts in the diluentin each frame of the trajectory.
+        a DataFrame of the raw solvent counts in the diluent in each frame of the trajectory.
 
 
     Examples
@@ -492,6 +492,9 @@ class Residence:
     ----------
     solvation_data : pandas.DataFrame
         The solvation data frame output by Solution.
+    step : int
+        The spacing of frames in solvation_data. This should be equal
+        to solution.step.
 
     Attributes
     ----------
@@ -570,8 +573,6 @@ class Residence:
                     break
             if unassigned:
                 residence_times[res_name] = np.nan
-                warnings.warn('no autocovariance values are less than 1 / e '
-                              'so a residence time cannot be calculated.')
         return residence_times
 
     @staticmethod
@@ -580,7 +581,7 @@ class Residence:
         residence_times = {}
         fit_parameters = {}
         for res_name, auto_covariance in auto_covariances.items():
-            res_time, params = Residence._fit_exponential(auto_covariance)
+            res_time, params = Residence._fit_exponential(auto_covariance, res_name)
             residence_times[res_name], fit_parameters[res_name] = res_time * step, params
         return residence_times, fit_parameters
 
@@ -639,8 +640,7 @@ class Residence:
         return a * np.exp(-b * x) + c
 
     @staticmethod
-    def _fit_exponential(auto_covariance):
-        # Exponential fit of solvent-Li ACF
+    def _fit_exponential(auto_covariance, res_name):
         auto_covariance_norm = auto_covariance / auto_covariance[0]
         try:
             params, param_covariance = curve_fit(
@@ -651,6 +651,9 @@ class Residence:
             )
             tau = 1 / params[1]  # p
         except RuntimeError:
+            warnings.warn(f'The fit for {res_name} failed so its values in'
+                          f'residence_time_fits and fit_parameters will be'
+                          f'set to np.nan.')
             tau, params = np.nan, (np.nan, np.nan, np.nan)
         return tau, params
 
@@ -709,7 +712,7 @@ class Networking:
     extracts the connected subgraphs within it. These connected subgraphs are stored
     in a DataFrame in Networking.network_df.
 
-Several other representations of the networking data are included in the attributes.
+    Several other representations of the networking data are included in the attributes.
 
     Parameters
     ----------
