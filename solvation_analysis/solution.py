@@ -126,6 +126,11 @@ class Solution(AnalysisBase):
         each solvent.
     speciation : analysis_library.Speciation
         speciation provides an interface for parsing the solvation shells of each solute.
+    solute_name: str
+        the name of the solute, used for labeling.
+    analysis_classes : List[str]
+        a list of the analysis classes to be instantiated, current options are:
+        "pairing", "coordination", "speciation", "residence", and "networking".
     """
 
     def __init__(
@@ -139,7 +144,7 @@ class Solution(AnalysisBase):
         rdf_init_kwargs=None,
         rdf_run_kwargs=None,
         solute_name="solute",
-        analysis_classes=['speciation', 'pairing', 'coordination'],
+        analysis_classes=None,
         verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
@@ -164,8 +169,11 @@ class Solution(AnalysisBase):
         self.res_name_map[self.solute.residues.ix] = self.solute_name
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
-        self.analysis_classes = analysis_classes
-        # TODO: add documentation! for solute_res_ix, solute_atom_ix, and res_name_map
+        if analysis_classes is None:
+            self.analysis_classes = ["pairing", "coordination", "speciation"]
+        else:
+            self.analysis_classes = [cls.lower() for cls in analysis_classes]
+        # TODO: add documentation! for solute_res_ix, solute_atom_ix, and res_name_map, analysis_classes
         # we could make it into an array operation by
         # constructing an array of all res where the
         # value is the res name if present and nan if
