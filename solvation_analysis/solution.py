@@ -34,6 +34,8 @@ from solvation_analysis.analysis_library import (
     Coordination,
     Pairing,
     Speciation,
+    Residence,
+    Networking,
 )
 from solvation_analysis.selection import get_radial_shell, get_closest_n_mol, get_atom_group
 
@@ -91,7 +93,7 @@ class Solution(AnalysisBase):
         kwargs passed to the initialization of the MDAnalysis.InterRDF used to plot
         the solute-solvent RDFs.
     rdf_run_kwargs : dict, optional
-        kwargs passed to the internel MDAnalysis.InterRDF.run() command
+        kwargs passed to the internal MDAnalysis.InterRDF.run() command
         e.g. inner_rdf.run(**rdf_run_kwargs)
     verbose : bool, optional
        Turn on more logging and debugging, default ``False``
@@ -137,6 +139,7 @@ class Solution(AnalysisBase):
         rdf_init_kwargs=None,
         rdf_run_kwargs=None,
         solute_name="solute",
+        analysis_classes=['speciation', 'pairing', 'coordination'],
         verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
@@ -161,6 +164,7 @@ class Solution(AnalysisBase):
         self.res_name_map[self.solute.residues.ix] = self.solute_name
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
+        self.analysis_classes = analysis_classes
         # TODO: add documentation! for solute_res_ix, solute_atom_ix, and res_name_map
         # we could make it into an array operation by
         # constructing an array of all res where the
@@ -255,11 +259,17 @@ class Solution(AnalysisBase):
         solvation_data = solvation_data_dup.drop_duplicates(["frame", "solvated_atom", "res_ix"])
         self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_ix"])
         self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_ix"])
-        # create analysis classes
-        self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
-        self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
-        self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute, self.u.atoms)
+        # instantiate analysis classes
         self.has_run = True
+        classes_dict = {
+            'speciation': Speciation,
+            'pairing': Pairing,
+            'coordination': Coordination,
+            'residence': Residence,
+            'networking': Networking,
+        }
+        for analysis_class in self.analysis_classes:
+            setattr(self, analysis_class, classes_dict[analysis_class].from_solution(self))
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):
@@ -398,7 +408,7 @@ class Solution(AnalysisBase):
         MDAnalysis.AtomGroup or pandas.DataFrame
 
         """
-        assert self.solvation_frames, "Solute.run() must be called first."
+        assert self.has_run, "Solute.run() must be called first."
         assert frame in self.frames, ("The requested frame must be one "
                                       "of an analyzed frames in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
