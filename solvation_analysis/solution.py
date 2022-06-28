@@ -94,7 +94,7 @@ class Solution(AnalysisBase):
         the solute-solvent RDFs.
     rdf_run_kwargs : dict, optional
         kwargs passed to the internal MDAnalysis.InterRDF.run() command
-        e.g. inner_rdf.run(**rdf_run_kwargs)
+        e.g. ``inner_rdf.run(**rdf_run_kwargs)``
     solute_name: str, optional
         the name of the solute, used for labeling.
     analysis_classes : List[str], optional
