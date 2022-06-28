@@ -210,6 +210,6 @@ def test_get_cluster_res_ix(status, percent, networking):
         (1, 8, 3),
     ],
 )
-def test_get_cluster_res_ix(network_ix, frame, n_res, networking):
-    res_ix = networking.get_cluster_res_ix(network_ix, frame)
+def test_get_network_res_ix(network_ix, frame, n_res, networking):
+    res_ix = networking.get_network_res_ix(network_ix, frame)
     assert len(res_ix) == n_res

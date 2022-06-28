@@ -903,7 +903,7 @@ class Networking:
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame
 
-    def get_cluster_res_ix(self, network_index, frame):
+    def get_network_res_ix(self, network_index, frame):
         """
         Return the indexes of all residues in a selected network.
 
@@ -929,7 +929,7 @@ class Networking:
             # first define Li, BN, and FEC AtomGroups
             >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
             >>> networking = Networking.from_solution(solution, 'PF6')
-            >>> res_ix = networking.get_cluster_res_ix(1, 5)
+            >>> res_ix = networking.get_network_res_ix(1, 5)
             >>> solution.u.residues[res_ix].atoms
             <AtomGroup with 126 Atoms>
 
