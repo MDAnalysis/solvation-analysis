@@ -72,7 +72,6 @@ def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solutio
 )
 def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solution):
     run_solution.u.trajectory[frame]
-    sol = run_solution
     shell = run_solution.closest_n_mol(solute_index, n_mol)
     assert set(shell.resindices) == set(expected_res_ids)
 

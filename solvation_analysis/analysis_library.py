@@ -483,10 +483,23 @@ class Residence:
     has 1000 frames over 1 nanosecond, then each frame will be 1 picosecond.
     Thus a residence time of 100 would translate to 100 picoseconds.
 
-    To do this, it finds the solute-solvent autocorrelation function for each
-    solute-solvent pair, means over the solvents of each type, and fits an
-    exponential function to the decay. The decay constant of this exponential
-    function is the residence time of the solvent.
+    Two residence time implementations are available. Both calculate the
+    solute-solvent autocorrelation function for each solute-solvent pair,
+    take and take the mean over the solvents of each type, this should yield
+    an exponentially decaying autocorrelation function.
+
+    The first implementation fits an exponential curve to the autocorrelation
+    function and extract the time constant, which is inversely proportional to the
+    residence time. This result is saved in the `residence_times_fit` attribute.
+    Unfortunately, the fit often fails to converge (value is set to np.nan),
+    making this method unreliable.
+
+    Instead, the default implementation is to simply find point where the
+    value of the autocorrelation function is 1/e, which is the time constant
+    of an exact exponential. These values are saved in `residence_times`.
+
+    A fuller description of the method can be found in
+    `Self, Fong, and Persson <https://pubs-acs-org.libproxy.berkeley.edu/doi/full/10.1021/acsenergylett.9b02118>`_
 
     Parameters
     ----------
@@ -499,9 +512,16 @@ class Residence:
     Attributes
     ----------
     residence_times : dict of {str: float}
-        a dictionary where keys are residue names (str) and values are the
-        residence times of the that residue on the solute (float).
+        a dictionary where keys are residue names and values are the
+        residence times of the that residue on the solute, calculated
+        with the 1/e cutoff method.
+    residence_times_fit : dict of {str: float}
+        a dictionary where keys are residue names and values are the
+        residence times of the that residue on the solute, calculated
+        with the exponential fit method.
     fit_parameters : pd.DataFrame
+        a dictionary where keys are residue names and values are the
+        arameters for the exponential fit to the autocorrelation function.
 
     Examples
     --------
