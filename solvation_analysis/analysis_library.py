@@ -500,7 +500,11 @@ class Residence:
 
     It is recommended that the user visually inspect the autocorrelation function
     with `Residence.plot_autocorrelation_function` to ensure an approximately
-    exponential decay.
+    exponential decay. The residence times are only valid insofar as the autocorrelation
+    function resembles an exact exponential, it should decays to zero with a long tail.
+    If the exponential does not decay to zero or its slope does not level off, increasing
+    the simulation time may help. For this technique to be appropriate, the simulation time
+    should exceed the residence time.
 
     A fuller description of the method can be found in
     `Self, Fong, and Persson <https://pubs-acs-org.libproxy.berkeley.edu/doi/full/10.1021/acsenergylett.9b02118>`_
@@ -613,10 +617,7 @@ class Residence:
         """
         Plot the autocovariance of a solvent on the solute.
 
-        It is highly recommended that you visually validate the shape of the auto-covariance.
-        It should be an exponential that decays to zero with a long tail. If the exponential
-        does not decay to zero or its slope does not level off, it is recommended that you
-        increase the simulation time.
+        See the discussion in the class docstring for more information.
 
         Parameters
         ----------
