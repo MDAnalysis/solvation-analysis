@@ -2,15 +2,15 @@
 ================
 Analysis Library
 ================
-:Author: Orion Cohen, Tingzheng Hou
+:Author: Orion Cohen, Tingzheng Hou, Kara Fong
 :Year: 2021
 :Copyright: GNU Public License v3
 
 Analysis library defines a variety of classes that analyze different aspects of solvation.
-These classes are all instantiated with the solvation_data (pandas.DataFrame) generated
+These classes are all instantiated with the solvation_data generated
 from the Solution class.
 
-While the classes in analysis_library can be used in isolation, they are meant to be used
+While the classes in ``analysis_library`` can be used in isolation, they are meant to be used
 as attributes of the Solution class. This makes instantiating them and calculating the
 solvation data a non-issue.
 """
@@ -490,16 +490,16 @@ class Residence:
 
     The first implementation fits an exponential curve to the autocorrelation
     function and extract the time constant, which is inversely proportional to the
-    residence time. This result is saved in the `residence_times_fit` attribute.
+    residence time. This result is saved in the ``residence_times_fit`` attribute.
     Unfortunately, the fit often fails to converge (value is set to np.nan),
     making this method unreliable.
 
     Instead, the default implementation is to simply find point where the
     value of the autocorrelation function is 1/e, which is the time constant
-    of an exact exponential. These values are saved in `residence_times`.
+    of an exact exponential. These values are saved in ``residence_times``.
 
     It is recommended that the user visually inspect the autocorrelation function
-    with `Residence.plot_autocorrelation_function` to ensure an approximately
+    with ``Residence.plot_autocorrelation_function`` to ensure an approximately
     exponential decay. The residence times are only valid insofar as the autocorrelation
     function resembles an exact exponential, it should decays to zero with a long tail.
     If the exponential does not decay to zero or its slope does not level off, increasing

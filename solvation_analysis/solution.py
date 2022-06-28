@@ -100,6 +100,7 @@ class Solution(AnalysisBase):
     analysis_classes : List[str], optional
         a list of the analysis classes to be instantiated, current options are:
         "pairing", "coordination", "speciation", "residence", and "networking".
+        By default, only "pairing", "coordination", and "residence" are instantiated.
         If networking is included, the networking_solvents kwarg must be specified.
     networking_solvents : str, optional
         see the `solvents` parameter of the Networking class.
@@ -133,15 +134,22 @@ class Solution(AnalysisBase):
     res_name_map : pd.Series
         a map from residue indices in the Universe to solvent and solute names from
         the solution. For example, if the first residue in the universe was in
-        self.solvent['res_one'], then res_name_map[0] == 'res_one'.
-    pairing : analysis_library.Pairing
-        pairing provides an interface for finding the percent of solutes with
-        each solvent in their solvation shell.
-    coordination : analysis_library.Coordination
-        coordination provides an interface for finding the coordination numbers of
-        each solvent.
-    speciation : analysis_library.Speciation
-        speciation provides an interface for parsing the solvation shells of each solute.
+        ``self.solvent['res_one']``, then ``res_name_map[0] == 'res_one'``.
+    pairing : analysis_library.Pairing (optional)
+        pairing analyzes the fraction solutes and solvents that are coordinated.
+    coordination : analysis_library.Coordination (optional)
+        coordination analyses the coordination numbers of solvents and which
+        solvent atoms are coordinated.
+    speciation : analysis_library.Speciation (optional)
+        speciation provides an interface for finding and selecting the solvation shells
+        surrounding each solute.
+    residence : analysis_library.Residence (optional)
+        residence calculates the residence times of each solvent on the solute. Only
+        instantiated if 'residence' is included in the analysis_classes kwarg.
+    networking : analysis_library.Networking (optional)
+        networking analyses the connectivity of solute-solvent networks. Only instantiated
+        if 'networking' is included in the analysis_classes kwarg. the networking_solvents
+        kwarg must be specified.
     """
 
     def __init__(
@@ -421,9 +429,9 @@ class Solution(AnalysisBase):
             instead of a AtomGroup.
         remove_mols : dict of {str: int}, optional
             remove_dict lets you remove specific residues from the final shell.
-            It should be a dict of molnames and ints e.g. {'mol1': n, 'mol2', m}.
+            It should be a dict of molnames and ints e.g. ``{'mol1': n, 'mol2', m}``.
             It will remove up to n of mol1 and up to m of mol2. So if the dict is
-            {'mol1': 1, 'mol2', 1} and the shell has 4 mol1 and 0 mol2,
+            ``{'mol1': 1, 'mol2', 1}`` and the shell has 4 mol1 and 0 mol2,
             solvation_shell will return a shell with 3 mol1 and 0 mol2.
         closest_n_only : int, optional
             if given, only the closest n residues will be included
