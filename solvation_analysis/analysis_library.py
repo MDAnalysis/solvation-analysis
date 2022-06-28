@@ -741,6 +741,7 @@ class Networking:
     Parameters
     ----------
     solvents : str or list[str]
+        the solvents to include in the solute-solvent network.
     solvation_data : pandas.DataFrame
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix".
