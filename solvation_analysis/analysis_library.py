@@ -498,6 +498,10 @@ class Residence:
     value of the autocorrelation function is 1/e, which is the time constant
     of an exact exponential. These values are saved in `residence_times`.
 
+    It is recommended that the user visually inspect the autocorrelation function
+    with `Residence.plot_autocorrelation_function` to ensure an approximately
+    exponential decay.
+
     A fuller description of the method can be found in
     `Self, Fong, and Persson <https://pubs-acs-org.libproxy.berkeley.edu/doi/full/10.1021/acsenergylett.9b02118>`_
 
