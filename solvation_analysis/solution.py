@@ -95,11 +95,14 @@ class Solution(AnalysisBase):
     rdf_run_kwargs : dict, optional
         kwargs passed to the internal MDAnalysis.InterRDF.run() command
         e.g. inner_rdf.run(**rdf_run_kwargs)
-    solute_name: str
+    solute_name: str, optional
         the name of the solute, used for labeling.
-    analysis_classes : List[str]
+    analysis_classes : List[str], optional
         a list of the analysis classes to be instantiated, current options are:
         "pairing", "coordination", "speciation", "residence", and "networking".
+        If networking is included, the networking_solvents kwarg must be specified.
+    networking_solvents : str, optional
+        see the `solvents` parameter of the Networking class.
     verbose : bool, optional
        Turn on more logging and debugging, default ``False``
 
@@ -153,6 +156,7 @@ class Solution(AnalysisBase):
         rdf_run_kwargs=None,
         solute_name="solute",
         analysis_classes=None,
+        networking_solvents=None,
         verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
@@ -177,10 +181,17 @@ class Solution(AnalysisBase):
         self.res_name_map[self.solute.residues.ix] = self.solute_name
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
+        # logic for instantiating analysis classes.
         if analysis_classes is None:
             self.analysis_classes = ["pairing", "coordination", "speciation"]
         else:
             self.analysis_classes = [cls.lower() for cls in analysis_classes]
+        if "networking" in self.analysis_classes and networking_solvents is None:
+            raise ValueError(
+                "networking analysis requires networking_solvents to be provided."
+            )
+        else:
+            self.networking_solvents = networking_solvents
 
     def _prepare(self):
         """
@@ -280,7 +291,10 @@ class Solution(AnalysisBase):
             'networking': Networking,
         }
         for analysis_class in self.analysis_classes:
-            setattr(self, analysis_class, classes_dict[analysis_class].from_solution(self))
+            if analysis_class == 'networking':
+                setattr(self, 'networking', Networking.from_solution(self, self.networking_solvents))
+            else:
+                setattr(self, analysis_class, classes_dict[analysis_class].from_solution(self))
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):

@@ -15,6 +15,17 @@ def test_instantiate_solute(pre_solution):
     assert pre_solution.solvents['bn'].n_residues == 363
 
 
+def test_networking_instantiation_error(atom_groups):
+    li = atom_groups['li']
+    pf6 = atom_groups['pf6']
+    bn = atom_groups['bn']
+    fec = atom_groups['fec']
+    with pytest.raises(Exception):
+        solution = Solution(
+            li, {'pf6': pf6, 'bn': bn, 'fec': fec}, analysis_classes=['networking']
+        )
+
+
 def test_plot_solvation_distance(rdf_bins_and_data_easy):
     bins, data = rdf_bins_and_data_easy['pf6_all']
     fig, ax = Solution._plot_solvation_radius(bins, data, 2)
@@ -42,6 +53,19 @@ def test_run_warning(pre_solution_mutable):
 def test_run(pre_solution_mutable):
     # checks that run is run correctly
     pre_solution_mutable.radii = {'pf6': 2.8}
+    pre_solution_mutable.run(step=1)
+    assert len(pre_solution_mutable.solvation_frames) == 10
+    assert len(pre_solution_mutable.solvation_frames[0]) == 228
+    assert len(pre_solution_mutable.solvation_data) == 2312
+
+
+def test_run_w_all(pre_solution_mutable):
+    # checks that run is run correctly
+    pre_solution_mutable.radii = {'pf6': 2.8}
+    pre_solution_mutable.analysis_classes = [
+        "pairing", "coordination", "speciation", "residence", "networking"
+    ]
+    pre_solution_mutable.networking_solvents = 'pf6'
     pre_solution_mutable.run(step=1)
     assert len(pre_solution_mutable.solvation_frames) == 10
     assert len(pre_solution_mutable.solvation_frames[0]) == 228
