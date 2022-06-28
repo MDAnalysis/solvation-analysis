@@ -34,6 +34,8 @@ from solvation_analysis.analysis_library import (
     Coordination,
     Pairing,
     Speciation,
+    Residence,
+    Networking,
 )
 from solvation_analysis.selection import get_radial_shell, get_closest_n_mol, get_atom_group
 
@@ -91,8 +93,17 @@ class Solution(AnalysisBase):
         kwargs passed to the initialization of the MDAnalysis.InterRDF used to plot
         the solute-solvent RDFs.
     rdf_run_kwargs : dict, optional
-        kwargs passed to the internel MDAnalysis.InterRDF.run() command
-        e.g. inner_rdf.run(**rdf_run_kwargs)
+        kwargs passed to the internal MDAnalysis.InterRDF.run() command
+        e.g. ``inner_rdf.run(**rdf_run_kwargs)``
+    solute_name: str, optional
+        the name of the solute, used for labeling.
+    analysis_classes : List[str], optional
+        a list of the analysis classes to be instantiated, current options are:
+        "pairing", "coordination", "speciation", "residence", and "networking".
+        By default, only "pairing", "coordination", and "residence" are instantiated.
+        If networking is included, the networking_solvents kwarg must be specified.
+    networking_solvents : str, optional
+        see the `solvents` parameter of the Networking class.
     verbose : bool, optional
        Turn on more logging and debugging, default ``False``
 
@@ -116,14 +127,29 @@ class Solution(AnalysisBase):
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
         and atom_ix, all atoms are kept.
-    pairing : analysis_library.Pairing
-        pairing provides an interface for finding the percent of solutes with
-        each solvent in their solvation shell.
-    coordination : analysis_library.Coordination
-        coordination provides an interface for finding the coordination numbers of
-        each solvent.
-    speciation : analysis_library.Speciation
-        speciation provides an interface for parsing the solvation shells of each solute.
+    solute_res_ix : np.array
+        a numpy array of the residue indices of every solute.
+    solute_atom_ix : np.array
+        a numpy array of the atom indices of every solute.
+    res_name_map : pd.Series
+        a map from residue indices in the Universe to solvent and solute names from
+        the solution. For example, if the first residue in the universe was in
+        ``self.solvent['res_one']``, then ``res_name_map[0] == 'res_one'``.
+    pairing : analysis_library.Pairing (optional)
+        pairing analyzes the fraction solutes and solvents that are coordinated.
+    coordination : analysis_library.Coordination (optional)
+        coordination analyses the coordination numbers of solvents and which
+        solvent atoms are coordinated.
+    speciation : analysis_library.Speciation (optional)
+        speciation provides an interface for finding and selecting the solvation shells
+        surrounding each solute.
+    residence : analysis_library.Residence (optional)
+        residence calculates the residence times of each solvent on the solute. Only
+        instantiated if 'residence' is included in the analysis_classes kwarg.
+    networking : analysis_library.Networking (optional)
+        networking analyses the connectivity of solute-solvent networks. Only instantiated
+        if 'networking' is included in the analysis_classes kwarg. the networking_solvents
+        kwarg must be specified.
     """
 
     def __init__(
@@ -136,6 +162,9 @@ class Solution(AnalysisBase):
         kernel_kwargs=None,
         rdf_init_kwargs=None,
         rdf_run_kwargs=None,
+        solute_name="solute",
+        analysis_classes=None,
+        networking_solvents=None,
         verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
@@ -148,11 +177,29 @@ class Solution(AnalysisBase):
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
         self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
-        # TODO: save solute numbers somewhere
+        self.has_run = False
+        self.u = solute.universe
         self.solute = solute
         self.n_solute = len(self.solute.residues)
+        self.solute_res_ix = solute.residues.ix
+        self.solute_atom_ix = solute.atoms.ix
         self.solvents = solvents
-        self.u = self.solute.universe
+        self.solute_name = solute_name
+        self.res_name_map = pd.Series(['none'] * len(self.u.residues))
+        self.res_name_map[self.solute.residues.ix] = self.solute_name
+        for name, solvent in solvents.items():
+            self.res_name_map[solvent.residues.ix] = name
+        # logic for instantiating analysis classes.
+        if analysis_classes is None:
+            self.analysis_classes = ["pairing", "coordination", "speciation"]
+        else:
+            self.analysis_classes = [cls.lower() for cls in analysis_classes]
+        if "networking" in self.analysis_classes and networking_solvents is None:
+            raise ValueError(
+                "networking analysis requires networking_solvents to be provided."
+            )
+        else:
+            self.networking_solvents = networking_solvents
 
     def _prepare(self):
         """
@@ -232,6 +279,7 @@ class Solution(AnalysisBase):
         solvation_data_np = np.vstack(self.solvation_frames)
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
+            # TODO: replace solvated_atom with solute?
             columns=["frame", "solvated_atom", "atom_ix", "dist", "res_name", "res_ix"]
         )
         # clean up solvation_data df
@@ -241,10 +289,20 @@ class Solution(AnalysisBase):
         solvation_data = solvation_data_dup.drop_duplicates(["frame", "solvated_atom", "res_ix"])
         self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_ix"])
         self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_ix"])
-        # create analysis classes
-        self.speciation = Speciation(self.solvation_data, self.n_frames, self.n_solute)
-        self.pairing = Pairing(self.solvation_data, self.n_frames, self.n_solute, self.solvent_counts)
-        self.coordination = Coordination(self.solvation_data, self.n_frames, self.n_solute, self.u.atoms)
+        # instantiate analysis classes
+        self.has_run = True
+        classes_dict = {
+            'speciation': Speciation,
+            'pairing': Pairing,
+            'coordination': Coordination,
+            'residence': Residence,
+            'networking': Networking,
+        }
+        for analysis_class in self.analysis_classes:
+            if analysis_class == 'networking':
+                setattr(self, 'networking', Networking.from_solution(self, self.networking_solvents))
+            else:
+                setattr(self, analysis_class, classes_dict[analysis_class].from_solution(self))
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):
@@ -371,9 +429,9 @@ class Solution(AnalysisBase):
             instead of a AtomGroup.
         remove_mols : dict of {str: int}, optional
             remove_dict lets you remove specific residues from the final shell.
-            It should be a dict of molnames and ints e.g. {'mol1': n, 'mol2', m}.
+            It should be a dict of molnames and ints e.g. ``{'mol1': n, 'mol2', m}``.
             It will remove up to n of mol1 and up to m of mol2. So if the dict is
-            {'mol1': 1, 'mol2', 1} and the shell has 4 mol1 and 0 mol2,
+            ``{'mol1': 1, 'mol2', 1}`` and the shell has 4 mol1 and 0 mol2,
             solvation_shell will return a shell with 3 mol1 and 0 mol2.
         closest_n_only : int, optional
             if given, only the closest n residues will be included
@@ -383,7 +441,7 @@ class Solution(AnalysisBase):
         MDAnalysis.AtomGroup or pandas.DataFrame
 
         """
-        assert self.solvation_frames, "Solute.run() must be called first."
+        assert self.has_run, "Solute.run() must be called first."
         assert frame in self.frames, ("The requested frame must be one "
                                       "of an analyzed frames in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
