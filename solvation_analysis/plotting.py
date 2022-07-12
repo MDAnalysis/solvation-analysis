@@ -53,9 +53,9 @@ def plot_network_size_histogram(networking):
     """
     network_sizes = networking.network_sizes
     sums = network_sizes.sum(axis=0)
-    fig = px.histogram(network_sizes.columns, x=sums.index, y=sums.values, nbins=sums.size,
-                       title="Histogram of Network Sizes")
-    fig.update_layout(xaxis_title_text="Network Size", yaxis_title_text="Frequency")
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=sums.index, y=sums.values))
+    fig.update_layout(xaxis_title_text="Network Size", yaxis_title_text="Frequency", title="Histogram of Network Sizes")
     fig.update_xaxes(type="category")
     return fig
 
@@ -73,13 +73,16 @@ def plot_shell_size_histogram(solution):
     fig : Plotly.Figure
 
     """
-    speciation_data = solution.speciation.speciation_data # DataFrame
-    bn = speciation_data.groupby("bn").sum()
-    fec = speciation_data.groupby("fec").sum()
-    pf6 = speciation_data.groupby("pf6").sum()
-    fig = px.histogram(speciation_data)
-    fig.update_layout(barmode="overlay") # groups bins together in one column
-    return
+    speciation_data = solution.speciation.speciation_data
+    speciation_data["total"] = speciation_data.sum(axis=1)
+    sums = speciation_data.groupby("total").sum()
+    fig = go.Figure()
+    for column in sums.columns:
+        fig.add_trace(go.Bar(x=sums.index.values, y=sums[column].values, name=column))
+    fig.update_layout(xaxis_title_text="Shell Size", yaxis_title_text="Number of Molecules",
+                      title="Histogram of Shell Sizes")
+    fig.update_xaxes(type="category")
+    return fig
 
 
 def plot_speciation(solution):
@@ -108,11 +111,28 @@ def plot_coordinating_atoms(solution):
 # multiple solution
 
 
-def compare_solvent_dicts(solutions, series=True, ignore_solvents=None):
+def compare_solvent_dicts(property, series):
     # generalist plotter, this can plot either bar or line charts of the
     # same data
-    return 1
+    """
 
+    Parameters
+    ----------
+    property : dictionary of solvent properties
+    series : Boolean (False when a line chart is not wanted)
+
+    Returns
+    -------
+
+    """
+    fig = go.Figure()
+    if series:
+        for solution in property:
+            fig.add_trace(go.Scatter(x=solution.values(), y=solution.keys()))
+    else:
+        for solution in property:
+            fig.add_trace(go.Bar(x=solution.values(), y=solution.keys()))
+    return fig
 
 def compare_free_solvents(solutions):
     # this should be a grouped vertical bar chart or a line chart
@@ -121,18 +141,61 @@ def compare_free_solvents(solutions):
     return
 
 
-def compare_pairing(solutions):
+def compare_pairing(solutions, series=False, ignore=None):
     # this should be a grouped vertical bar chart or a line chart
+    # *** should there be another (boolean) parameter that
     # 1.0 should be marked and annotated with a dotted line
-    fig = compare_solvent_dicts()
-    return
+    """
+    Compares the pairing of multiple solutions.
+    Parameters
+    ----------
+    solutions : a list of Solution objects
+    series : Boolean (False when a line chart is not wanted)
+    ignore: list of strings of solvent names to ignore
 
+    Returns
+    -------
+    fig : Plotly.Figure
 
-def compare_coordination_numbers(solutions):
+    """
+    # you can also do kwargs instead of writing out all the keywords
+    pairing = [solution.pairing.pairing_dict for solution in solutions]
+    pairing = ignore_solvents(pairing, ignore)
+    return compare_solvent_dicts(pairing, series)
+
+def ignore_solvents(all_solvents, ignore):
+    # maybe dissolve into oneliners for each compare function
+    """
+    Removes solvents that are to be ignored for analysis
+    Parameters
+    ----------
+    all_solvents : a list of dictionaries of solvent properties
+    ignore : a list of strings of solvent names to be ignored
+
+    Returns
+    -------
+    all_solvents : new and improved after removing the ignored solvents
+
+    """
+    return list(set(all_solvents) - set(ignore)) # maybe you don't have to
+
+def compare_coordination_numbers(solutions, series=False, ignore=None):
     # this should be a stacked bar chart, horizontal?
-    fig = compare_solvent_dicts()
-    return
+    """
+    Compares the coordination numbers of multiple solutions.
 
+    Parameters
+    ----------
+    solutions : a list of Solution objects
+
+    Returns
+    -------
+    fig : Plotly.Figure
+
+    """
+    coordination = [solution.coordination.cn_dict for solution in solutions]
+    coordination = ignore_solvents(coordination, ignore)
+    return compare_solvent_dicts(coordination, series)
 
 def compare_coordination_to_random(solutions):
     # this should compare the actual coordination numbers relative to a
@@ -140,11 +203,26 @@ def compare_coordination_to_random(solutions):
     return
 
 
-def compare_residence_times(solutions):
+def compare_residence_times(solutions, series=False, ignore=None):
     # not in this branch yet
     # this should be a grouped vertical bar chart or a line chart
-    fig = compare_solvent_dicts()
-    return
+    """
+    Compares the coordination numbers of multiple solutions.
+
+    Parameters
+    ----------
+    solutions : a list of Solution objects
+    series : Boolean
+    ignore : list of strings of solvent names to be ignored
+
+    Returns
+    -------
+    fig : Plotly.Figure
+
+    """
+    residence = [solution.residence.residence_times for solution in solutions]
+    residence = ignore_solvents(residence, ignore)
+    return compare_solvent_dicts(residence, series)
 
 
 def compare_solute_status(solutions):
