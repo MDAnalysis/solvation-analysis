@@ -2,19 +2,22 @@
 ================
 Analysis Library
 ================
-:Author: Orion Cohen, Tingzheng Hou
+:Author: Orion Cohen, Tingzheng Hou, Kara Fong
 :Year: 2021
 :Copyright: GNU Public License v3
 
 Analysis library defines a variety of classes that analyze different aspects of solvation.
-These classes are all instantiated with the solvation_data (pandas.DataFrame) generated
+These classes are all instantiated with the solvation_data generated
 from the Solution class.
 
-While the classes in analysis_library can be used in isolation, they are meant to be used
+While the classes in ``analysis_library`` can be used in isolation, they are meant to be used
 as attributes of the Solution class. This makes instantiating them and calculating the
 solvation data a non-issue.
 """
 import collections
+import math
+import warnings
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -77,6 +80,26 @@ class Speciation:
         self.speciation_data, self.speciation_percent = self._compute_speciation()
         self.co_occurrence = self._solvent_co_occurrence()
 
+    @staticmethod
+    def from_solution(solution):
+        """
+        Generate a Speciation object from a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+
+        Returns
+        -------
+        Pairing
+        """
+        assert solution.has_run, "The solution must be run before calling from_solution"
+        return Speciation(
+            solution.solvation_data,
+            solution.n_frames,
+            solution.n_solute,
+        )
+
     def _compute_speciation(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         counts_re = counts.reset_index(["res_name"])
@@ -90,9 +113,9 @@ class Speciation:
         return speciation_data, speciation_percent
 
     @classmethod
-    def _average_speciation(cls, speciation_frames, solute_number, frame_number):
-        averages = speciation_frames.sum(axis=1) / (solute_number * frame_number)
-        return averages
+    def _mean_speciation(cls, speciation_frames, solute_number, frame_number):
+        means = speciation_frames.sum(axis=1) / (solute_number * frame_number)
+        return means
 
     def shell_percent(self, shell_dict):
         """
@@ -239,7 +262,7 @@ class Coordination:
     number of mol1 is 3.2, there are on average 3.2 mol1 residues within the solvation
     distance of each solute.
 
-    The coordination numbers are made available as an average over the whole
+    The coordination numbers are made available as an mean over the whole
     simulation and by frame.
 
     Parameters
@@ -255,13 +278,11 @@ class Coordination:
     ----------
     cn_dict : dict of {str: float}
         a dictionary where keys are residue names (str) and values are the
-        average coordination number of that residue (float).
+        mean coordination number of that residue (float).
     cn_by_frame : pd.DataFrame
-        a dictionary tracking the average coordination number of each
-        residue across frames.
+        a DataFrame of the mean coordination number of in each frame of the trajectory.
     coordinating_atoms : pd.DataFrame
-        percent of each atom_type participating in solvation, calculated
-         for each solvent.
+        percent of each atom_type participating in solvation, calculated for each solvent.
 
     Examples
     --------
@@ -280,11 +301,32 @@ class Coordination:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.cn_dict, self.cn_by_frame = self._average_cn()
+        self.cn_dict, self.cn_by_frame = self._mean_cn()
         self.atom_group = atom_group
         self.coordinating_atoms = self._calculate_coordinating_atoms()
 
-    def _average_cn(self):
+    @staticmethod
+    def from_solution(solution):
+        """
+        Generate a Coordination object from a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+
+        Returns
+        -------
+        Pairing
+        """
+        assert solution.has_run, "The solution must be run before calling from_solution"
+        return Coordination(
+            solution.solvation_data,
+            solution.n_frames,
+            solution.n_solute,
+            solution.u.atoms,
+        )
+
+    def _mean_cn(self):
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         cn_series = counts.groupby(["res_name", "frame"]).sum() / (
                 self.n_solutes * self.n_frames
@@ -326,7 +368,7 @@ class Pairing:
     ANY solvent with matching type. So if the pairing of mol1 is 0.5, then 50% of
     solutes are coordinated with at least 1 mol1.
 
-    The pairing percentages are made available as an average over the whole
+    The pairing percentages are made available as an mean over the whole
     simulation and by frame.
 
     Parameters
@@ -346,11 +388,18 @@ class Pairing:
         a dictionary where keys are residue names (str) and values are the
         percentage of solutes that contain that residue (float).
     pairing_by_frame : pd.DataFrame
-        a dictionary tracking the average percentage of each
-        residue across frames.
+        a dictionary tracking the mean percentage of each residue across frames.
     percent_free_solvents : dict of {str: float}
         a dictionary containing the percent of each solvent that is free. e.g.
         not coordinated to a solute.
+    diluent_dict : dict of {str: float}
+        the fraction of the diluent constituted by each solvent. The diluent is
+        defined as everything that is not coordinated with the solute.
+    diluent_by_frame : pd.DataFrame
+        a DataFrame of the diluent composition in each frame of the trajectory.
+    diluent_counts : pd.DataFrame
+        a DataFrame of the raw solvent counts in the diluent in each frame of the trajectory.
+
 
     Examples
     --------
@@ -371,14 +420,35 @@ class Pairing:
         self.solvent_counts = n_solvents
         self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
         self.percent_free_solvents = self._percent_free_solvent()
-        self.diluent_composition, self.diluent_by_frame = self._diluent_composition()
+        self.diluent_dict, self.diluent_by_frame, self.diluent_counts = self._diluent_composition()
+
+    @staticmethod
+    def from_solution(solution):
+        """
+        Generate a Pairing object from a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+
+        Returns
+        -------
+        Pairing
+        """
+        assert solution.has_run, "The solution must be run before calling from_solution"
+        return Pairing(
+            solution.solvation_data,
+            solution.n_frames,
+            solution.n_solute,
+            solution.solvent_counts
+        )
 
     def _percent_coordinated(self):
         # calculate the percent of solute coordinated with each solvent
         counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
         pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
             self.n_solutes
-        )  # average coordinated overall
+        )  # mean coordinated overall
         pairing_by_frame = pairing_series.unstack()
         pairing_normalized = pairing_series / self.n_frames
         pairing_dict = pairing_normalized.groupby(["res_name"]).sum().to_dict()
@@ -397,9 +467,11 @@ class Pairing:
         solvent_counts = pd.Series(self.solvent_counts)
         total_solvents = solvent_counts.reindex(coordinated_solvents.index, level=1)
         diluent_solvents = total_solvents - coordinated_solvents
-        diluent_by_frame = diluent_solvents / diluent_solvents.groupby(['frame']).sum()
-        diluent_composition = diluent_by_frame.groupby(['res_name']).mean().to_dict()
-        return diluent_composition, diluent_by_frame
+        diluent_series = diluent_solvents / diluent_solvents.groupby(['frame']).sum()
+        diluent_by_frame = diluent_series.unstack().T
+        diluent_counts = diluent_solvents.unstack().T
+        diluent_dict = diluent_by_frame.mean(axis=1).to_dict()
+        return diluent_dict, diluent_by_frame, diluent_counts
 
 
 class Residence:
@@ -411,22 +483,53 @@ class Residence:
     has 1000 frames over 1 nanosecond, then each frame will be 1 picosecond.
     Thus a residence time of 100 would translate to 100 picoseconds.
 
-    To do this, it finds the solute-solvent autocorrelation function for each
-    solute-solvent pair, averages over the solvents of each type, and fits an
-    exponential function to the decay. The decay constant of this exponential
-    function is the residence time of the solvent.
+    Two residence time implementations are available. Both calculate the
+    solute-solvent autocorrelation function for each solute-solvent pair,
+    take and take the mean over the solvents of each type, this should yield
+    an exponentially decaying autocorrelation function.
+
+    The first implementation fits an exponential curve to the autocorrelation
+    function and extract the time constant, which is inversely proportional to the
+    residence time. This result is saved in the ``residence_times_fit`` attribute.
+    Unfortunately, the fit often fails to converge (value is set to np.nan),
+    making this method unreliable.
+
+    Instead, the default implementation is to simply find point where the
+    value of the autocorrelation function is 1/e, which is the time constant
+    of an exact exponential. These values are saved in ``residence_times``.
+
+    It is recommended that the user visually inspect the autocorrelation function
+    with ``Residence.plot_autocorrelation_function`` to ensure an approximately
+    exponential decay. The residence times are only valid insofar as the autocorrelation
+    function resembles an exact exponential, it should decays to zero with a long tail.
+    If the exponential does not decay to zero or its slope does not level off, increasing
+    the simulation time may help. For this technique to be appropriate, the simulation time
+    should exceed the residence time.
+
+    A fuller description of the method can be found in
+    `Self, Fong, and Persson <https://pubs-acs-org.libproxy.berkeley.edu/doi/full/10.1021/acsenergylett.9b02118>`_
 
     Parameters
     ----------
     solvation_data : pandas.DataFrame
         The solvation data frame output by Solution.
+    step : int
+        The spacing of frames in solvation_data. This should be equal
+        to solution.step.
 
     Attributes
     ----------
     residence_times : dict of {str: float}
-        a dictionary where keys are residue names (str) and values are the
-        residence times of the that residue on the solute (float).
+        a dictionary where keys are residue names and values are the
+        residence times of the that residue on the solute, calculated
+        with the 1/e cutoff method.
+    residence_times_fit : dict of {str: float}
+        a dictionary where keys are residue names and values are the
+        residence times of the that residue on the solute, calculated
+        with the exponential fit method.
     fit_parameters : pd.DataFrame
+        a dictionary where keys are residue names and values are the
+        arameters for the exponential fit to the autocorrelation function.
 
     Examples
     --------
@@ -440,9 +543,15 @@ class Residence:
         {'BN': 4.02, 'FEC': 3.79, 'PF6': 1.15}
     """
 
-    def __init__(self, solvation_data):
+    def __init__(self, solvation_data, step):
         self.solvation_data = solvation_data
-        self.residence_times, self.fit_parameters = self._calculate_residence_coordination()
+        self.auto_covariances = self._calculate_auto_covariance_dict()
+        self.residence_times = self._calculate_residence_times_with_cutoff(self.auto_covariances, step)
+        self.residence_times_fit, self.fit_parameters = self._calculate_residence_times_with_fit(
+            self.auto_covariances,
+            step
+        )
+
 
     @staticmethod
     def from_solution(solution):
@@ -460,25 +569,89 @@ class Residence:
         assert solution.has_run, "The solution must be run before calling from_solution"
         return Residence(
             solution.solvation_data,
+            solution.step
         )
 
-    def _calculate_residence_coordination(self):
-        # calculate the residence times
+    def _calculate_auto_covariance_dict(self):
         frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
-        residence_times = {}
-        fit_parameters = {}
+        auto_covariance_dict = {}
         for res_name, res_solvation_data in self.solvation_data.groupby(['res_name']):
             adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
-            res_time, params = Residence._calculate_residence_time(auto_covariance)
-            residence_times[res_name], fit_parameters[res_name] = res_time, params
+            # normalize
+            auto_covariance = auto_covariance / np.max(auto_covariance)
+            auto_covariance_dict[res_name] = auto_covariance
+        return auto_covariance_dict
+
+    @staticmethod
+    def _calculate_residence_times_with_cutoff(auto_covariances, step, convergence_cutoff=0.1):
+        residence_times = {}
+        for res_name, auto_covariance in auto_covariances.items():
+            if np.min(auto_covariance) > convergence_cutoff:
+                residence_times[res_name] = np.nan
+                warnings.warn(f'the autocovariance for {res_name} does not converge to zero '
+                              'so a residence time cannot be calculated. A longer simulation '
+                              'is required to get a valid estimate of the residence time.')
+            unassigned = True
+            for frame, val in enumerate(auto_covariance):
+                if val < 1 / math.e:
+                    residence_times[res_name] = frame * step
+                    unassigned = False
+                    break
+            if unassigned:
+                residence_times[res_name] = np.nan
+        return residence_times
+
+    @staticmethod
+    def _calculate_residence_times_with_fit(auto_covariances, step):
+        # calculate the residence times
+        residence_times = {}
+        fit_parameters = {}
+        for res_name, auto_covariance in auto_covariances.items():
+            res_time, params = Residence._fit_exponential(auto_covariance, res_name)
+            residence_times[res_name], fit_parameters[res_name] = res_time * step, params
         return residence_times, fit_parameters
+
+    def plot_auto_covariance(self, res_name):
+        """
+        Plot the autocovariance of a solvent on the solute.
+
+        See the discussion in the class docstring for more information.
+
+        Parameters
+        ----------
+        res_name : str
+            the name of a solvent in the solution.
+
+        Returns
+        -------
+        fig : matplotlib.Figure
+        ax : matplotlib.Axes
+        """
+        auto_covariance = self.auto_covariances[res_name]
+        frames = np.arange(len(auto_covariance))
+        params = self.fit_parameters[res_name]
+        exp_func = lambda x: self._exponential_decay(x, *params)
+        exp_fit = np.array(map(exp_func, frames))
+        fig, ax = plt.subplots()
+        ax.plot(frames, auto_covariance, "b-", label="auto covariance")
+        try:
+            ax.scatter(frames, exp_fit, label="exponential fit")
+        except:
+            warnings.warn(f'The fit for {res_name} failed so the exponential '
+                          f'fit will not be plotted.')
+        ax.hlines(y=1/math.e, xmin=frames[0], xmax=frames[-1], label='1/e cutoff')
+        ax.set_xlabel("Timestep (frames)")
+        ax.set_ylabel("Normalized Autocovariance")
+        ax.set_ylim(0, 1)
+        ax.legend()
+        return fig, ax
 
     @staticmethod
     def _exponential_decay(x, a, b, c):
         """
-        An exponential decay function
+        An exponential decay function.
 
         Args:
             x: Independent variable.
@@ -492,10 +665,8 @@ class Residence:
         return a * np.exp(-b * x) + c
 
     @staticmethod
-    def _calculate_residence_time(auto_covariance):
-        # Exponential fit of solvent-Li ACF
+    def _fit_exponential(auto_covariance, res_name):
         auto_covariance_norm = auto_covariance / auto_covariance[0]
-        # TODO: add cutoff time?
         try:
             params, param_covariance = curve_fit(
                 Residence._exponential_decay,
@@ -505,13 +676,14 @@ class Residence:
             )
             tau = 1 / params[1]  # p
         except RuntimeError:
+            warnings.warn(f'The fit for {res_name} failed so its values in'
+                          f'residence_time_fits and fit_parameters will be'
+                          f'set to np.nan.')
             tau, params = np.nan, (np.nan, np.nan, np.nan)
         return tau, params
 
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
-        # TODO: plot decay curve
-        # TODO: switch to a 1/e based implementation
         auto_covariances = []
         for solute_ix, df in adjacency_matrix.groupby(['solvated_atom']):
             non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
@@ -529,6 +701,23 @@ class Residence:
 
     @staticmethod
     def calculate_adjacency_dataframe(solvation_data):
+        """
+        Calculate a frame-by-frame adjacency matrix from the solvation data.
+
+        This will calculate the adjacency matrix of the solute and all possible
+        solvents. It will maintain an index of ['frame', 'solvated_atom', 'res_ix']
+        where each 'frame' is a sparse adjacency matrix between solvated atom ix
+        and residue ix.
+
+        Parameters
+        ----------
+        solvation_data : pd.DataFrame
+            the solvation_data from a Solution.
+
+        Returns
+        -------
+        adjacency_df : pandas.DataFrame
+        """
         # generate an adjacency matrix from the solvation data
         adjacency_group = solvation_data.groupby(['frame', 'solvated_atom', 'res_ix'])
         adjacency_df = adjacency_group['dist'].count().unstack(fill_value=0)
@@ -552,6 +741,8 @@ class Networking:
 
     Parameters
     ----------
+    solvents : str or list[str]
+        the solvents to include in the solute-solvent network.
     solvation_data : pandas.DataFrame
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix".
@@ -584,8 +775,6 @@ class Networking:
         as described above, except organized into a dataframe where each
         row is a unique frame and the columns are "alone", "paired", and "in_network".
 
-    # TODO: consider transposing all other x_by_frame attributes to match this one
-
     Examples
     --------
      .. code-block:: python
@@ -595,15 +784,16 @@ class Networking:
         >>> networking = Networking.from_solution(solution, 'PF6')
     """
 
-    def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map, n_solute):
-        # TODO: add low temp solvation data to test clustering more effectively
+    def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
         self.solvents = solvents
         self.solvation_data = solvation_data
+        solvent_present = np.isin(self.solvents, self.solvation_data['res_name'].unique())
+        if not solvent_present.all():
+            raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
         self.solute_res_ix = solute_res_ix
         self.res_name_map = res_name_map
         self.n_solute = len(solute_res_ix)
         self.network_df = self._generate_networks()
-        # TODO: calculate statistics on network_df
         self.network_sizes = self._calculate_network_sizes()
         self.solute_status, self.solute_status_by_frame = self._calculate_solute_status()
         self.solute_status = self.solute_status.to_dict()
@@ -631,7 +821,6 @@ class Networking:
             solution.solvation_data,
             solution.solute_res_ix,
             solution.res_name_map,
-            solution.n_solute
         )
 
     @staticmethod
@@ -654,8 +843,7 @@ class Networking:
         3. tabulate the res_ix involved in each network and store in a DataFrame
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
-        # TODO, make this fail loudly if solvents are not present
-        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, self.solvents)]
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, solvents)]
         # reindex solvated_atom to residue indexes
         reindexed_subset = solvation_subset.reset_index(level=1)
         reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom]
@@ -685,7 +873,6 @@ class Networking:
                 ix_to_res_ix,  # res index
             ]).T
             network_arrays.append(network_array)
-            # TODO: reshape all the network into a dataframe?
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
@@ -717,7 +904,7 @@ class Networking:
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame
 
-    def get_cluster_res_ix(self, network_index, frame):
+    def get_network_res_ix(self, network_index, frame):
         """
         Return the indexes of all residues in a selected network.
 
@@ -743,7 +930,7 @@ class Networking:
             # first define Li, BN, and FEC AtomGroups
             >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
             >>> networking = Networking.from_solution(solution, 'PF6')
-            >>> res_ix = networking.get_cluster_res_ix(1, 5)
+            >>> res_ix = networking.get_network_res_ix(1, 5)
             >>> solution.u.residues[res_ix].atoms
             <AtomGroup with 126 Atoms>
 

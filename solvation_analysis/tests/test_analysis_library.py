@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 
 from solvation_analysis.analysis_library import (
@@ -8,6 +9,10 @@ from solvation_analysis.analysis_library import (
     Residence,
     Networking,
 )
+
+def test_speciation_from_solution(run_solution):
+    speciation = Speciation.from_solution(run_solution)
+    assert len(speciation.speciation_data) == 490
 
 
 @pytest.mark.parametrize(
@@ -60,6 +65,11 @@ def test_plot_co_occurrence(solvation_data):
     # fig.show()
 
 
+def test_coordination_from_solution(run_solution):
+    coordination = Coordination.from_solution(run_solution)
+    assert len(coordination.cn_dict) == 3
+
+
 @pytest.mark.parametrize(
     "name, cn",
     [
@@ -90,6 +100,11 @@ def test_coordinating_atoms(name, atom_type, percent, solvation_data, run_soluti
     np.testing.assert_allclose(percent, calculated_percent, atol=0.05)
 
 
+def test_pairing_from_solution(run_solution):
+    pairing = Pairing.from_solution(run_solution)
+    assert len(pairing.pairing_dict) == 3
+    assert len(pairing.percent_free_solvents) == 3
+
 @pytest.mark.parametrize(
     "name, percent",
     [
@@ -100,7 +115,7 @@ def test_coordinating_atoms(name, atom_type, percent, solvation_data, run_soluti
 )
 def test_pairing_dict(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
-    np.testing.assert_allclose([percent], pairing.pairing_dict[name], atol=0.05)
+    np.testing.assert_allclose(percent, pairing.pairing_dict[name], atol=0.05)
     assert len(pairing.pairing_by_frame) == 3
 
 
@@ -114,40 +129,87 @@ def test_pairing_dict(name, percent, solvation_data):
 )
 def test_pairing_free_solvents(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
-    np.testing.assert_allclose([percent], pairing.percent_free_solvents[name], atol=0.05)
+    np.testing.assert_allclose(percent, pairing.percent_free_solvents[name], atol=0.05)
 
 
-def test_diluent_composition():
-    # TODO: implement real test
-    return
+@pytest.mark.parametrize(
+    "name, diluent_percent",
+    [
+        ("fec", 0.54),
+        ("bn", 0.36),
+        ("pf6", 0.10),
+    ],
+)
+def test_diluent_composition(name, diluent_percent, solvation_data):
+    pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
+    np.testing.assert_allclose(diluent_percent, pairing.diluent_dict[name], atol=0.05)
+    np.testing.assert_allclose(sum(pairing.diluent_dict.values()), 1, atol=0.05)
 
 
-def test_residence_times(solvation_data):
-    residence = Residence(solvation_data)
-    # TODO: implement real testing
-    np.testing.assert_almost_equal(4.016, residence.residence_times['bn'], 3)
-    return
+def test_residence_from_solution(run_solution):
+    residence = Residence.from_solution(run_solution)
+    assert len(residence.residence_times) == 3
+    assert len(residence.residence_times_fit) == 3
 
 
-def test_network_finder(run_solution):
-    networking = Networking.from_solution(run_solution, ['pf6'])
-    network_df = networking.network_df
-    assert len(network_df) == 128
-    # TODO: implement real testing
-    res_ix = networking.get_cluster_res_ix(0, 0)
-    run_solution.u.residues[res_ix.astype(int)].atoms
-    return
+@pytest.fixture(scope='module')
+def residence(solvation_data_sparse):
+    return Residence(solvation_data_sparse, step=10)
 
 
-def test_timing_benchmark(solvation_data_large):
-    """
-    # total timing of 1.07 seconds!!! wooo!!!
-    # not bad!
-    """
-    import time
-    start = time.time()
-    residence = Residence(solvation_data_large)
-    times = residence.residence_times
-    total_time = time.time() - start
-    print(total_time)
-    return
+@pytest.mark.parametrize(
+    "name, res_time",
+    [
+        ("fec", 10),
+        ("bn", 80),
+        ("pf6", np.nan),
+    ],
+)
+def test_residence_times(name, res_time, residence):
+    np.testing.assert_almost_equal(residence.residence_times[name], res_time, 3)
+
+
+@pytest.mark.parametrize("name", ['fec', 'bn', 'pf6'])
+def test_plot_auto_covariance(name, residence):
+    residence.plot_auto_covariance(name)
+
+
+def test_residence_time_warning(solvation_data_sparse):
+    # we step through the data frame to speed up the tests
+    with pytest.warns(UserWarning, match="the autocovariance for pf6 does not converge"):
+        Residence(solvation_data_sparse, step=10)
+
+
+def test_networking_from_solution(run_solution):
+    networking = Networking.from_solution(run_solution, 'pf6')
+    assert len(networking.network_df) == 128
+
+
+@pytest.fixture(scope='module')
+def networking(run_solution):
+    return Networking.from_solution(run_solution, 'pf6')
+
+
+@pytest.mark.parametrize(
+    "status, percent",
+    [
+        ('alone', 0.876),
+        ('paired', 0.112),
+        ('in_network', 0.012),
+    ],
+)
+def test_get_cluster_res_ix(status, percent, networking):
+    np.testing.assert_almost_equal(networking.solute_status[status], percent, 3)
+
+
+@pytest.mark.parametrize(
+    "network_ix, frame, n_res",
+    [
+        (0, 0, 3),
+        (5, 1, 2),
+        (1, 8, 3),
+    ],
+)
+def test_get_network_res_ix(network_ix, frame, n_res, networking):
+    res_ix = networking.get_network_res_ix(network_ix, frame)
+    assert len(res_ix) == n_res
