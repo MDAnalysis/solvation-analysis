@@ -125,6 +125,7 @@ def compare_solvent_dicts(property, series):
     -------
 
     """
+    # improve with four different graph settings (line/chart/solute/solvent)
     fig = go.Figure()
     if series:
         for solution in property:
@@ -160,24 +161,8 @@ def compare_pairing(solutions, series=False, ignore=None):
     """
     # you can also do kwargs instead of writing out all the keywords
     pairing = [solution.pairing.pairing_dict for solution in solutions]
-    pairing = ignore_solvents(pairing, ignore)
+    pairing = set(pairing) - set(ignore)
     return compare_solvent_dicts(pairing, series)
-
-def ignore_solvents(all_solvents, ignore):
-    # maybe dissolve into oneliners for each compare function
-    """
-    Removes solvents that are to be ignored for analysis
-    Parameters
-    ----------
-    all_solvents : a list of dictionaries of solvent properties
-    ignore : a list of strings of solvent names to be ignored
-
-    Returns
-    -------
-    all_solvents : new and improved after removing the ignored solvents
-
-    """
-    return list(set(all_solvents) - set(ignore)) # maybe you don't have to
 
 def compare_coordination_numbers(solutions, series=False, ignore=None):
     # this should be a stacked bar chart, horizontal?
@@ -187,6 +172,8 @@ def compare_coordination_numbers(solutions, series=False, ignore=None):
     Parameters
     ----------
     solutions : a list of Solution objects
+    series : Boolean (False when a line chart is not wanted)
+    ignore : list of strings of solvent names to ignore
 
     Returns
     -------
@@ -194,7 +181,7 @@ def compare_coordination_numbers(solutions, series=False, ignore=None):
 
     """
     coordination = [solution.coordination.cn_dict for solution in solutions]
-    coordination = ignore_solvents(coordination, ignore)
+    coordination = set(coordination) - set(ignore)
     return compare_solvent_dicts(coordination, series)
 
 def compare_coordination_to_random(solutions):
@@ -221,7 +208,7 @@ def compare_residence_times(solutions, series=False, ignore=None):
 
     """
     residence = [solution.residence.residence_times for solution in solutions]
-    residence = ignore_solvents(residence, ignore)
+    residence = set(residence) - set(ignore)
     return compare_solvent_dicts(residence, series)
 
 
@@ -232,8 +219,9 @@ def compare_solute_status(solutions):
     return
 
 def compare_speciation(solutions, series=True):
-    # stacked bars
+    # stacked bars, grouped or stacked
     # or square areas?
+
     return
 
 

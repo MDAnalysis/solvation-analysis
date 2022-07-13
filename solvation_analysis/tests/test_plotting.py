@@ -16,3 +16,5 @@ def test_plot_shell_size_histogram(run_solution):
     fig = plot_shell_size_histogram(run_solution)
     fig.show()
     assert True
+
+# write tests for the comparison functions!!!
