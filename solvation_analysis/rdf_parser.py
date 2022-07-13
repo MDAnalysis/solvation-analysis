@@ -142,6 +142,11 @@ def good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
     Uses several heuristics to determine if the a solvation cutoff is valid
     solvation cutoff. This fails if there is no solvation shell.
 
+    Heuristics:
+      -  trough follows peak
+      -  in `Solution.cutoff_region` (specified by kwarg)
+      -  normalized peak height > 0.05
+
     Parameters
     ----------
     cutoff_region : tuple
