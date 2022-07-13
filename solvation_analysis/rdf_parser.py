@@ -137,7 +137,7 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
         return True
 
 
-def good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
+def good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins):
     """
     Uses several heuristics to determine if the a solvation cutoff is valid
     solvation cutoff. This fails if there is no solvation shell.
@@ -151,6 +151,8 @@ def good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
     ----------
     cutoff_region : tuple
         boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
+    min_trough_depth : float
+        the minimum depth of a trough to be considered a valid solvation cutoff
     peaks : np.array
         the indices of the peaks in the bins array
     troughs : np.array
@@ -168,19 +170,13 @@ def good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
         len(peaks) == 0 or len(troughs) == 0  # insufficient critical points
         or troughs[0] < peaks[0]  # not a min and max
         or not (cutoff_region[0] < bins[troughs[0]] < cutoff_region[1])  # min not in cutoff
-        or abs(rdf[peaks[0]] - rdf[troughs[0]]) < 0.05  # peak too small TODO: improve this!
+        or abs(rdf[peaks[0]] - rdf[troughs[0]]) < min_trough_depth  # peak too small
     ):
         return False
-    else:
-        return True
+    return True
 
 
-def scipy_find_peaks_troughs(
-    bins,
-    rdf,
-    return_rdf=False,
-    **kwargs
-):
+def scipy_find_peaks_troughs(bins, rdf, return_rdf=False, **kwargs):
     """
     Finds the indices of the peaks and troughs of an RDF.
 
@@ -208,7 +204,9 @@ def scipy_find_peaks_troughs(
         peaks (np.array), troughs (np.array), smoothed_rdf (np.array)
 
     """
-    norm_rdf = rdf / np.max(rdf)  # normalize rdf
+    # normalize rdf
+    norm_rdf = rdf / np.max(rdf)
+    # this will set window_width to an odd number of bins that spans ~ 1.5 A
     bin_distance = bins[1] - bins[0]
     window_width = np.ceil(1.5 / bin_distance) // 2 * 2 + 1
     convolution = gaussian(window_width, 1.1)
@@ -218,6 +216,56 @@ def scipy_find_peaks_troughs(
     if return_rdf:
         return peaks, troughs, smooth_rdf * np.max(rdf)
     return peaks, troughs
+
+
+def identify_cutoff_scipy(
+    bins,
+    rdf,
+    cutoff_region=(1.5, 4),
+    failure_behavior="warn",
+    min_trough_depth = 0.05,
+    **kwargs
+):
+    """
+    Identifies the solvation cutoff of an RDF.
+
+    This function is a thin wrapper on scipy_find_peaks_trough, see the documentation
+    of that function for more detail. It applies a few simple heuristics, specified in
+    good_cutoff_scipy, to determine if the solvation cutoff is valid.
+
+    Parameters
+    ----------
+    bins : np.array
+        the x-axis bins of the rdf
+    rdf : np.array
+        RDF data matching the bins
+    cutoff_region : tuple
+        boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
+    failure_behavior : str
+        specifies the behavior of the function if no solvation shell is found, can
+        be set to "silent", "warn", or "exception"
+    min_trough_depth : float
+        the minimum depth of a trough to be considered a valid solvation cutoff
+    kwargs : passed to the scipy.find_peaks function
+
+    Returns
+    -------
+    cutoff : float
+        the solvation cutoff of the RDF
+    """
+    peaks, troughs = scipy_find_peaks_troughs(bins, rdf, **kwargs)
+    if not good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins):
+        if failure_behavior == "silent":
+            return np.NaN
+        if failure_behavior == "warn":
+            warnings.warn("No solvation shell detected.")
+            return np.NaN
+        if failure_behavior == "exception":
+            raise RuntimeError("Solution could not identify a solvation radius for at least one solvent. "
+                               "Please enter the missing radii manually by adding them to the radii dict"
+                               "and rerun the analysis.")
+    cutoff = bins[troughs[0]]
+    return cutoff
 
 
 def plot_scipy_find_peaks_troughs(
@@ -256,53 +304,6 @@ def plot_scipy_find_peaks_troughs(
     ax.set_title("RDF minima using scipy.find_peaks")
     ax.legend()
     return fig, ax
-
-
-def identify_cutoff_scipy(
-    bins,
-    rdf,
-    failure_behavior="warn",
-    cutoff_region=(1.5, 4),
-    **kwargs
-):
-    """
-    Identifies the solvation cutoff of an RDF.
-
-    This function is a thin wrapper on scipy_find_peaks_trough, see the documentation
-    of that function for more detail. It applies a few simple heuristics, specified in
-    good_cutoff_scipy, to determine if the solvation cutoff is valid.
-
-    Parameters
-    ----------
-    bins : np.array
-        the x-axis bins of the rdf
-    rdf : np.array
-        RDF data matching the bins
-    failure_behavior : str
-        specifies the behavior of the function if no solvation shell is found, can
-        be set to "silent", "warn", or "exception"
-    cutoff_region : tuple
-        boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
-    kwargs : passed to the scipy.find_peaks function
-
-    Returns
-    -------
-    cutoff : float
-        the solvation cutoff of the RDF
-    """
-    peaks, troughs = scipy_find_peaks_troughs(bins, rdf, **kwargs)
-    if not good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
-        if failure_behavior == "silent":
-            return np.NaN
-        if failure_behavior == "warn":
-            warnings.warn("No solvation shell detected.")
-            return np.NaN
-        if failure_behavior == "exception":
-            raise RuntimeError("Solution could not identify a solvation radius for at least one solvent. "
-                               "Please enter the missing radii manually by adding them to the radii dict"
-                               "and rerun the analysis.")
-    cutoff = bins[troughs[0]]
-    return cutoff
 
 
 def identify_cutoff_poly(
