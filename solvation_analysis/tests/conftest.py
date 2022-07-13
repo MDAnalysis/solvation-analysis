@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from solvation_analysis.rdf_parser import identify_cutoff_poly
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
@@ -138,8 +139,13 @@ def pre_solution(atom_groups):
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec}, radii={'pf6': 2.8})
-
+    return Solution(
+        li,
+        {'pf6': pf6, 'bn': bn, 'fec': fec},
+        radii={'pf6': 2.8},
+        rdf_init_kwargs={"range": (0, 8.0)},
+        rdf_kernel=identify_cutoff_poly,
+    )
 
 @pytest.fixture(scope='function')
 def pre_solution_mutable(atom_groups):
@@ -147,7 +153,12 @@ def pre_solution_mutable(atom_groups):
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec})
+    return Solution(
+        li,
+        {'pf6': pf6, 'bn': bn, 'fec': fec},
+        rdf_init_kwargs={"range": (0, 8.0)},
+        rdf_kernel=identify_cutoff_poly,
+    )
 
 
 @pytest.fixture(scope='module')
