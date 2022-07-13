@@ -175,7 +175,7 @@ class Solution(AnalysisBase):
                 self.solvent_counts[name] = len(solvents[name].residues)
         self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
-        self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
+        self.rdf_init_kwargs = {"range": (0, 7.5)} if rdf_init_kwargs is None else rdf_init_kwargs
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
         self.has_run = False
         self.u = solute.universe
