@@ -7,6 +7,7 @@ from solvation_analysis.rdf_parser import (
     identify_minima,
     interpolate_rdf,
     plot_interpolation_fit,
+    plot_scipy_find_peaks,
     identify_solvation_cutoff,
     identify_solvation_cutoff_2,
     good_cutoff,
@@ -68,11 +69,6 @@ def test_identify_minima_first_min(rdf_tag, test_min, rdf_bins_and_data_easy):
     np.testing.assert_allclose(test_min, min, atol=0.01)
 
 
-# def test_identify_minima_second_min(rdf_tag, test_min, rdf_bins_and_data_easy):
-#     # later on this should test the identification of a second minimum
-#     return
-
-
 @pytest.mark.parametrize(
     "cutoff_region, cr_pts, cr_vals, expected",
     [
@@ -102,7 +98,6 @@ def test_identify_solvation_cutoff_easy(
     rdf_tag, cutoff, rdf_bins_and_data_easy, rdf_bins_and_data_hard
 ):
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
-    ez = identify_solvation_cutoff(bins, rdf, failure_behavior="warn")
     np.testing.assert_allclose(
         identify_solvation_cutoff(bins, rdf, failure_behavior="warn"),
         cutoff,
@@ -146,6 +141,27 @@ def test_identify_solvation_cutoff_hard(
         atol=0.1,
         equal_nan=True,
     )
+
+@pytest.mark.parametrize("rdf_tag", ["fec_F", "fec_all", "bn_all", "pf6_all", "pf6_F"])
+def test_identify_solvation_cutoff_2_hard(
+        rdf_tag, rdf_bins_and_data_easy, rdf_bins_and_data_hard
+):
+    bins_ez, rdf_ez = rdf_bins_and_data_easy[rdf_tag]
+    bins_hd, rdf_hd = rdf_bins_and_data_hard[rdf_tag]
+    np.testing.assert_allclose(
+        identify_solvation_cutoff_2(bins_hd, rdf_hd, failure_behavior="warn"),
+        identify_solvation_cutoff_2(bins_ez, rdf_ez, failure_behavior="warn"),
+        atol=0.2,
+        equal_nan=True,
+    )
+
+
+def test_pf6_fit(run_solution):
+    pf6_bins, pf6_data = run_solution.rdf_data["pf6"]
+    radius = identify_solvation_cutoff_2(pf6_bins, pf6_data, failure_behavior="warn"),
+    np.testing.assert_allclose(radius, 2.8, atol=0.2)
+    # fig, _ = plot_scipy_find_peaks(pf6_bins, pf6_data)
+    # fig.show()
 
 
 @pytest.mark.parametrize(
