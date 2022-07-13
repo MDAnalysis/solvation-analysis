@@ -15,7 +15,7 @@ from scipy.interpolate import UnivariateSpline
 import scipy
 import matplotlib.pyplot as plt
 import warnings
-from scipy.signal import find_peaks, savgol_filter
+from scipy.signal import find_peaks, gaussian
 
 
 def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
@@ -149,23 +149,35 @@ def good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
         return True
 
 
+def _scipy_find_peaks(
+    bins,
+    rdf,
+    return_rdf=False,
+    **kwargs
+):
+    norm_rdf = rdf / np.max(rdf)  # normalize rdf
+    bin_distance = bins[1] - bins[0]
+    window_width = np.ceil(1.5 / bin_distance) // 2 * 2 + 1
+    convolution = gaussian(window_width, 1.1)
+    smooth_rdf = np.convolve(norm_rdf, convolution / np.sum(convolution), mode="same")
+    troughs, _ = find_peaks(-smooth_rdf, **kwargs)
+    peaks, _ = find_peaks(smooth_rdf)
+    if return_rdf:
+        return peaks, troughs, smooth_rdf * np.max(rdf)
+    return peaks, troughs
+
+
 def plot_scipy_find_peaks(
     bins,
     rdf,
-    failure_behavior="warn",
-    cutoff_region=(1.5, 4),
     **kwargs,
 ):
-    rdf = rdf / np.max(rdf)  # normalize rdf
-    window_width = 3
-    smooth_rdf = np.convolve(rdf, np.ones(window_width) / window_width, mode="same")
-    troughs, _ = find_peaks(-smooth_rdf, **kwargs)
-    peaks, _ = find_peaks(smooth_rdf)
+    peaks, troughs, smooth_rdf = _scipy_find_peaks(bins, rdf, return_rdf=True, **kwargs)
     fig, ax = plt.subplots()
     ax.plot(bins, rdf, "b--", label="rdf")
     ax.plot(bins, smooth_rdf, "g-", label="smooth_rdf")
-    ax.plot(bins[troughs], smooth_rdf[troughs], "go", label="troughs")
-    ax.plot(bins[peaks], smooth_rdf[peaks], "ro", label="peaks")
+    ax.plot(bins[troughs], rdf[troughs], "go", label="troughs")
+    ax.plot(bins[peaks], rdf[peaks], "ro", label="peaks")
     ax.set_xlabel("Radial Distance (A)")
     ax.set_ylabel("Probability Density")
     ax.set_title("RDF minima using scipy.find_peaks")
@@ -201,12 +213,7 @@ def identify_solvation_cutoff_2(
     cutoff : float
         the solvation cutoff of the RDF
     """
-    rdf = rdf / np.max(rdf)  # normalize rdf
-    window_width = 3
-    smooth_rdf = np.convolve(rdf, np.ones(window_width) / window_width, mode="same")
-    troughs, _ = find_peaks(-smooth_rdf, **kwargs)
-    peaks, _ = find_peaks(smooth_rdf, **kwargs)
-    radii = bins[troughs[0]]
+    peaks, troughs = _scipy_find_peaks(bins, rdf, **kwargs)
     if not good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
         if failure_behavior == "silent":
             return np.NaN
@@ -217,7 +224,8 @@ def identify_solvation_cutoff_2(
             raise RuntimeError("Solution could not identify a solvation radius for at least one solvent. "
                                "Please enter the missing radii manually by adding them to the radii dict"
                                "and rerun the analysis.")
-    return radii
+    cutoff = bins[troughs[0]]
+    return cutoff
 
 
 def identify_solvation_cutoff(
