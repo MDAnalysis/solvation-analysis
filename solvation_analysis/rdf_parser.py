@@ -264,7 +264,8 @@ def identify_cutoff_scipy(
     Identifies the solvation cutoff of an RDF.
 
     This function is a thin wrapper on scipy_find_peaks_trough, see the documentation
-    of that function for more detail.
+    of that function for more detail. It applies a few simple heuristics, specified in
+    good_cutoff_scipy, to determine if the solvation cutoff is valid.
 
     Parameters
     ----------
