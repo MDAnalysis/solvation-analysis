@@ -7,7 +7,9 @@ from solvation_analysis.rdf_parser import (
     identify_minima,
     interpolate_rdf,
     plot_interpolation_fit,
-    identify_solvation_cutoff,
+    plot_scipy_find_peaks_troughs,
+    identify_cutoff_poly,
+    identify_cutoff_scipy,
     good_cutoff,
 )
 from scipy.interpolate import UnivariateSpline
@@ -67,11 +69,6 @@ def test_identify_minima_first_min(rdf_tag, test_min, rdf_bins_and_data_easy):
     np.testing.assert_allclose(test_min, min, atol=0.01)
 
 
-# def test_identify_minima_second_min(rdf_tag, test_min, rdf_bins_and_data_easy):
-#     # later on this should test the identification of a second minimum
-#     return
-
-
 @pytest.mark.parametrize(
     "cutoff_region, cr_pts, cr_vals, expected",
     [
@@ -97,31 +94,84 @@ def test_good_cutoff(cutoff_region, cr_pts, cr_vals, expected):
         ("pf6_F", 3.03),
     ],  # the above values are not real
 )
-def test_identify_solvation_cutoff_easy(
+def test_identify_cutoff_poly_easy(
     rdf_tag, cutoff, rdf_bins_and_data_easy, rdf_bins_and_data_hard
 ):
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
-    ez = identify_solvation_cutoff(bins, rdf, failure_behavior="warn")
     np.testing.assert_allclose(
-        identify_solvation_cutoff(bins, rdf, failure_behavior="warn"),
+        identify_cutoff_poly(bins, rdf, failure_behavior="warn"),
         cutoff,
         atol=0.01,
         equal_nan=True,
     )
 
+@pytest.mark.parametrize(
+    "rdf_tag, cutoff",
+    [
+        ("fec_F", np.NaN),
+        ("fec_O", 3.30),
+        ("fec_all", 2.74),
+        ("bn_all", 2.64),
+        ("bn_N", 3.5),
+        ("pf6_all", 2.77),
+        ("pf6_F", 3.03),
+    ],  # the above values are not real
+)
+def test_identify_cutoff_scipy_easy(
+    rdf_tag, cutoff, rdf_bins_and_data_easy, rdf_bins_and_data_hard
+):
+    bins, rdf = rdf_bins_and_data_easy[rdf_tag]
+    np.testing.assert_allclose(
+        identify_cutoff_scipy(bins, rdf, failure_behavior="warn"),
+        cutoff,
+        atol=0.2,
+        equal_nan=True,
+    )
 
 @pytest.mark.parametrize("rdf_tag", ["fec_F", "fec_all", "bn_all", "pf6_all", "pf6_F"])
-def test_identify_solvation_cutoff_hard(
+def test_identify_cutoff_poly_hard(
     rdf_tag, rdf_bins_and_data_easy, rdf_bins_and_data_hard
 ):
     bins_ez, rdf_ez = rdf_bins_and_data_easy[rdf_tag]
     bins_hd, rdf_hd = rdf_bins_and_data_hard[rdf_tag]
     np.testing.assert_allclose(
-        identify_solvation_cutoff(bins_hd, rdf_hd, failure_behavior="warn"),
-        identify_solvation_cutoff(bins_ez, rdf_ez, failure_behavior="warn"),
+        identify_cutoff_poly(bins_hd, rdf_hd, failure_behavior="warn"),
+        identify_cutoff_poly(bins_ez, rdf_ez, failure_behavior="warn"),
         atol=0.1,
         equal_nan=True,
     )
+
+@pytest.mark.parametrize("rdf_tag", ["fec_F", "fec_all", "bn_all", "pf6_all", "pf6_F"])
+def test_identify_scipy_hard(
+        rdf_tag, rdf_bins_and_data_easy, rdf_bins_and_data_hard
+):
+    bins_ez, rdf_ez = rdf_bins_and_data_easy[rdf_tag]
+    bins_hd, rdf_hd = rdf_bins_and_data_hard[rdf_tag]
+    np.testing.assert_allclose(
+        identify_cutoff_scipy(bins_hd, rdf_hd, failure_behavior="warn"),
+        identify_cutoff_scipy(bins_ez, rdf_ez, failure_behavior="warn"),
+        atol=0.2,
+        equal_nan=True,
+    )
+
+
+@pytest.mark.parametrize(
+    "rdf_tag",
+    ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"],
+)
+def test_plot_scripy_find_peaks_troughs(rdf_tag, rdf_bins_and_data_hard):
+    """This is essentially a visually confirmed regression test to ensure
+    behavior is approximately correct."""
+    bins, rdf = rdf_bins_and_data_hard[rdf_tag]
+    fig, ax = plot_scipy_find_peaks_troughs(bins, rdf)
+    ax.set_title(f"Find peaks of RDF: {rdf_tag}")
+    # plt.show()  # leave in, uncomment for debugging
+
+
+def test_identify_cutoff_scipy_pf6(run_solution):
+    pf6_bins, pf6_data = run_solution.rdf_data["pf6"]
+    radius = identify_cutoff_scipy(pf6_bins, pf6_data, failure_behavior="warn"),
+    np.testing.assert_allclose(radius, 2.8, atol=0.2)
 
 
 @pytest.mark.parametrize(
@@ -147,10 +197,15 @@ def test_identify_solvation_cutoff_hard(
         "pf6_F_fec_O",
     ],
 )
-def test_identify_solvation_cutoff_non_solv(rdf_tag, rdf_bins_and_data_non_solv):
+def test_identify_cutoff_non_solv(rdf_tag, rdf_bins_and_data_non_solv):
     bins, rdf = rdf_bins_and_data_non_solv[rdf_tag]
     np.testing.assert_allclose(
-        identify_solvation_cutoff(bins, rdf, failure_behavior="warn"),
+        identify_cutoff_poly(bins, rdf, failure_behavior="warn"),
+        np.NaN,
+        equal_nan=True,
+    )
+    np.testing.assert_allclose(
+        identify_cutoff_scipy(bins, rdf, failure_behavior="warn"),
         np.NaN,
         equal_nan=True,
     )
