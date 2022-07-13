@@ -149,12 +149,34 @@ def good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
         return True
 
 
-def _scipy_find_peaks(
+def scipy_find_peaks_troughs(
     bins,
     rdf,
     return_rdf=False,
     **kwargs
 ):
+    """
+    Finds the peaks and troughs of an RDF.
+
+    Parameters
+    ----------
+    bins : np.array
+        the x-axis bins of the rdf
+    rdf : np.array
+        RDF data matching the bins
+    return_rdf : bool
+        if True, returns the smoothed rdf after the peaks and troughs
+    kwargs : dict
+        passed to scipy.signal.find_peaks
+
+    Returns
+    -------
+    default
+        peaks (np.array), troughs (np.array)
+    if return_rdf
+        peaks (np.array), troughs (np.array), smoothed_rdf (np.array)
+
+    """
     norm_rdf = rdf / np.max(rdf)  # normalize rdf
     bin_distance = bins[1] - bins[0]
     window_width = np.ceil(1.5 / bin_distance) // 2 * 2 + 1
@@ -167,12 +189,29 @@ def _scipy_find_peaks(
     return peaks, troughs
 
 
-def plot_scipy_find_peaks(
+def plot_scipy_find_peaks_troughs(
     bins,
     rdf,
     **kwargs,
 ):
-    peaks, troughs, smooth_rdf = _scipy_find_peaks(bins, rdf, return_rdf=True, **kwargs)
+    """
+    Plot the original and smoothed RDF with the peaks and troughs located.
+
+    Parameters
+    ----------
+    bins : np.array
+        the x-axis bins of the rdf
+    rdf : np.array
+        RDF data matching the bins
+    kwargs : dict
+        passed to scipy.signal.find_peaks
+
+    Returns
+    -------
+    fig, ax : matplotlib pyplot Figure and Axis for the fit
+
+    """
+    peaks, troughs, smooth_rdf = scipy_find_peaks_troughs(bins, rdf, return_rdf=True, **kwargs)
     fig, ax = plt.subplots()
     ax.plot(bins, rdf, "b--", label="rdf")
     ax.plot(bins, smooth_rdf, "g-", label="smooth_rdf")
@@ -185,7 +224,7 @@ def plot_scipy_find_peaks(
     return fig, ax
 
 
-def identify_solvation_cutoff_2(
+def identify_cutoff_scipy(
     bins,
     rdf,
     failure_behavior="warn",
@@ -213,7 +252,7 @@ def identify_solvation_cutoff_2(
     cutoff : float
         the solvation cutoff of the RDF
     """
-    peaks, troughs = _scipy_find_peaks(bins, rdf, **kwargs)
+    peaks, troughs = scipy_find_peaks_troughs(bins, rdf, **kwargs)
     if not good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
         if failure_behavior == "silent":
             return np.NaN
@@ -228,7 +267,7 @@ def identify_solvation_cutoff_2(
     return cutoff
 
 
-def identify_solvation_cutoff(
+def identify_cutoff_poly(
     bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), floor=0.05, cutoff=5
 ):
     """

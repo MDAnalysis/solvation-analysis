@@ -29,7 +29,7 @@ from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
 import numpy as np
-from solvation_analysis.rdf_parser import identify_solvation_cutoff
+from solvation_analysis.rdf_parser import identify_cutoff_poly
 from solvation_analysis.analysis_library import (
     Coordination,
     Pairing,
@@ -173,7 +173,7 @@ class Solution(AnalysisBase):
         for name in solvents.keys():
             if name not in self.solvent_counts.keys():
                 self.solvent_counts[name] = len(solvents[name].residues)
-        self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
+        self.kernel = identify_cutoff_poly if rdf_kernel is None else rdf_kernel
         self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
         self.rdf_init_kwargs = {"range": (0, 7.5)} if rdf_init_kwargs is None else rdf_init_kwargs
         self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
