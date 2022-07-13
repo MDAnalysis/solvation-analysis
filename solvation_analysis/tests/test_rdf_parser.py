@@ -8,6 +8,7 @@ from solvation_analysis.rdf_parser import (
     interpolate_rdf,
     plot_interpolation_fit,
     identify_solvation_cutoff,
+    identify_solvation_cutoff_2,
     good_cutoff,
 )
 from scipy.interpolate import UnivariateSpline
@@ -109,6 +110,29 @@ def test_identify_solvation_cutoff_easy(
         equal_nan=True,
     )
 
+@pytest.mark.parametrize(
+    "rdf_tag, cutoff",
+    [
+        ("fec_F", np.NaN),
+        ("fec_O", 3.30),
+        ("fec_all", 2.74),
+        ("bn_all", 2.64),
+        ("bn_N", 3.42),
+        ("pf6_all", 2.77),
+        ("pf6_F", 3.03),
+    ],  # the above values are not real
+)
+def test_identify_solvation_cutoff_2_easy(
+    rdf_tag, cutoff, rdf_bins_and_data_easy, rdf_bins_and_data_hard
+):
+    bins, rdf = rdf_bins_and_data_easy[rdf_tag]
+    ez = identify_solvation_cutoff_2(bins, rdf, failure_behavior="warn")
+    np.testing.assert_allclose(
+        identify_solvation_cutoff_2(bins, rdf, failure_behavior="warn"),
+        cutoff,
+        atol=0.2,
+        equal_nan=True,
+    )
 
 @pytest.mark.parametrize("rdf_tag", ["fec_F", "fec_all", "bn_all", "pf6_all", "pf6_F"])
 def test_identify_solvation_cutoff_hard(
@@ -151,6 +175,11 @@ def test_identify_solvation_cutoff_non_solv(rdf_tag, rdf_bins_and_data_non_solv)
     bins, rdf = rdf_bins_and_data_non_solv[rdf_tag]
     np.testing.assert_allclose(
         identify_solvation_cutoff(bins, rdf, failure_behavior="warn"),
+        np.NaN,
+        equal_nan=True,
+    )
+    np.testing.assert_allclose(
+        identify_solvation_cutoff_2(bins, rdf, failure_behavior="warn"),
         np.NaN,
         equal_nan=True,
     )
