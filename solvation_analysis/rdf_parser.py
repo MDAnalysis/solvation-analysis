@@ -1,8 +1,21 @@
+"""
+================
+RDF Parser
+================
+:Author: Orion Cohen, Hugo MacDermott-Opeskin
+:Year: 2021
+:Copyright: GNU Public License v3
+
+RDF Parser defines several functions for finding the solvation cutoff
+from an RDF.
+"""
+
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 import scipy
 import matplotlib.pyplot as plt
 import warnings
+from scipy.signal import find_peaks, savgol_filter
 
 
 def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
@@ -122,6 +135,89 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
         return False
     else:
         return True
+
+
+def good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
+    if (
+        len(peaks) == 0 or len(troughs) == 0  # insufficient critical points
+        or troughs[0] < peaks[0]  # not a min and max
+        or not (cutoff_region[0] < bins[troughs[0]] < cutoff_region[1])  # min not in cutoff
+        or abs(rdf[peaks[0]] - rdf[troughs[0]]) < 0.05  # peak too small TODO: improve this!
+    ):
+        return False
+    else:
+        return True
+
+
+def plot_scipy_find_peaks(
+    bins,
+    rdf,
+    failure_behavior="warn",
+    cutoff_region=(1.5, 4),
+    **kwargs,
+):
+    rdf = rdf / np.max(rdf)  # normalize rdf
+    window_width = 3
+    smooth_rdf = np.convolve(rdf, np.ones(window_width) / window_width, mode="same")
+    troughs, _ = find_peaks(-smooth_rdf, **kwargs)
+    peaks, _ = find_peaks(smooth_rdf)
+    fig, ax = plt.subplots()
+    ax.plot(bins, rdf, "b--", label="rdf")
+    ax.plot(bins, smooth_rdf, "g-", label="smooth_rdf")
+    ax.plot(bins[troughs], smooth_rdf[troughs], "go", label="troughs")
+    ax.plot(bins[peaks], smooth_rdf[peaks], "ro", label="peaks")
+    ax.set_xlabel("Radial Distance (A)")
+    ax.set_ylabel("Probability Density")
+    ax.set_title("RDF minima using scipy.find_peaks")
+    ax.legend()
+    return fig, ax
+
+
+def identify_solvation_cutoff_2(
+    bins,
+    rdf,
+    failure_behavior="warn",
+    cutoff_region=(1.5, 4),
+    **kwargs
+):
+    """
+    Identifies the solvation cutoff of an RDF.
+
+    Parameters
+    ----------
+    bins : np.array
+        the x-axis bins of the rdf
+    rdf : np.array
+        RDF data matching the bins
+    failure_behavior : str
+        specifies the behavior of the function if no solvation shell is found, can
+        be set to "silent", "warn", or "exception"
+    cutoff_region : tuple
+        boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
+    kwargs : passed to the scipy.find_peaks function
+
+    Returns
+    -------
+    cutoff : float
+        the solvation cutoff of the RDF
+    """
+    rdf = rdf / np.max(rdf)  # normalize rdf
+    window_width = 3
+    smooth_rdf = np.convolve(rdf, np.ones(window_width) / window_width, mode="same")
+    troughs, _ = find_peaks(-smooth_rdf, **kwargs)
+    peaks, _ = find_peaks(smooth_rdf, **kwargs)
+    radii = bins[troughs[0]]
+    if not good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
+        if failure_behavior == "silent":
+            return np.NaN
+        if failure_behavior == "warn":
+            warnings.warn("No solvation shell detected.")
+            return np.NaN
+        if failure_behavior == "exception":
+            raise RuntimeError("Solution could not identify a solvation radius for at least one solvent. "
+                               "Please enter the missing radii manually by adding them to the radii dict"
+                               "and rerun the analysis.")
+    return radii
 
 
 def identify_solvation_cutoff(
