@@ -109,7 +109,7 @@ def plot_interpolation_fit(bins, rdf, **kwargs):
 
 def good_cutoff(cutoff_region, cr_pts, cr_vals):
     """
-    Identifies whether or not the interpolation method has identified a valid
+    Uses several heuristics to determine if the a solvation cutoff is valid
     solvation cutoff. This fails if there is no solvation shell.
 
     Parameters
@@ -138,6 +138,27 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
 
 
 def good_cutoff_scipy(cutoff_region, peaks, troughs, rdf, bins):
+    """
+    Uses several heuristics to determine if the a solvation cutoff is valid
+    solvation cutoff. This fails if there is no solvation shell.
+
+    Parameters
+    ----------
+    cutoff_region : tuple
+        boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
+    peaks : np.array
+        the indices of the peaks in the bins array
+    troughs : np.array
+        the indices of the troughs in the bins array
+    bins : np.array
+        the x-axis bins of the rdf
+    rdf : np.array
+        RDF data matching the bins
+    Returns
+    -------
+    boolean : True if good cutoff, False if bad cutoff
+
+    """
     if (
         len(peaks) == 0 or len(troughs) == 0  # insufficient critical points
         or troughs[0] < peaks[0]  # not a min and max
@@ -156,7 +177,12 @@ def scipy_find_peaks_troughs(
     **kwargs
 ):
     """
-    Finds the peaks and troughs of an RDF.
+    Finds the indices of the peaks and troughs of an RDF.
+
+    This function applies the following procedure to identify peaks.
+        1. normalize the RDF
+        2. apply a gaussian convolution (std=1.1) to the RDF
+        3. call scipy.signal.find_peaks on the RDF and -1*RDF to find the peaks and troughs, respectively.
 
     Parameters
     ----------
@@ -197,6 +223,9 @@ def plot_scipy_find_peaks_troughs(
     """
     Plot the original and smoothed RDF with the peaks and troughs located.
 
+    This function is a thin wrapper on scipy_find_peaks_trough, see the documentation
+    of that function for more detail.
+
     Parameters
     ----------
     bins : np.array
@@ -233,6 +262,9 @@ def identify_cutoff_scipy(
 ):
     """
     Identifies the solvation cutoff of an RDF.
+
+    This function is a thin wrapper on scipy_find_peaks_trough, see the documentation
+    of that function for more detail.
 
     Parameters
     ----------
