@@ -310,6 +310,7 @@ def identify_cutoff_poly(
     bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), floor=0.05, cutoff=5
 ):
     """
+    Identifies the solvation cutoff of an RDF using a polynomial interpolation.
 
     Parameters
     ----------
