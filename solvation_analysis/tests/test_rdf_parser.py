@@ -155,12 +155,23 @@ def test_identify_scipy_hard(
     )
 
 
+@pytest.mark.parametrize(
+    "rdf_tag",
+    ["fec_F", "fec_O", "fec_all", "bn_all", "bn_N", "pf6_all", "pf6_F"],
+)
+def test_plot_scripy_find_peaks_troughs(rdf_tag, rdf_bins_and_data_hard):
+    """This is essentially a visually confirmed regression test to ensure
+    behavior is approximately correct."""
+    bins, rdf = rdf_bins_and_data_hard[rdf_tag]
+    fig, ax = plot_scipy_find_peaks_troughs(bins, rdf)
+    ax.set_title(f"Find peaks of RDF: {rdf_tag}")
+    # plt.show()  # leave in, uncomment for debugging
+
+
 def test_identify_cutoff_scipy_pf6(run_solution):
     pf6_bins, pf6_data = run_solution.rdf_data["pf6"]
     radius = identify_cutoff_scipy(pf6_bins, pf6_data, failure_behavior="warn"),
     np.testing.assert_allclose(radius, 2.8, atol=0.2)
-    # fig, _ = plot_scipy_find_peaks(pf6_bins, pf6_data)
-    # fig.show()
 
 
 @pytest.mark.parametrize(
