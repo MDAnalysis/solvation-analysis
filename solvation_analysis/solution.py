@@ -91,10 +91,11 @@ class Solution(AnalysisBase):
         kwargs passed to rdf_kernel
     rdf_init_kwargs : dict, optional
         kwargs passed to the initialization of the MDAnalysis.InterRDF used to plot
-        the solute-solvent RDFs.
+        the solute-solvent RDFs. By default, ``range`` will be set to (0, 7.5).
     rdf_run_kwargs : dict, optional
         kwargs passed to the internal MDAnalysis.InterRDF.run() command
-        e.g. ``inner_rdf.run(**rdf_run_kwargs)``
+        e.g. ``inner_rdf.run(**rdf_run_kwargs)``. By default, step, start, and
+        stop will use any kwargs provided to ``solution.run(**kwargs)``.
     solute_name: str, optional
         the name of the solute, used for labeling.
     analysis_classes : List[str], optional
@@ -175,7 +176,7 @@ class Solution(AnalysisBase):
                 self.solvent_counts[name] = len(solvents[name].residues)
         self.kernel = rdf_kernel or identify_cutoff_scipy
         self.kernel_kwargs = kernel_kwargs or {}
-        self.rdf_init_kwargs = rdf_init_kwargs or {"range": (0, 7.5)}
+        self.rdf_init_kwargs = rdf_init_kwargs or {}
         self.rdf_run_kwargs = rdf_run_kwargs or {}
         self.has_run = False
         self.u = solute.universe
@@ -218,7 +219,11 @@ class Solution(AnalysisBase):
         )
         for name, solvent in self.solvents.items():
             # generate and save RDFs
+            self.rdf_init_kwargs["step"] = self.rdf_init_kwargs.get("step") or self.step
+            self.rdf_init_kwargs["start"] = self.rdf_init_kwargs.get("start") or self.start
+            self.rdf_init_kwargs["stop"] = self.rdf_init_kwargs.get("stop") or self.stop
             rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
+            self.rdf_run_kwargs["range"] = self.rdf_run_kwargs.get("range") or (0, 7.5)
             rdf.run(**self.rdf_run_kwargs)
             bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[name] = (bins, data)
