@@ -10,7 +10,7 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
     bn_fec_dcd_unwrap,
-    bn_fec_atom_types, polymer_pdb, polymer_dcd,
+    bn_fec_atom_types, polymer_pdb, polymer_dcd, eax_data,
 )
 from solvation_analysis.tests.datafiles import (
     easy_rdf_bins,
@@ -22,6 +22,7 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_solv_df_large,
 )
 from solvation_analysis.solution import Solution
+import pathlib
 
 
 def test_solvation_analysis_imported():
@@ -177,6 +178,29 @@ def u_polymer():
     u_pol.trajectory.add_transformations(set_dim)
     return u_pol
 
+
+@pytest.fixture(scope='module')
+def u_eax_series():
+    boxes = {
+        'ea': [45.760393, 45.760393, 45.760393, 90, 90, 90],
+        'eaf': [47.844380, 47.844380, 47.844380, 90, 90, 90],
+        'fea': [48.358954, 48.358954, 48.358954, 90, 90, 90],
+        'feaf': [50.023129, 50.023129, 50.023129, 90, 90, 90],
+    }
+    us = {}
+    for solvent_dir in pathlib.Path(eax_data).iterdir():
+        u_solv = mda.Universe(
+            str(solvent_dir / 'topology.pdb'),
+            str(solvent_dir / 'trajectory_equil.dcd')
+        )
+        # our dcd lacks dimensions so we must manually set them
+        box = boxes[solvent_dir.stem]
+        set_dim = transformations.boxdimensions.set_dimensions(box)
+        u_solv.trajectory.add_transformations(set_dim)
+        us[solvent_dir.stem] = u_solv
+    return us
+
+
 @pytest.fixture(scope='module')
 def polymer_atom_groups(u_polymer):
     H2O = u_polymer.select_atoms('resid 1:3640')
@@ -200,6 +224,7 @@ def polymer_atom_groups(u_polymer):
     oh_O_1 = trimer.select_atoms('smarts [OHX2]')
     dimethyl_C_1 = trimer.select_atoms('smarts [CH3]')
     return
+
 
 @pytest.fixture
 def solvation_results(run_solution):

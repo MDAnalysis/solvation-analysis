@@ -11,6 +11,8 @@ ea_fec_dcd = resource_filename(__name__, "data/ea_fec.dcd")
 ea_fec_pdb = resource_filename(__name__, "data/ea_fec.pdb")
 polymer_dcd = resource_filename(__name__, "data/polymer_short_wrap.dcd")
 polymer_pdb = resource_filename(__name__, "data/polymer_short_wrap.pdb")
+eax_data = resource_filename(__name__, "data/eax_data/")
+
 
 test_dir = Path(__file__).parent
 data_dir = test_dir / "data"
