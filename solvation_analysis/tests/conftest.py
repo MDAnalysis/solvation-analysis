@@ -4,12 +4,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from MDAnalysis import transformations
 from solvation_analysis.rdf_parser import identify_cutoff_poly
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
     bn_fec_dcd_unwrap,
-    bn_fec_atom_types,
+    bn_fec_atom_types, polymer_pdb, polymer_dcd,
 )
 from solvation_analysis.tests.datafiles import (
     easy_rdf_bins,
@@ -166,6 +167,39 @@ def run_solution(pre_solution):
     pre_solution.run(step=1)
     return pre_solution
 
+
+@pytest.fixture(scope='module')
+def u_polymer():
+    u_pol = mda.Universe(polymer_pdb, polymer_dcd)
+    # our dcd lacks dimensions so we must manually set them
+    box = [62.22433, 62.22433, 62.22433, 90, 90, 90]
+    set_dim = transformations.boxdimensions.set_dimensions(box)
+    u_pol.trajectory.add_transformations(set_dim)
+    return u_pol
+
+@pytest.fixture(scope='module')
+def polymer_atom_groups(u_polymer):
+    H2O = u_polymer.select_atoms('resid 1:3640')
+    Cl = u_polymer.select_atoms('resid 3641:4200')
+    H3O = u_polymer.select_atoms('resid 4201:4560')
+    trimer = u_polymer.select_atoms('resid 4561:4610')
+    # C-O in ether and ester
+
+    ether_O_1 = trimer.select_atoms('smarts COC=C').select_atoms('element O')
+    ester_O_1 = trimer.select_atoms('smarts COCC=C').select_atoms('element O')
+
+    # C=O in ketone and ester
+    ketone_O_1 = trimer.select_atoms('smarts CC(=O)C').select_atoms('element O')
+    ester_2O_1 = trimer.select_atoms('smarts C=O').select_atoms('element O') - ketone_O_1
+
+    # tertiary N in the center
+    N_1 = trimer.select_atoms('smarts [N;D4]').select_atoms('element N')
+    # N in the side chains
+    N3_1 = trimer.select_atoms('smarts [N;D3]').select_atoms('element N')
+
+    oh_O_1 = trimer.select_atoms('smarts [OHX2]')
+    dimethyl_C_1 = trimer.select_atoms('smarts [CH3]')
+    return
 
 @pytest.fixture
 def solvation_results(run_solution):

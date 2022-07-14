@@ -181,3 +181,7 @@ def test_pairing(name, percent, run_solution):
     # duplicated to test in solution
     pairing_dict = run_solution.pairing.pairing_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
+
+
+def test_instantiate_polymer(polymer_atom_groups):
+    assert isinstance(polymer_atom_groups, Solution)
