@@ -219,11 +219,11 @@ class Solution(AnalysisBase):
         )
         for name, solvent in self.solvents.items():
             # generate and save RDFs
-            self.rdf_init_kwargs["step"] = self.rdf_init_kwargs.get("step") or self.step
-            self.rdf_init_kwargs["start"] = self.rdf_init_kwargs.get("start") or self.start
-            self.rdf_init_kwargs["stop"] = self.rdf_init_kwargs.get("stop") or self.stop
+            self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (0, 7.5)
             rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
-            self.rdf_run_kwargs["range"] = self.rdf_run_kwargs.get("range") or (0, 7.5)
+            self.rdf_run_kwargs["stop"] = self.rdf_run_kwargs.get("stop") or self.stop
+            self.rdf_run_kwargs["step"] = self.rdf_run_kwargs.get("step") or self.step
+            self.rdf_run_kwargs["start"] = self.rdf_run_kwargs.get("start") or self.start
             rdf.run(**self.rdf_run_kwargs)
             bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[name] = (bins, data)
