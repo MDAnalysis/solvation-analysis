@@ -190,16 +190,22 @@ def test_instantiate_polymer(u_polymer):
     assert isinstance(u_polymer, Universe)
 
 
-def test_atom_groups(polymer_atom_groups):
-    assert isinstance(polymer_atom_groups, Solution)
+# def test_atom_groups(polymer_atom_groups):
+#     assert isinstance(polymer_atom_groups, Solution)
 
 
 @pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
 def test_instantiate_eax_solvents(name, u_eax_series):
     assert isinstance(u_eax_series[name], Universe)
 
+
 @pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
 def test_instantiate_eax_atom_groups(name, u_eax_atom_groups):
-    return
-    # assert isinstance(u_eax_atom_groups, Universe)
+    all_atoms = len(u_eax_atom_groups[name]['li'].universe.atoms)
+    all_atoms_in_groups = sum([len(ag) for ag in u_eax_atom_groups[name].values()])
+    assert all_atoms_in_groups == all_atoms
 
+
+@pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
+def test_instantiate_eax_solutions(name, eax_solutions):
+    assert isinstance(eax_solutions[name], Solution)

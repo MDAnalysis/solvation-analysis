@@ -221,13 +221,12 @@ def u_eax_atom_groups(u_eax_series):
 def eax_solutions(u_eax_atom_groups):
     solutions = {}
     for name, atom_groups in u_eax_atom_groups.items():
-        solutions[name] = Solution(
+        solution = Solution(
             atom_groups['li'],
             {'pf6': atom_groups['pf6'], name: atom_groups[name], 'fec': atom_groups['fec']},
-            # radii={'pf6': 2.8},
-            # rdf_init_kwargs={"range": (0, 8.0)},
-            # rdf_kernel=identify_cutoff_poly,
         )
+        solution.run()
+        solutions[name] = solution
     return solutions
 
 
@@ -237,6 +236,10 @@ def polymer_atom_groups(u_polymer):
     Cl = u_polymer.select_atoms('resid 3641:4200')
     H3O = u_polymer.select_atoms('resid 4201:4560')
     trimer = u_polymer.select_atoms('resid 4561:4610')
+
+    # N in the side chains
+    N3_1 = trimer.select_atoms('smarts [N;D3]').select_atoms('element N')
+
     # C-O in ether and ester
 
     ether_O_1 = trimer.select_atoms('smarts COC=C').select_atoms('element O')
