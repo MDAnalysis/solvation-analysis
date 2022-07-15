@@ -10,7 +10,8 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
     bn_fec_dcd_unwrap,
-    bn_fec_atom_types, polymer_pdb, polymer_dcd, eax_data,
+    bn_fec_atom_types,
+    eax_data,
 )
 from solvation_analysis.tests.datafiles import (
     easy_rdf_bins,
