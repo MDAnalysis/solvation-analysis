@@ -3,6 +3,9 @@ import warnings
 import pytest
 from solvation_analysis.solution import Solution
 import numpy as np
+from MDAnalysis import Universe
+
+from solvation_analysis.tests.conftest import u_eax_series, u_eax_atom_groups
 
 
 def test_instantiate_solute(pre_solution):
@@ -181,3 +184,20 @@ def test_pairing(name, percent, run_solution):
     # duplicated to test in solution
     pairing_dict = run_solution.pairing.pairing_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
+
+
+@pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
+def test_instantiate_eax_solvents(name, u_eax_series):
+    assert isinstance(u_eax_series[name], Universe)
+
+
+@pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
+def test_instantiate_eax_atom_groups(name, u_eax_atom_groups):
+    all_atoms = len(u_eax_atom_groups[name]['li'].universe.atoms)
+    all_atoms_in_groups = sum([len(ag) for ag in u_eax_atom_groups[name].values()])
+    assert all_atoms_in_groups == all_atoms
+
+
+@pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
+def test_instantiate_eax_solutions(name, eax_solutions):
+    assert isinstance(eax_solutions[name], Solution)

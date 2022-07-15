@@ -2,12 +2,14 @@
 
 This README describes the data-generating process for the test data used in this package.
 
+## Trajectory Files
+
+### bn_fec_data
+
 Molecular dynamics runs were performed on a simulated Li-ion battery electrolyte composed 
 of 363 Butryro-Nitride (BN), 49 Ethylene Carbonate (EC), and 49 Lithium Hexafluorophosphate (LiPF6<sub>6</sub>).
 The energy was minimized in PACKMOL and the trajectory was generated with LAMMPS. There is a 5 ns equilibration
 period followed by a 5 ns production run.
-
-## Trajectory Files
 
 `bn_fec.data` was generated with the Pymatgen Python package. OPLS parameters for BN were downloaded
 from LigParGen and parameters for FEC were provided by Tingzheng Hou, see https://doi.org/10.1016/j.nanoen.2019.103881.
@@ -15,6 +17,28 @@ from LigParGen and parameters for FEC were provided by Tingzheng Hou, see https:
 `bn_fec_short_unwrap.dcd` is the unwrapped trajectory file from LAMMPS
 `bn_fec_elements.csv` is a csv file with the element name of every atom name in the 
 trajectory file. It is used to add names to the Universe.
+`bn_solv_df_large.csv` is a csv file of the solvation_data over a longer simulation, 500 frames
+
+### ea_fec_data
+
+Molecular dynamics runs were performed on a simulated Li-ion battery electrolyte composed 
+of Ethyl Acetate (EA), Fluorinated Ethylene Carbonate (FEC), and Lithium Hexafluorophosphate (LiPF6<sub>6</sub>).
+The energy was minimized in PACKMOL and the trajectory was generated with OpenMM. There is a 5 ns equilibration
+period followed by a 5 ns production run.
+
+`ea_fec.dcd` is an abbreviated dcd file of the trajectory, 10 frames long
+`ea_fec.pdb` contains the topology of the trajectory
+
+### eax_data
+
+Molecular dynamics runs were performed on a simulated Li-ion battery electrolyte composed 
+of Fluorinated Ethylene Carbonate (FEC), Lithium Hexafluorophosphate (LiPF6<sub>6</sub>), and one of four 
+fluorinated Ethyl Acetate species (EA, EAf, fEA, and fEAf, abbreviated in general as EAx).
+The energy was minimized in PACKMOL and the trajectory was generated with OpenMM. There is a 5 ns equilibration
+period followed by a 5 ns production run.
+
+Each simulation has a `dcd` file for the trajectory and a `pdb` file for the topology.
+
 
 ## Radial Distribution Functions
 
