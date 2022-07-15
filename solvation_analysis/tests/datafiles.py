@@ -9,8 +9,6 @@ bn_fec_atom_types = resource_filename(__name__, "data/bn_fec_elements.csv")
 bn_fec_solv_df_large = resource_filename(__name__, "data/bn_solv_df_large.csv")
 ea_fec_dcd = resource_filename(__name__, "data/ea_fec.dcd")
 ea_fec_pdb = resource_filename(__name__, "data/ea_fec.pdb")
-polymer_dcd = resource_filename(__name__, "data/polymer_short_wrap.dcd")
-polymer_pdb = resource_filename(__name__, "data/polymer_short_wrap.pdb")
 eax_data = resource_filename(__name__, "data/eax_data/")
 
 
