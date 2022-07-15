@@ -149,6 +149,7 @@ def pre_solution(atom_groups):
         rdf_kernel=identify_cutoff_poly,
     )
 
+
 @pytest.fixture(scope='function')
 def pre_solution_mutable(atom_groups):
     li = atom_groups['li']
@@ -199,6 +200,35 @@ def u_eax_series():
         u_solv.trajectory.add_transformations(set_dim)
         us[solvent_dir.stem] = u_solv
     return us
+
+
+@pytest.fixture(scope='module')
+def u_eax_atom_groups(u_eax_series):
+    atom_groups_dict = {}
+    for name, u in u_eax_series.items():
+        atom_groups = {}
+        atom_groups['li'] = u.atoms.select_atoms("element Li")
+        atom_groups['pf6'] = u.atoms.select_atoms("byres element P")
+        residue_lengths = np.array([len(elements) for elements in u.residues.elements])
+        eax_fec_cutoff = np.unique(residue_lengths, return_index=True)[1][2]
+        atom_groups[name] = u.atoms.select_atoms(f"resid 1:{eax_fec_cutoff}")
+        atom_groups['fec'] = u.atoms.select_atoms(f"resid {eax_fec_cutoff + 1}:600")
+        atom_groups_dict[name] = atom_groups
+    return atom_groups_dict
+
+
+@pytest.fixture(scope='module')
+def eax_solutions(u_eax_atom_groups):
+    solutions = {}
+    for name, atom_groups in u_eax_atom_groups.items():
+        solutions[name] = Solution(
+            atom_groups['li'],
+            {'pf6': atom_groups['pf6'], name: atom_groups[name], 'fec': atom_groups['fec']},
+            # radii={'pf6': 2.8},
+            # rdf_init_kwargs={"range": (0, 8.0)},
+            # rdf_kernel=identify_cutoff_poly,
+        )
+    return solutions
 
 
 @pytest.fixture(scope='module')
