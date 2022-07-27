@@ -7,3 +7,4 @@ pathlib
 matplotlib
 scipy
 statsmodels
+plotly

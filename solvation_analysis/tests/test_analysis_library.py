@@ -53,13 +53,13 @@ def test_speciation_find_shells(shell, n_shells, solvation_data):
         ('fec', 'pf6', 0.15),
     ],
 )
-def test_speciation_correlation(solvent_one, solvent_two, correlation, solvation_data):
+def test_speciation_co_occurrence(solvent_one, solvent_two, correlation, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
     df = speciation.co_occurrence
     np.testing.assert_allclose(df[solvent_one][solvent_two], correlation, atol=0.05)
 
 
-def test_plot_correlation(solvation_data):
+def test_plot_co_occurrence(solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
     fig, ax = speciation.plot_co_occurrence()
     # fig.show()
@@ -127,7 +127,7 @@ def test_pairing_dict(name, percent, solvation_data):
         ("pf6", 0.853),
     ],
 )
-def test_pairing_participating(name, percent, solvation_data):
+def test_pairing_free_solvents(name, percent, solvation_data):
     pairing = Pairing(solvation_data, 10, 49, {'fec': 237, 'bn': 363, 'pf6': 49})
     np.testing.assert_allclose(percent, pairing.percent_free_solvents[name], atol=0.05)
 

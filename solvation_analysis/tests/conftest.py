@@ -6,6 +6,8 @@ import pytest
 
 from MDAnalysis import transformations
 from solvation_analysis.rdf_parser import identify_cutoff_poly
+from solvation_analysis.analysis_library import Networking, Residence
+
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
@@ -245,3 +247,15 @@ def solvation_data_large():
 def solvation_data_sparse(solvation_data_large):
     step = 10
     return solvation_data_large.loc[pd.IndexSlice[::step, :, :], :]
+
+
+@pytest.fixture
+def networking(run_solution):
+    # look at network of PF6 and FEC to make denser adjacency matrix
+    return Networking.from_solution(run_solution, ['pf6', 'fec'])
+
+
+@pytest.fixture
+def residence(run_solution):
+    return Residence.from_solution(run_solution)
+
