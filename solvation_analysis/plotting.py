@@ -134,6 +134,7 @@ def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solv
     # same data
     # manages only properties and names of the plots
     # make a separate formatting/styling function for each graph that deals with titles/labels
+    # TODO make x_axis, series, and keep_solvents keyword args so they can have defaults
     """
 
     Parameters
@@ -153,7 +154,10 @@ def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solv
     cleaned_properties = properties
     if keep_solvents:
         cleaned_properties = clean(properties, keep_solvents)
-
+    # TODO create dataframe upfront and use for all four cases
+    # TODO update legend
+    # perhaps use plotly.express, useful for when using dataframes??
+    # use go for if you want to add traces
     if series:
         if x_axis == "species":
             # each solution is a line
@@ -171,7 +175,12 @@ def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solv
         elif x_axis == "solution":
             # each species is a bar
             df = pd.DataFrame(data=properties_dict)
-
+            cond = [[elem in col for col in df.columns] for elem in df.index]
+            cond = pd.DataFrame(data=cond)
+            df.mask(cond)
+            for i in range(len(df.index)):
+                # TODO iterate through the cols/rows
+                fig.add_trace(go.Bar(x=df[i], y=df.index))
     return fig
 
 def clean(properties, keep_solvents):
