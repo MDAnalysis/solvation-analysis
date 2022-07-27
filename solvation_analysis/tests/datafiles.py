@@ -2,13 +2,15 @@ from pkg_resources import resource_filename
 import pathlib
 from pathlib import Path
 
-bn_fec_data = resource_filename(__name__, "data/bn_fec.data")
-bn_fec_dcd_unwrap = resource_filename(__name__, "data/bn_fec_short_unwrap.dcd")
-bn_fec_dcd_wrap = resource_filename(__name__, "data/bn_fec_short_wrap.dcd")
-bn_fec_atom_types = resource_filename(__name__, "data/bn_fec_elements.csv")
-bn_fec_solv_df_large = resource_filename(__name__, "data/bn_solv_df_large.csv")
-ea_fec_dcd = resource_filename(__name__, "data/ea_fec.dcd")
-ea_fec_pdb = resource_filename(__name__, "data/ea_fec.pdb")
+bn_fec_data = resource_filename(__name__, "data/bn_fec_data/bn_fec.data")
+bn_fec_dcd_unwrap = resource_filename(__name__, "data/bn_fec_data/bn_fec_short_unwrap.dcd")
+bn_fec_dcd_wrap = resource_filename(__name__, "data/bn_fec_data/bn_fec_short_wrap.dcd")
+bn_fec_atom_types = resource_filename(__name__, "data/bn_fec_data/bn_fec_elements.csv")
+bn_fec_solv_df_large = resource_filename(__name__, "data/bn_fec_data/bn_solv_df_large.csv")
+ea_fec_dcd = resource_filename(__name__, "data/ea_fec_data/ea_fec.dcd")
+ea_fec_pdb = resource_filename(__name__, "data/ea_fec_data/ea_fec.pdb")
+eax_data = resource_filename(__name__, "data/eax_data/")
+
 
 test_dir = Path(__file__).parent
 data_dir = test_dir / "data"
@@ -18,7 +20,7 @@ fail_rdf_dir = data_dir / "rdf_non_solvated"
 
 
 def generate_short_tag(filename):
-    # generates a ad-hoc tag for the li-ion rdf data from the file name
+    # generates an ad-hoc tag for the li-ion rdf data from the file name
     tag_list = filename.stem.split("_")
     rdf_tag = f"{tag_list[1]}_{tag_list[2]}"
     return rdf_tag
@@ -50,7 +52,7 @@ hard_rdf_data = {
 
 
 def generate_long_tag(filename):
-    # generates a ad-hoc tag for the non-solv rdf data from the file name
+    # generates an ad-hoc tag for the non-solv rdf data from the file name
     tag_list = filename.stem.split("_")
     rdf_tag = f"{'_'.join(tag_list[1:3])}_{'_'.join(tag_list[4:6])}"
     return rdf_tag

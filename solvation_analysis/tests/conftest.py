@@ -4,12 +4,16 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from MDAnalysis import transformations
+from solvation_analysis.rdf_parser import identify_cutoff_poly
 from solvation_analysis.analysis_library import Networking, Residence
+
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
     bn_fec_dcd_wrap,
     bn_fec_dcd_unwrap,
     bn_fec_atom_types,
+    eax_data,
 )
 from solvation_analysis.tests.datafiles import (
     easy_rdf_bins,
@@ -21,6 +25,7 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_solv_df_large,
 )
 from solvation_analysis.solution import Solution
+import pathlib
 
 
 def test_solvation_analysis_imported():
@@ -139,7 +144,13 @@ def pre_solution(atom_groups):
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec}, radii={'pf6': 2.8})
+    return Solution(
+        li,
+        {'pf6': pf6, 'bn': bn, 'fec': fec},
+        radii={'pf6': 2.8},
+        rdf_init_kwargs={"range": (0, 8.0)},
+        rdf_kernel=identify_cutoff_poly,
+    )
 
 
 @pytest.fixture(scope='function')
@@ -148,13 +159,68 @@ def pre_solution_mutable(atom_groups):
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solution(li, {'pf6': pf6, 'bn': bn, 'fec': fec})
+    return Solution(
+        li,
+        {'pf6': pf6, 'bn': bn, 'fec': fec},
+        rdf_init_kwargs={"range": (0, 8.0)},
+        rdf_kernel=identify_cutoff_poly,
+    )
 
 
 @pytest.fixture(scope='module')
 def run_solution(pre_solution):
     pre_solution.run(step=1)
     return pre_solution
+
+
+@pytest.fixture(scope='module')
+def u_eax_series():
+    boxes = {
+        'ea': [45.760393, 45.760393, 45.760393, 90, 90, 90],
+        'eaf': [47.844380, 47.844380, 47.844380, 90, 90, 90],
+        'fea': [48.358954, 48.358954, 48.358954, 90, 90, 90],
+        'feaf': [50.023129, 50.023129, 50.023129, 90, 90, 90],
+    }
+    us = {}
+    for solvent_dir in pathlib.Path(eax_data).iterdir():
+        u_solv = mda.Universe(
+            str(solvent_dir / 'topology.pdb'),
+            str(solvent_dir / 'trajectory_equil.dcd')
+        )
+        # our dcd lacks dimensions so we must manually set them
+        box = boxes[solvent_dir.stem]
+        set_dim = transformations.boxdimensions.set_dimensions(box)
+        u_solv.trajectory.add_transformations(set_dim)
+        us[solvent_dir.stem] = u_solv
+    return us
+
+
+@pytest.fixture(scope='module')
+def u_eax_atom_groups(u_eax_series):
+    atom_groups_dict = {}
+    for name, u in u_eax_series.items():
+        atom_groups = {}
+        atom_groups['li'] = u.atoms.select_atoms("element Li")
+        atom_groups['pf6'] = u.atoms.select_atoms("byres element P")
+        residue_lengths = np.array([len(elements) for elements in u.residues.elements])
+        eax_fec_cutoff = np.unique(residue_lengths, return_index=True)[1][2]
+        atom_groups[name] = u.atoms.select_atoms(f"resid 1:{eax_fec_cutoff}")
+        atom_groups['fec'] = u.atoms.select_atoms(f"resid {eax_fec_cutoff + 1}:600")
+        atom_groups_dict[name] = atom_groups
+    return atom_groups_dict
+
+
+@pytest.fixture(scope='module')
+def eax_solutions(u_eax_atom_groups):
+    solutions = {}
+    for name, atom_groups in u_eax_atom_groups.items():
+        solution = Solution(
+            atom_groups['li'],
+            {'pf6': atom_groups['pf6'], name: atom_groups[name], 'fec': atom_groups['fec']},
+        )
+        solution.run()
+        solutions[name] = solution
+    return solutions
 
 
 @pytest.fixture

@@ -29,7 +29,7 @@ from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
 import numpy as np
-from solvation_analysis.rdf_parser import identify_solvation_cutoff
+from solvation_analysis.rdf_parser import identify_cutoff_poly, identify_cutoff_scipy
 from solvation_analysis.analysis_library import (
     Coordination,
     Pairing,
@@ -91,10 +91,11 @@ class Solution(AnalysisBase):
         kwargs passed to rdf_kernel
     rdf_init_kwargs : dict, optional
         kwargs passed to the initialization of the MDAnalysis.InterRDF used to plot
-        the solute-solvent RDFs.
+        the solute-solvent RDFs. By default, ``range`` will be set to (0, 7.5).
     rdf_run_kwargs : dict, optional
         kwargs passed to the internal MDAnalysis.InterRDF.run() command
-        e.g. ``inner_rdf.run(**rdf_run_kwargs)``
+        e.g. ``inner_rdf.run(**rdf_run_kwargs)``. By default, step, start, and
+        stop will use any kwargs provided to ``solution.run(**kwargs)``.
     solute_name: str, optional
         the name of the solute, used for labeling.
     analysis_classes : List[str], optional
@@ -168,15 +169,15 @@ class Solution(AnalysisBase):
         verbose=False,
     ):
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
-        self.radii = {} if radii is None else radii
-        self.solvent_counts = {} if solvent_counts is None else solvent_counts
+        self.radii = radii or {}
+        self.solvent_counts = solvent_counts or {}
         for name in solvents.keys():
             if name not in self.solvent_counts.keys():
                 self.solvent_counts[name] = len(solvents[name].residues)
-        self.kernel = identify_solvation_cutoff if rdf_kernel is None else rdf_kernel
-        self.kernel_kwargs = {} if kernel_kwargs is None else kernel_kwargs
-        self.rdf_init_kwargs = {"range": (0, 8.0)} if rdf_init_kwargs is None else rdf_init_kwargs
-        self.rdf_run_kwargs = {} if rdf_run_kwargs is None else rdf_run_kwargs
+        self.kernel = rdf_kernel or identify_cutoff_scipy
+        self.kernel_kwargs = kernel_kwargs or {}
+        self.rdf_init_kwargs = rdf_init_kwargs or {}
+        self.rdf_run_kwargs = rdf_run_kwargs or {}
         self.has_run = False
         self.u = solute.universe
         self.solute = solute
@@ -218,7 +219,11 @@ class Solution(AnalysisBase):
         )
         for name, solvent in self.solvents.items():
             # generate and save RDFs
+            self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (0, 7.5)
             rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
+            self.rdf_run_kwargs["stop"] = self.rdf_run_kwargs.get("stop") or self.stop
+            self.rdf_run_kwargs["step"] = self.rdf_run_kwargs.get("step") or self.step
+            self.rdf_run_kwargs["start"] = self.rdf_run_kwargs.get("start") or self.start
             rdf.run(**self.rdf_run_kwargs)
             bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[name] = (bins, data)

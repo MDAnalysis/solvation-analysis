@@ -5,6 +5,7 @@ import plotly.express as px
 import matplotlib
 
 import numpy as np
+import pandas as pd
 
 
 def square_area(data, labels, cutoff=1):
@@ -37,6 +38,23 @@ def plot_histogram(solution):
     # histogram of what?
     return
 
+def format_graph(fig, title, x_axis, y_axis):
+    """
+
+    Parameters
+    ----------
+    fig :
+    title :
+    x_axis :
+    y_axis :
+
+    Returns
+    -------
+    fig : Plotly.Figure
+
+    """
+    fig.update_layout(xaxis_title_text=x_axis.title(), yaxis_title_text=y_axis.title(), title=title.title())
+    return fig
 
 def plot_network_size_histogram(networking):
     """
@@ -111,29 +129,65 @@ def plot_coordinating_atoms(solution):
 # multiple solution
 
 
-def compare_solvent_dicts(property, series):
+def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solvents):
     # generalist plotter, this can plot either bar or line charts of the
     # same data
+    # manages only properties and names of the plots
+    # make a separate formatting/styling function for each graph that deals with titles/labels
     """
 
     Parameters
     ----------
-    property : dictionary of solvent properties
+    properties : dictionary of solvent properties
+    name :
     series : Boolean (False when a line chart is not wanted)
+    x_axis :
+    keep_solvents :
 
     Returns
     -------
+    fig : Plotly.Figure (generic plot)
 
     """
-    # improve with four different graph settings (line/chart/solute/solvent)
     fig = go.Figure()
+    cleaned_properties = properties
+    if keep_solvents:
+        cleaned_properties = clean(properties, keep_solvents)
+
     if series:
-        for solution in property:
-            fig.add_trace(go.Scatter(x=solution.values(), y=solution.keys()))
+        if x_axis == "species":
+            # each solution is a line
+            for property_dict in cleaned_properties:
+                fig.add_trace(go.Scatter(x=list(property_dict.keys()), y=list(property_dict.values())))
+        elif x_axis == "solution":
+            # each species is a line
+            for property_dict in cleaned_properties:
+                fig.add_trace(go.Scatter(x=list(property_dict.values()), y=list(property_dict.keys())))
     else:
-        for solution in property:
-            fig.add_trace(go.Bar(x=solution.values(), y=solution.keys()))
+        if x_axis == "species":
+            # each solution is a bar
+            for property_dict in cleaned_properties:
+                fig.add_trace(go.Bar(x=list(property_dict.keys()), y=list(property_dict.values())))
+        elif x_axis == "solution":
+            # each species is a bar
+            df = pd.DataFrame(data=properties_dict)
+
     return fig
+
+def clean(properties, keep_solvents):
+    cleaned_properties = []
+    for i in range(len(properties)):
+        cleaned_properties.append({})
+        for solvent in properties[i]:
+            if solvent in keep_solvents:
+                cleaned_properties[i][solvent] = properties[i][solvent]
+    return cleaned_properties
+
+
+def catch_different_solvents(solvents):
+    if not all(elem == solvents[0] for elem in solvents):
+        raise ValueError("Solutions must have identical solvent compositions. Make sure that keep_solvents for each"
+            " solution lists only the solvents common to all solutions")
 
 def compare_free_solvents(solutions):
     # this should be a grouped vertical bar chart or a line chart
@@ -142,7 +196,7 @@ def compare_free_solvents(solutions):
     return
 
 
-def compare_pairing(solutions, series=False, ignore=None):
+def compare_pairing(solutions, x_axis, series=False, keep_solvents=None):
     # this should be a grouped vertical bar chart or a line chart
     # *** should there be another (boolean) parameter that
     # 1.0 should be marked and annotated with a dotted line
@@ -150,9 +204,9 @@ def compare_pairing(solutions, series=False, ignore=None):
     Compares the pairing of multiple solutions.
     Parameters
     ----------
-    solutions : a list of Solution objects
+    solutions : a dict of Solution objects (should not be mutable)
     series : Boolean (False when a line chart is not wanted)
-    ignore: list of strings of solvent names to ignore
+    keep_solvents : a list of solvent names (strings) to keep in the analysis
 
     Returns
     -------
@@ -160,9 +214,21 @@ def compare_pairing(solutions, series=False, ignore=None):
 
     """
     # you can also do kwargs instead of writing out all the keywords
-    pairing = [solution.pairing.pairing_dict for solution in solutions]
-    pairing = set(pairing) - set(ignore)
-    return compare_solvent_dicts(pairing, series)
+    keep_solvents = keep_solvents or []
+    if keep_solvents:
+        solvents_list = []
+        for solution in solutions:
+            temp_solvents = list(solutions[solution].solvents)
+            solvents_list.append(list(set(temp_solvents).intersection(set(keep_solvents))))
+    else:
+        solvents_list = [list(solutions[solution].solvents.keys()) for solution in solutions]
+
+    catch_different_solvents(solvents_list)
+    pairing = [solutions[solution].pairing.pairing_dict for solution in solutions]
+    pairing_dict = {}
+    for solution in solutions:
+        pairing_dict[solution] = solutions[solution].pairing.pairing_dict
+    return compare_solvent_dicts(pairing_dict, pairing, x_axis, series, keep_solvents)
 
 def compare_coordination_numbers(solutions, series=False, ignore=None):
     # this should be a stacked bar chart, horizontal?
@@ -180,6 +246,7 @@ def compare_coordination_numbers(solutions, series=False, ignore=None):
     fig : Plotly.Figure
 
     """
+    # catch_different_solvents(solutions)
     coordination = [solution.coordination.cn_dict for solution in solutions]
     coordination = set(coordination) - set(ignore)
     return compare_solvent_dicts(coordination, series)
@@ -207,6 +274,7 @@ def compare_residence_times(solutions, series=False, ignore=None):
     fig : Plotly.Figure
 
     """
+    catch_different_solvents(solutions)
     residence = [solution.residence.residence_times for solution in solutions]
     residence = set(residence) - set(ignore)
     return compare_solvent_dicts(residence, series)
