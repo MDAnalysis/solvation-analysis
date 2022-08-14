@@ -34,6 +34,12 @@ def test_compare_pairing_2(eax_solutions):
     fig.show()
     assert True
 
+def test_compare_pairing_3(eax_solutions):
+    fig = compare_pairing(eax_solutions,"species", True, ["pf6", "fec"])
+    fig = format_graph(fig, "Line Graph of Solvent Pairing", "Solution", "Pairing")
+    fig.show()
+    assert True
+
 def test_compare_coordination_numbers(eax_solutions):
     fig = compare_coordination_numbers(eax_solutions)
     fig.show()
