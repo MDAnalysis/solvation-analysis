@@ -24,18 +24,24 @@ def test_plot_shell_size_histogram(run_solution):
 
 def test_compare_pairing_1(eax_solutions):
     fig = compare_pairing(eax_solutions, "species", False, ["fec", "pf6"])
-    fig = format_graph(fig, "Line Graph of Solvent Pairing", "Species", "Pairing")
+    fig = format_graph(fig, "Bar Graph of Solvent Pairing", "Species", "Pairing")
     fig.show()
     assert True
 
 def test_compare_pairing_2(eax_solutions):
     fig = compare_pairing(eax_solutions,"solution", False, ["pf6", "fec"])
-    fig = format_graph(fig, "Line Graph of Solvent Pairing", "Solution", "Pairing")
+    fig = format_graph(fig, "Bar Graph of Solvent Pairing", "Solution", "Pairing")
     fig.show()
     assert True
 
 def test_compare_pairing_3(eax_solutions):
     fig = compare_pairing(eax_solutions,"species", True, ["pf6", "fec"])
+    fig = format_graph(fig, "Line Graph of Solvent Pairing", "Solution", "Pairing")
+    fig.show()
+    assert True
+
+def test_compare_pairing_4(eax_solutions):
+    fig = compare_pairing(eax_solutions, "solution", True, ["pf6", "fec"])
     fig = format_graph(fig, "Line Graph of Solvent Pairing", "Solution", "Pairing")
     fig.show()
     assert True

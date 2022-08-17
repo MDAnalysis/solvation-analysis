@@ -140,7 +140,6 @@ def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solv
     Parameters
     ----------
     properties : dictionary of solvent properties
-    name :
     series : Boolean (False when a line chart is not wanted)
     x_axis :
     keep_solvents :
@@ -154,55 +153,27 @@ def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solv
     cleaned_properties = properties
     if keep_solvents:
         cleaned_properties = clean(properties, keep_solvents)
-    # TODO create dataframe upfront and use for all four cases
     # TODO update legend
     # perhaps use plotly.express, useful for when using dataframes??
     # use go for if you want to add traces
 
-    df = pd.DataFrame(data=properties_dict)
+    df = pd.DataFrame(data=cleaned_properties)
     if series and x_axis == "species":
         # each solution is a line
-        # fig = px.line(df, x=df.iloc[:], y=)
-        fig = px.scatter(df, x=df.index, y=df.columns)
+        df = df.transpose()
+        fig = px.line(df, x=df.index, y=df.columns)
+        fig.update_xaxes(type="category")
     elif series and x_axis == "solution":
         # each species is a line
-        fig = go.Figure()
+        fig = px.line(df, x=df.index, y=df.columns)
+        fig.update_xaxes(type="category")
     elif not series and x_axis == "species":
         # each solution is a bar
-        fig = go.Figure()
+        df = df.transpose()
+        fig = px.bar(df, x=df.index, y=df.columns, barmode="group")
     elif not series and x_axis == "solution":
         # each species is a bar
-        fig = go.Figure()
-
-    #
-    # if series:
-    #     if x_axis == "species":
-    #         fig = px.line(df, x=df.index, y=df.columns)
-
-    # if series:
-    #     if x_axis == "species":
-    #         # each solution is a line
-    #         for property_dict in cleaned_properties:
-    #             fig.add_trace(go.Scatter(x=list(property_dict.keys()), y=list(property_dict.values())))
-    #     elif x_axis == "solution":
-    #         # each species is a line
-    #         for property_dict in cleaned_properties:
-    #             fig.add_trace(go.Scatter(x=list(property_dict.values()), y=list(property_dict.keys())))
-    # else:
-    #     if x_axis == "species":
-    #         # each solution is a bar
-    #         for property_dict in cleaned_properties:
-    #             fig.add_trace(go.Bar(x=list(property_dict.keys()), y=list(property_dict.values())))
-    #     elif x_axis == "solution":
-    #         # each species is a bar
-    #         df = pd.DataFrame(data=properties_dict)
-    #         cond = [[elem in col for col in df.columns] for elem in df.index]
-    #         cond = pd.DataFrame(data=cond)
-    #         df.mask(cond)
-    #         # for i in range(len(df.index)):
-    #         for row in df.index:
-    #             # TODO iterate through the cols/rows
-    #             fig.add_trace(go.Bar(x=row, y=df.index))
+        fig = px.bar(df, x=df.index, y=df.columns, barmode="group")
     return fig
 
 def clean(properties, keep_solvents):
