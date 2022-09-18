@@ -12,6 +12,8 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_dcd_unwrap,
     bn_fec_atom_types,
     eax_data,
+    zn_data,
+    zn_dcd
 )
 from solvation_analysis.tests.datafiles import (
     easy_rdf_bins,
@@ -219,6 +221,27 @@ def eax_solutions(u_eax_atom_groups):
         solution.run()
         solutions[name] = solution
     return solutions
+
+
+@pytest.fixture(scope='module')
+def zn_atom_groups():
+    u = mda.Universe(zn_data, zn_dcd)
+    zn_atom_groups = {
+        'h20': u.atoms.select_atoms("byres type 1"),
+        'zn': u.atoms.select_atoms("byres type 3"),
+        'otf': u.atoms.select_atoms("byres type 5")
+    }
+    return zn_atom_groups
+
+
+@pytest.fixture(scope='module')
+def zn_solution(zn_atom_groups):
+    solution = Solution(
+        zn_atom_groups['zn'],
+        {'zn': zn_atom_groups['h20'], 'otf': zn_atom_groups['otf']}
+    )
+    solution.run()
+    return solution
 
 
 @pytest.fixture
