@@ -2,13 +2,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from solvation_analysis.analysis_library import (
-    Speciation,
-    Coordination,
-    Pairing,
-    Residence,
-    Networking,
-)
+from solvation_analysis.coordination import Coordination
+from solvation_analysis.networking import Networking
+from solvation_analysis.pairing import Pairing
+from solvation_analysis.residence import Residence
+from solvation_analysis.speciation import Speciation
 
 def test_speciation_from_solution(run_solution):
     speciation = Speciation.from_solution(run_solution)
