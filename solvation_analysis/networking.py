@@ -21,7 +21,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components
 
-from residence import Residence
+from solvation_analysis.residence import Residence
 
 
 class Networking:
