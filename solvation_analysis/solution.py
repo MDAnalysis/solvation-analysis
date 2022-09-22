@@ -217,14 +217,28 @@ class Solution(AnalysisBase):
             "MDAnalysis.transformations.set_dimensions."
         )
         for name, solvent in self.solvents.items():
-            # generate and save RDFs
+            # set kwargs with defaults
             self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (0, 7.5)
-            rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
             self.rdf_run_kwargs["stop"] = self.rdf_run_kwargs.get("stop") or self.stop
             self.rdf_run_kwargs["step"] = self.rdf_run_kwargs.get("step") or self.step
             self.rdf_run_kwargs["start"] = self.rdf_run_kwargs.get("start") or self.start
-            rdf.run(**self.rdf_run_kwargs)
-            bins, data = rdf.results.bins, rdf.results.rdf
+            # generate and save RDFs
+            if self.solute.intersection(solvent).n_atoms == 0:
+                # the solute IS NOT in a solvent, the usual case
+                rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
+                rdf.run(**self.rdf_run_kwargs)
+                bins, data = rdf.results.bins, rdf.results.rdf
+            else:
+                # the solute IS in a solvent
+                # we divide the solute and solvent into two groups, so that the rdfs
+                # are not contaminated by the solute-solvent pairs.
+                halfway_point = self.solute.n_residues // 2
+                solute_half = self.solute.residues[:halfway_point].atoms
+                solvent_half = solvent.residues[halfway_point:].atoms
+                # this is hacky and will make our rdf noisier but it was easy to implement
+                rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)
+                rdf.run(**self.rdf_run_kwargs)
+                bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[name] = (bins, data)
             # generate and save plots
             if name not in self.radii.keys():
