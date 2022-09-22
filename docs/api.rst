@@ -8,4 +8,8 @@ API Documentation
 
     api/solution
     api/selection
-    api/analysis_library
+    api/coordination
+    api/networking
+    api/pairing
+    api/residence
+    api/speciation

@@ -1,5 +1,5 @@
-analysis_library
-================
+residence
+=========
 
- .. automodule:: solvation_analysis.analysis_library
+ .. automodule:: solvation_analysis.residence
     :members:

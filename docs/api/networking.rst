@@ -1,5 +1,5 @@
-analysis_library
-================
+networking
+==========
 
- .. automodule:: solvation_analysis.analysis_library
+ .. automodule:: solvation_analysis.networking
     :members:

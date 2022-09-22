@@ -1,5 +1,5 @@
-analysis_library
-================
+pairing
+=======
 
- .. automodule:: solvation_analysis.analysis_library
+ .. automodule:: solvation_analysis.pairing
     :members:

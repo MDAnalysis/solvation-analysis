@@ -1,5 +1,5 @@
-analysis_library
-================
+speciation
+==========
 
- .. automodule:: solvation_analysis.analysis_library
+ .. automodule:: solvation_analysis.speciation
     :members:
