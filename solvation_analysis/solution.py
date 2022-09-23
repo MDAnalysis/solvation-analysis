@@ -233,7 +233,7 @@ class Solution(AnalysisBase):
                 solute_half = self.solute.residues[:halfway_point].atoms
                 solvent_half = solvent.residues[halfway_point:].atoms
                 # this is hacky and will make our rdf noisier but it was easy to implement
-                rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)  # TODO: change default norm
+                rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)
                 rdf.run(**self.rdf_run_kwargs)
                 bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[name] = (bins, data)
