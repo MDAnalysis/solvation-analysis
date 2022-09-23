@@ -13,7 +13,9 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_atom_types,
     eax_data,
     zn_data,
-    zn_dcd
+    zn_dcd,
+    iba_data,
+    iba_dcd,
 )
 from solvation_analysis.tests.datafiles import (
     easy_rdf_bins,
@@ -276,6 +278,45 @@ def otf_f_solution(zn_atom_groups):
     solution.plot_solvation_radius('otf')[0].show()
     solution.plot_solvation_radius('h2o')[0].show()
     solution.plot_solvation_radius('zn')[0].show()
+    return solution
+
+
+@pytest.fixture(scope='module')
+def iba_atom_groups():
+    u = mda.Universe(iba_data, iba_dcd)
+    iba = u.select_atoms("byres element C")
+    h2o = u.atoms - iba
+    h2o_O = h2o.select_atoms("element O")
+    h2o_H = h2o.select_atoms("element H")
+    iba_alcohol_O = iba.select_atoms("element O and bonded element H")
+    iba_alcohol_H = iba.select_atoms("element H and (not bonded element C)")
+    iba_ketone = iba.select_atoms("element O") - iba_alcohol_O
+    iba_C = iba.select_atoms("element C")
+    iba_C_H = iba.select_atoms("element H") - iba_alcohol_H
+    iba_atom_groups = {
+        'iba': iba,
+        'h2o': h2o,
+        'h2o_O': h2o_O,
+        'h2o_H': h2o_H,
+        'iba_alcohol_O': iba_alcohol_O,
+        'iba_alcohol_H': iba_alcohol_H,
+        'iba_ketone': iba_ketone,
+        'iba_C': iba_C,
+        'iba_C_H': iba_C_H
+    }
+    return iba_atom_groups
+
+
+@pytest.fixture(scope='module')
+def iba_solution(iba_atom_groups):
+    solution = Solution(
+        iba_atom_groups['iba_ketone'],
+        {
+            'h2o': iba_atom_groups['h2o'],
+            'iba': iba_atom_groups['iba'],
+        },
+    )
+    solution.run()
     return solution
 
 

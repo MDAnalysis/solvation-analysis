@@ -201,3 +201,16 @@ def test_instantiate_eax_atom_groups(name, u_eax_atom_groups):
 @pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
 def test_instantiate_eax_solutions(name, eax_solutions):
     assert isinstance(eax_solutions[name], Solution)
+
+
+def test_iba_atom_groups(iba_atom_groups):
+    n_atoms = len(iba_atom_groups['iba'].universe.atoms)
+    group_names = [
+        'h2o_O', 'h2o_H', 'iba_alcohol_O', 'iba_alcohol_H', 'iba_ketone', 'iba_C', 'iba_C_H'
+    ]
+    group_lengths = [len(iba_atom_groups[name]) for name in group_names]
+    assert sum(group_lengths) == n_atoms
+
+
+def test_iba_solutions(iba_solution):
+    assert isinstance(iba_solution, Solution)
