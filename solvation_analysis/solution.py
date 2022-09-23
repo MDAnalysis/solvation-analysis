@@ -219,6 +219,7 @@ class Solution(AnalysisBase):
         for name, solvent in self.solvents.items():
             # set kwargs with defaults
             self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (0, 7.5)
+            # self.rdf_init_kwargs["norm"] = self.rdf_init_kwargs.get("norm") or "density"
             self.rdf_run_kwargs["stop"] = self.rdf_run_kwargs.get("stop") or self.stop
             self.rdf_run_kwargs["step"] = self.rdf_run_kwargs.get("step") or self.step
             self.rdf_run_kwargs["start"] = self.rdf_run_kwargs.get("start") or self.start
@@ -236,7 +237,7 @@ class Solution(AnalysisBase):
                 solute_half = self.solute.residues[:halfway_point].atoms
                 solvent_half = solvent.residues[halfway_point:].atoms
                 # this is hacky and will make our rdf noisier but it was easy to implement
-                rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)
+                rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)  # TODO: change default norm
                 rdf.run(**self.rdf_run_kwargs)
                 bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[name] = (bins, data)
