@@ -225,7 +225,7 @@ def identify_cutoff_scipy(
     rdf,
     cutoff_region=(1.5, 4),
     failure_behavior="warn",
-    min_trough_depth=0.05,
+    min_trough_depth=0.02,
     **kwargs
 ):
     """
