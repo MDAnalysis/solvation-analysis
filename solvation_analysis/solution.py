@@ -212,14 +212,10 @@ class Solution(AnalysisBase):
         self.pairing = None
         self.coordination = None
         self.solvation_frames = []
-        assert self.u.trajectory.dimensions is not None, (
-            "Dimensions of the trajectory must be set to compute an rdf. Consider using "
-            "MDAnalysis.transformations.set_dimensions."
-        )
         for name, solvent in self.solvents.items():
             # set kwargs with defaults
             self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (0, 7.5)
-            # self.rdf_init_kwargs["norm"] = self.rdf_init_kwargs.get("norm") or "density"
+            self.rdf_init_kwargs["norm"] = self.rdf_init_kwargs.get("norm") or "density"
             self.rdf_run_kwargs["stop"] = self.rdf_run_kwargs.get("stop") or self.stop
             self.rdf_run_kwargs["step"] = self.rdf_run_kwargs.get("step") or self.step
             self.rdf_run_kwargs["start"] = self.rdf_run_kwargs.get("start") or self.start
