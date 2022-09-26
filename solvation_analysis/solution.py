@@ -167,6 +167,7 @@ class Solution(AnalysisBase):
         networking_solvents=None,
         verbose=False,
     ):
+        # TODO: fix the original sin of this class and fix the solute numbering
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
         self.solvent_counts = solvent_counts or {}
