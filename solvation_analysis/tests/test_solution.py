@@ -10,7 +10,7 @@ from solvation_analysis.tests.conftest import u_eax_series, u_eax_atom_groups
 
 def test_instantiate_solute(pre_solution):
     # these check basic properties of the instantiation
-    assert len(pre_solution.radii) == 1
+    assert len(pre_solution.radii) == 3
     assert callable(pre_solution.kernel)
     assert pre_solution.solute.n_residues == 49
     assert pre_solution.solvents['pf6'].n_residues == 49
@@ -49,13 +49,13 @@ def test_radii_finding(run_solution):
 
 def test_run_warning(pre_solution_mutable):
     # checks that an error is thrown if there are not enough radii
+    pre_solution_mutable.radii = {'pf6': 2.8}
     with pytest.raises(AssertionError):
         pre_solution_mutable.run(step=1)
 
 
 def test_run(pre_solution_mutable):
     # checks that run is run correctly
-    pre_solution_mutable.radii = {'pf6': 2.8}
     pre_solution_mutable.run(step=1)
     assert len(pre_solution_mutable.solvation_frames) == 10
     assert len(pre_solution_mutable.solvation_frames[0]) == 228
@@ -64,7 +64,6 @@ def test_run(pre_solution_mutable):
 
 def test_run_w_all(pre_solution_mutable):
     # checks that run is run correctly
-    pre_solution_mutable.radii = {'pf6': 2.8}
     pre_solution_mutable.analysis_classes = [
         "pairing", "coordination", "speciation", "residence", "networking"
     ]
