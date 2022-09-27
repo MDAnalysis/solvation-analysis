@@ -272,11 +272,6 @@ def solvation_data(run_solution):
     return run_solution.solvation_data
 
 
-@pytest.fixture
-def solvation_data_dup(run_solution):
-    return run_solution.solvation_data_dup
-
-
 @pytest.fixture(scope='module')
 def solvation_data_large():
     return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2])

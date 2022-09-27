@@ -123,10 +123,8 @@ class Solution(AnalysisBase):
         a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
         and atom_ix, all but the closest atom is dropped.
-    solvation_data_dup : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
-        "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
-        and atom_ix, all atoms are kept.
+    solvation_data_dupicates : pandas.DataFrame
+        All rows that are dropped from solvation_data when duplicates are dropped.
     solute_res_ix : np.array
         a numpy array of the residue indices of every solute.
     solute_atom_ix : np.array
@@ -167,7 +165,6 @@ class Solution(AnalysisBase):
         networking_solvents=None,
         verbose=False,
     ):
-        # TODO: fix the original sin of this class and fix the solute numbering
         # TODO: create global variables for column names
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
@@ -184,8 +181,7 @@ class Solution(AnalysisBase):
         assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
         self.solute = solute
         self.n_solute = len(self.solute.residues)
-        self.solute_res_ix = pd.Series(solute.residues.ix, solute.atoms.ix)
-        # self.solute_atom_ix = solute.atoms.ix  # TODO: unneeded
+        self.solute_res_ix = pd.Series(solute.residues.ix, solute.atoms.ix)  # TODO: consider removing, only used in net
         self.solvents = solvents
         self.solute_name = solute_name
         self.res_name_map = pd.Series(['none'] * len(self.u.residues))
@@ -210,7 +206,7 @@ class Solution(AnalysisBase):
         """
         self.rdf_data = {}
         self.solvation_data = None
-        self.solvation_data_dup = None
+        self.solvation_data_duplicates = None
         self.speciation = None
         self.pairing = None
         self.coordination = None
@@ -304,9 +300,9 @@ class Solution(AnalysisBase):
         # clean up solvation_data df
         for column in ["frame", "solvated_atom", "atom_ix", "dist", "res_ix"]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
-        solvation_data_dup = solvation_data_df.sort_values(["frame", "solvated_atom", "dist"])
-        solvation_data = solvation_data_dup.drop_duplicates(["frame", "solvated_atom", "res_ix"])
-        self.solvation_data_dup = solvation_data_dup.set_index(["frame", "solvated_atom", "atom_ix"])
+        solvation_data_df = solvation_data_df.sort_values(["frame", "solvated_atom", "dist"])
+        solvation_data_duplicates = solvation_data_df.duplicated(subset=["frame", "solvated_atom", "res_ix"])
+        solvation_data = solvation_data_df[~solvation_data_duplicates]
         self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_ix"])
         # instantiate analysis classes
         self.has_run = True
