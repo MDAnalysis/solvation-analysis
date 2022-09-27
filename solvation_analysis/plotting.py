@@ -7,31 +7,6 @@ import matplotlib
 import numpy as np
 import pandas as pd
 
-
-def square_area(data, labels, cutoff=1):
-    data = np.floor(100 * data / np.sum(data)).astype(int)
-    do_exceed_cutoff = data > cutoff
-    label_array_short = np.repeat(labels[do_exceed_cutoff], data[do_exceed_cutoff])
-    # label_array = np.pad(
-    #     label_array_short,
-    #     (0, 100 - len(label_array_short)),
-    #     'constant',
-    #     constant_values=(np.nan, 'other'),
-    # )
-    colors = px.colors.qualitative.Dark24
-    color_array_short = np.repeat(colors[:sum(do_exceed_cutoff)], data[do_exceed_cutoff])
-    color_array = np.pad(
-        color_array_short,
-        (0, 100 - len(label_array_short)),
-        'constant',
-        constant_values=("000000", '#EEEEEE'),
-    )
-    rgb_array_unwrapped = [np.array(plotly.colors.hex_to_rgb(color)) for color in color_array]
-    rgb_values = np.reshape(rgb_array_unwrapped, (10,10,3))
-    fig = px.imshow(rgb_values, zmin=0, zmax=255)
-    fig.show()
-    return
-
 # single solution
 
 def plot_histogram(solution):
@@ -39,6 +14,8 @@ def plot_histogram(solution):
     return
 
 def format_graph(fig, title, x_axis, y_axis):
+    # a formatting/styling function for each graph that deals with titles/labels
+    # make a legend
     """
 
     Parameters
@@ -71,9 +48,11 @@ def plot_network_size_histogram(networking):
     """
     network_sizes = networking.network_sizes
     sums = network_sizes.sum(axis=0)
+    total_networks = sums.sum()
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=sums.index, y=sums.values))
-    fig.update_layout(xaxis_title_text="Network Size", yaxis_title_text="Frequency", title="Histogram of Network Sizes")
+    fig.add_trace(go.Bar(x=sums.index, y=sums.values/total_networks))
+    fig.update_layout(xaxis_title_text="Network Size", yaxis_title_text="Fraction of All Networks",
+                      title="Histogram of Network Sizes")
     fig.update_xaxes(type="category")
     return fig
 
@@ -91,14 +70,19 @@ def plot_shell_size_histogram(solution):
     fig : Plotly.Figure
 
     """
+    # TODO: orion suggests maybe consider having the option to replace the solvent names with
+    # custom solvent names, perhaps via an input dictionary
+    # ideally this same API could be reused throughout the plotting API
+
     speciation_data = solution.speciation.speciation_data
     speciation_data["total"] = speciation_data.sum(axis=1)
     sums = speciation_data.groupby("total").sum()
     fig = go.Figure()
+    totals = sums.T.sum()
     for column in sums.columns:
-        fig.add_trace(go.Bar(x=sums.index.values, y=sums[column].values, name=column))
-    fig.update_layout(xaxis_title_text="Shell Size", yaxis_title_text="Number of Molecules",
-                      title="Histogram of Shell Sizes")
+        fig.add_trace(go.Bar(x=sums.index.values, y=sums[column].values/totals, name=column))
+    fig.update_layout(xaxis_title_text="Shell Size", yaxis_title_text="Fraction of Total Molecules",
+                      title="Fraction of Solvents in Shells of Different Sizes")
     fig.update_xaxes(type="category")
     return fig
 
@@ -129,20 +113,18 @@ def plot_coordinating_atoms(solution):
 # multiple solution
 
 
-def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solvents):
-    # generalist plotter, this can plot either bar or line charts of the
-    # same data
-    # manages only properties and names of the plots
-    # make a separate formatting/styling function for each graph that deals with titles/labels
-    # TODO make x_axis, series, and keep_solvents keyword args so they can have defaults
+def compare_solvent_dicts(properties, keep_solvents, x_axis="species", series=False):
+    # generalist plotter, this can plot either bar or line charts of the same data
+    # this function should be under the hood, users shouldn't have to know how it works
     """
 
     Parameters
     ----------
-    properties : dictionary of solvent properties
-    series : Boolean (False when a line chart is not wanted)
-    x_axis :
-    keep_solvents :
+    properties : dictionary of the solvent property to be compared
+    keep_solvents : a list of strings of solvent names that are common to all systems in question
+    x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
+    series : Boolean (defaults to False for a bar graph; True specifies a line graph)
+    kwargs : consists of the x_axis and series parameters
 
     Returns
     -------
@@ -150,14 +132,12 @@ def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solv
 
     """
     fig = go.Figure()
+
     cleaned_properties = properties
     if keep_solvents:
         cleaned_properties = clean(properties, keep_solvents)
-    # TODO update legend
-    # perhaps use plotly.express, useful for when using dataframes??
-    # use go for if you want to add traces
-
     df = pd.DataFrame(data=cleaned_properties)
+
     if series and x_axis == "species":
         # each solution is a line
         df = df.transpose()
@@ -176,6 +156,7 @@ def compare_solvent_dicts(properties_dict, properties, x_axis, series, keep_solv
         fig = px.bar(df, x=df.index, y=df.columns, barmode="group")
     return fig
 
+
 def clean(properties, keep_solvents):
     cleaned_properties = []
     for i in range(len(properties)):
@@ -186,37 +167,7 @@ def clean(properties, keep_solvents):
     return cleaned_properties
 
 
-def catch_different_solvents(solvents):
-    if not all(elem == solvents[0] for elem in solvents):
-        raise ValueError("Solutions must have identical solvent compositions. Make sure that keep_solvents for each"
-            " solution lists only the solvents common to all solutions")
-
-def compare_free_solvents(solutions):
-    # this should be a grouped vertical bar chart or a line chart
-    # 1.0 should be marked and annotated with a dotted line
-    fig = compare_solvent_dicts()
-    return
-
-
-def compare_pairing(solutions, x_axis, series=False, keep_solvents=None):
-    # this should be a grouped vertical bar chart or a line chart
-    # *** should there be another (boolean) parameter that
-    # 1.0 should be marked and annotated with a dotted line
-    """
-    Compares the pairing of multiple solutions.
-    Parameters
-    ----------
-    solutions : a dict of Solution objects (should not be mutable)
-    series : Boolean (False when a line chart is not wanted)
-    keep_solvents : a list of solvent names (strings) to keep in the analysis
-
-    Returns
-    -------
-    fig : Plotly.Figure
-
-    """
-    # you can also do kwargs instead of writing out all the keywords
-    keep_solvents = keep_solvents or []
+def catch_different_solvents(keep_solvents, solutions):
     if keep_solvents:
         solvents_list = []
         for solution in solutions:
@@ -225,14 +176,45 @@ def compare_pairing(solutions, x_axis, series=False, keep_solvents=None):
     else:
         solvents_list = [list(solutions[solution].solvents.keys()) for solution in solutions]
 
-    catch_different_solvents(solvents_list)
+    if not all(elem == solvents_list[0] for elem in solvents_list):
+        raise ValueError("Solutions must have identical solvent compositions. Make sure that keep_solvents for each"
+            " solution lists only the solvents common to all solutions")
+
+
+def compare_free_solvents(solutions):
+    # this should be a grouped vertical bar chart or a line chart
+    # 1.0 should be marked and annotated with a dotted line
+    fig = compare_solvent_dicts()
+    return
+
+
+def compare_pairing(solutions, keep_solvents=None, **kwargs):
+    # this should be a grouped vertical bar chart or a line chart
+    # 1.0 should be marked and annotated with a dotted line
+    """
+    Compares the pairing of multiple solutions.
+    Parameters
+    ----------
+    solutions : a dictionary of Solution objects
+    keep_solvents : a list of strings of solvent names that are common to all systems in question
+    kwargs: consists of the x_axis and series parameters
+        x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
+        series : Boolean (False for a bar graph; True for a line graph)
+
+    Returns
+    -------
+    fig : Plotly.Figure
+
+    """
+    catch_different_solvents(keep_solvents, solutions)
     pairing = [solutions[solution].pairing.pairing_dict for solution in solutions]
     pairing_dict = {}
     for solution in solutions:
         pairing_dict[solution] = solutions[solution].pairing.pairing_dict
-    return compare_solvent_dicts(pairing_dict, pairing, x_axis, series, keep_solvents)
+    return compare_solvent_dicts(pairing, keep_solvents, **kwargs)
 
-def compare_coordination_numbers(solutions, series=False, ignore=None):
+
+def compare_coordination_numbers(solutions, keep_solvents=None, **kwargs):
     # this should be a stacked bar chart, horizontal?
     """
     Compares the coordination numbers of multiple solutions.
@@ -248,10 +230,14 @@ def compare_coordination_numbers(solutions, series=False, ignore=None):
     fig : Plotly.Figure
 
     """
-    # catch_different_solvents(solutions)
-    coordination = [solution.coordination.cn_dict for solution in solutions]
-    coordination = set(coordination) - set(ignore)
-    return compare_solvent_dicts(coordination, series)
+    keep_solvents = keep_solvents or []
+    catch_different_solvents(keep_solvents, solutions)
+    coordination = [solutions[solution].coordination.cn_dict for solution in solutions]
+    coord_dict = {}
+    for solution in solutions:
+        coord_dict[solution] = solutions[solution].pairing.pairing_dict
+    return compare_solvent_dicts(coordination, keep_solvents, **kwargs)
+
 
 def compare_coordination_to_random(solutions):
     # this should compare the actual coordination numbers relative to a
