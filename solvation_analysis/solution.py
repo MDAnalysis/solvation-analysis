@@ -297,12 +297,12 @@ class Solution(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solvated_atom with solute?
-            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, "dist", "res_name", "res_ix"]
+            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, "res_name", "res_ix"]
         )
         # clean up solvation_data df
-        for column in [FRAME, SOLVATED_ATOM, ATOM_IX, "dist", "res_ix"]:
+        for column in [FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, "res_ix"]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
-        solvation_data_df = solvation_data_df.sort_values([FRAME, SOLVATED_ATOM, "dist"])
+        solvation_data_df = solvation_data_df.sort_values([FRAME, SOLVATED_ATOM, DISTANCE])
         solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLVATED_ATOM, "res_ix"])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
         self.solvation_data = solvation_data.set_index([FRAME, SOLVATED_ATOM, ATOM_IX])

@@ -119,7 +119,7 @@ class Pairing:
 
     def _percent_free_solvent(self):
         # calculate the percent of each solvent NOT coordinated with the solute
-        counts = self.solvation_data.groupby([FRAME, "res_ix", "res_name"]).count()['dist']
+        counts = self.solvation_data.groupby([FRAME, "res_ix", "res_name"]).count()[DISTANCE]
         totals = counts.groupby(['res_name']).count() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents

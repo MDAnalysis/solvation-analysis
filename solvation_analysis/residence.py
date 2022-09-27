@@ -273,6 +273,6 @@ class Residence:
         """
         # generate an adjacency matrix from the solvation data
         adjacency_group = solvation_data.groupby([FRAME, SOLVATED_ATOM, 'res_ix'])
-        adjacency_df = adjacency_group['dist'].count().unstack(fill_value=0)
+        adjacency_df = adjacency_group[DISTANCE].count().unstack(fill_value=0)
         return adjacency_df
 
