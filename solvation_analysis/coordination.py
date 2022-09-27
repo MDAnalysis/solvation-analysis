@@ -121,7 +121,7 @@ class Coordination:
         # calculate percent of each
         solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
         type_percents = type_counts[ATOM_IX] / solvent_counts_list
-        type_percents.name = 'percent'
+        type_percents.name = PERCENT
         # change index type
         type_percents = (type_percents
                          .reset_index(level=1)

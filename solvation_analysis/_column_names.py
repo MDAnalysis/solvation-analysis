@@ -18,6 +18,7 @@ RES_IX = "res_ix"
 
 # for coordination
 ATOM_TYPE = "atom_type"
+PERCENT = "percent"
 
 # for networking
 NETWORK = "network"
