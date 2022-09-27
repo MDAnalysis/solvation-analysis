@@ -146,7 +146,7 @@ class Networking:
         solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, solvents)]
         # reindex solvated_atom to residue indexes
         reindexed_subset = solvation_subset.reset_index(level=1)
-        reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom]
+        reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom].values
         dropped_reindexed = reindexed_subset.set_index(['solvated_atom'], append=True)
         reindexed_subset = dropped_reindexed.reorder_levels(['frame', 'solvated_atom', 'atom_ix'])
         # create adjacency matrix from reindexed df

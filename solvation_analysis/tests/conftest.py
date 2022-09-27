@@ -275,7 +275,7 @@ def otf_f_solution(zn_atom_groups):
         radii={'otf': 2.8, "zn": 5.0, "h2o": 3.0}
     )
     solution.run()
-    solution.plot_solvation_radius('otf')[0].show() # TODO remove this
+    solution.plot_solvation_radius('otf')[0].show()  # TODO remove this
     solution.plot_solvation_radius('h2o')[0].show()
     solution.plot_solvation_radius('zn')[0].show()
     return solution

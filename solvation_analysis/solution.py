@@ -168,6 +168,7 @@ class Solution(AnalysisBase):
         verbose=False,
     ):
         # TODO: fix the original sin of this class and fix the solute numbering
+        # TODO: create global variables for column names
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
         self.solvent_counts = solvent_counts or {}
@@ -180,10 +181,11 @@ class Solution(AnalysisBase):
         self.rdf_run_kwargs = rdf_run_kwargs or {}
         self.has_run = False
         self.u = solute.universe
+        assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
         self.solute = solute
         self.n_solute = len(self.solute.residues)
-        self.solute_res_ix = solute.residues.ix
-        self.solute_atom_ix = solute.atoms.ix
+        self.solute_res_ix = pd.Series(solute.residues.ix, solute.atoms.ix)
+        # self.solute_atom_ix = solute.atoms.ix  # TODO: unneeded
         self.solvents = solvents
         self.solute_name = solute_name
         self.res_name_map = pd.Series(['none'] * len(self.u.residues))
@@ -268,6 +270,7 @@ class Solution(AnalysisBase):
                 box=self.u.dimensions,
             )
             # replace local ids with absolute ids
+            pairs[:, 0] = self.solute.atoms.ix[[pairs[:, 0]]]
             pairs[:, 1] = solvent.ix[[pairs[:, 1]]]
             # extend
             pairs_list.append(pairs)
@@ -419,7 +422,7 @@ class Solution(AnalysisBase):
         radii : numpy.array of float, optional
             the distance of each atom from the center
         """
-        return get_closest_n_mol(self.solute[solute_index], n_mol, **kwargs)
+        return get_closest_n_mol(self.u.atoms[solute_index], n_mol, **kwargs)
 
     def solvation_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
         """
@@ -503,5 +506,5 @@ class Solution(AnalysisBase):
         ix = df['res_ix'].values  # -1 to go from res_ix -> res_ix
         atoms = self.u.residues[ix].atoms
         if solute_index is not None:
-            atoms = atoms | self.solute[solute_index]
+            atoms = atoms | self.u.atoms[solute_index]
         return atoms

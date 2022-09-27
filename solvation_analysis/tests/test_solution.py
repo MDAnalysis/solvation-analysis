@@ -91,9 +91,9 @@ def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solutio
 @pytest.mark.parametrize(
     "solute_index, n_mol, frame, expected_res_ids",
     [
-        (1, 4, 5, [46, 100, 171, 255, 650]),
-        (2, 5, 6, [13, 59, 177, 264, 314, 651]),
-        (40, 6, 0, [101, 126, 127, 360, 368, 305, 689])
+        (6741, 4, 5, [46, 100, 171, 255, 650]),
+        (6749, 5, 6, [13, 59, 177, 264, 314, 651]),
+        (7053, 6, 0, [101, 126, 127, 360, 368, 305, 689])
     ],
 )
 def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solution):
@@ -105,9 +105,9 @@ def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solutio
 @pytest.mark.parametrize(
     "solute_index, step, expected_res_ids",
     [
-        (1, 5, [46, 100, 171, 255, 650]),
-        (2, 6, [13, 59, 177, 264, 314, 651]),
-        (40, 0, [101, 126, 127, 360, 689])
+        (6741, 5, [46, 100, 171, 255, 650]),
+        (6749, 6, [13, 59, 177, 264, 314, 651]),
+        (7053, 0, [101, 126, 127, 360, 689])
     ],
 )
 def test_solvation_shell(solute_index, step, expected_res_ids, run_solution):
@@ -118,9 +118,9 @@ def test_solvation_shell(solute_index, step, expected_res_ids, run_solution):
 @pytest.mark.parametrize(
     "solute_index, step, remove, expected_res_ids",
     [
-        (1, 5, {'bn': 1}, [46, 171, 255, 650]),
-        (2, 6, {'bn': 2, 'fec': 1}, [13, 177, 314, 651]),
-        (40, 0, {'fec': 1}, [101, 126, 127, 360, 689])
+        (6741, 5, {'bn': 1}, [46, 171, 255, 650]),
+        (6749, 6, {'bn': 2, 'fec': 1}, [13, 177, 314, 651]),
+        (7053, 0, {'fec': 1}, [101, 126, 127, 360, 689])
     ],
 )
 def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_ids, run_solution):
@@ -131,10 +131,10 @@ def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_id
 @pytest.mark.parametrize(
     "solute_index, step, n, expected_res_ids",
     [
-        (1, 5, 3, [46, 171, 255, 650]),
-        (2, 6, 3, [13, 177, 314, 651]),
-        (40, 0, 4, [101, 126, 127, 360, 689]),
-        (40, 0, 1, [101, 689])
+        (6741, 5, 3, [46, 171, 255, 650]),
+        (6749, 6, 3, [13, 177, 314, 651]),
+        (7053, 0, 4, [101, 126, 127, 360, 689]),
+        (7053, 0, 1, [101, 689])
     ],
 )
 def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids, run_solution):
