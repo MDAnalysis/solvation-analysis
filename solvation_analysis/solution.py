@@ -38,6 +38,8 @@ from solvation_analysis.speciation import Speciation
 
 from solvation_analysis.selection import get_radial_shell, get_closest_n_mol, get_atom_group
 
+from solvation_analysis._column_names import *
+
 
 class Solution(AnalysisBase):
     """
@@ -120,7 +122,7 @@ class Solution(AnalysisBase):
         a dictionary of RDF data, keys are solvent names and values
         are (bins, data) tuples.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        a dataframe of solvation data with columns FRAME, "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
         and atom_ix, all but the closest atom is dropped.
     solvation_data_dupicates : pandas.DataFrame
@@ -295,15 +297,15 @@ class Solution(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solvated_atom with solute?
-            columns=["frame", "solvated_atom", "atom_ix", "dist", "res_name", "res_ix"]
+            columns=[FRAME, "solvated_atom", "atom_ix", "dist", "res_name", "res_ix"]
         )
         # clean up solvation_data df
-        for column in ["frame", "solvated_atom", "atom_ix", "dist", "res_ix"]:
+        for column in [FRAME, "solvated_atom", "atom_ix", "dist", "res_ix"]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
-        solvation_data_df = solvation_data_df.sort_values(["frame", "solvated_atom", "dist"])
-        solvation_data_duplicates = solvation_data_df.duplicated(subset=["frame", "solvated_atom", "res_ix"])
+        solvation_data_df = solvation_data_df.sort_values([FRAME, "solvated_atom", "dist"])
+        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, "solvated_atom", "res_ix"])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
-        self.solvation_data = solvation_data.set_index(["frame", "solvated_atom", "atom_ix"])
+        self.solvation_data = solvation_data.set_index([FRAME, "solvated_atom", "atom_ix"])
         # instantiate analysis classes
         self.has_run = True
         classes_dict = {
@@ -461,7 +463,7 @@ class Solution(AnalysisBase):
                                       "of an analyzed frames in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
-        shell = self.solvation_data.xs((frame, solute_index), level=("frame", "solvated_atom"))
+        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, "solvated_atom"))
         # remove mols
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name

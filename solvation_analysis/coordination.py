@@ -18,6 +18,8 @@ solvation data a non-issue.
 
 import pandas as pd
 
+from solvation_analysis._column_names import *
+
 
 class Coordination:
     """
@@ -96,8 +98,8 @@ class Coordination:
         )
 
     def _mean_cn(self):
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
-        cn_series = counts.groupby(["res_name", "frame"]).sum() / (
+        counts = self.solvation_data.groupby([FRAME, "solvated_atom", "res_name"]).count()["res_ix"]
+        cn_series = counts.groupby(["res_name", FRAME]).sum() / (
                 self.n_solutes * self.n_frames
         )
         cn_by_frame = cn_series.unstack()

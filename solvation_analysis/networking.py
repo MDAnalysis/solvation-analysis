@@ -22,6 +22,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components
 
 from solvation_analysis.residence import Residence
+from solvation_analysis._column_names import *
 
 
 class Networking:
@@ -44,7 +45,7 @@ class Networking:
     solvents : str or list[str]
         the solvents to include in the solute-solvent network.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        a dataframe of solvation data with columns FRAME, "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix".
     solute_res_ix : np.ndarray
         the residue indices of the solutes in solvation_data
@@ -126,7 +127,7 @@ class Networking:
     @staticmethod
     def _unwrap_adjacency_dataframe(df):
         # this class will transform the biadjacency matrix into a proper adjacency matrix
-        connections = df.reset_index(level=0).drop(columns='frame')
+        connections = df.reset_index(level=0).drop(columns=FRAME)
         idx = connections.columns.append(connections.index)
         directed = connections.reindex(index=idx, columns=idx, fill_value=0)
         undirected = directed.values + directed.values.T
@@ -148,12 +149,12 @@ class Networking:
         reindexed_subset = solvation_subset.reset_index(level=1)
         reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom].values
         dropped_reindexed = reindexed_subset.set_index(['solvated_atom'], append=True)
-        reindexed_subset = dropped_reindexed.reorder_levels(['frame', 'solvated_atom', 'atom_ix'])
+        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, 'solvated_atom', 'atom_ix'])
         # create adjacency matrix from reindexed df
         graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
         network_arrays = []
         # loop through each time step / frame
-        for frame, df in graph.groupby('frame'):
+        for frame, df in graph.groupby(FRAME):
             # drop empty columns
             df = df.loc[:, (df != 0).any(axis=0)]
             # save map from local index to residue index
@@ -176,17 +177,17 @@ class Networking:
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=['frame', 'network', 'res_name', 'res_ix'])
-                .set_index(['frame', 'network'])
-                .sort_values(['frame', 'network'])
+            pd.DataFrame(all_clusters, columns=[FRAME, 'network', 'res_name', 'res_ix'])
+                .set_index([FRAME, 'network'])
+                .sort_values([FRAME, 'network'])
         )
         return cluster_df
 
     def _calculate_network_sizes(self):
         # This utility calculates the network sizes and returns a convenient dataframe.
         cluster_df = self.network_df
-        cluster_sizes = cluster_df.groupby(['frame', 'network']).count()
-        size_counts = cluster_sizes.groupby(['frame', 'res_name']).count().unstack(fill_value=0)
+        cluster_sizes = cluster_df.groupby([FRAME, 'network']).count()
+        size_counts = cluster_sizes.groupby([FRAME, 'res_name']).count().unstack(fill_value=0)
         size_counts.columns = size_counts.columns.droplevel()
         return size_counts
 

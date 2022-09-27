@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 import warnings
 from scipy.signal import find_peaks, gaussian
 
+from solvation_analysis._column_names import *
+
 
 def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
     """

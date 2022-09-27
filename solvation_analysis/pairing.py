@@ -19,6 +19,9 @@ solvation data a non-issue.
 import pandas as pd
 import numpy as np
 
+from solvation_analysis._column_names import *
+
+
 
 class Pairing:
     """
@@ -105,8 +108,8 @@ class Pairing:
 
     def _percent_coordinated(self):
         # calculate the percent of solute coordinated with each solvent
-        counts = self.solvation_data.groupby(["frame", "solvated_atom", "res_name"]).count()["res_ix"]
-        pairing_series = counts.astype(bool).groupby(["res_name", "frame"]).sum() / (
+        counts = self.solvation_data.groupby([FRAME, "solvated_atom", "res_name"]).count()["res_ix"]
+        pairing_series = counts.astype(bool).groupby(["res_name", FRAME]).sum() / (
             self.n_solutes
         )  # mean coordinated overall
         pairing_by_frame = pairing_series.unstack()
@@ -116,18 +119,18 @@ class Pairing:
 
     def _percent_free_solvent(self):
         # calculate the percent of each solvent NOT coordinated with the solute
-        counts = self.solvation_data.groupby(["frame", "res_ix", "res_name"]).count()['dist']
+        counts = self.solvation_data.groupby([FRAME, "res_ix", "res_name"]).count()['dist']
         totals = counts.groupby(['res_name']).count() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
 
     def _diluent_composition(self):
-        coordinated_solvents = self.solvation_data.groupby(["frame", "res_name"]).nunique()["res_ix"]
+        coordinated_solvents = self.solvation_data.groupby([FRAME, "res_name"]).nunique()["res_ix"]
         solvent_counts = pd.Series(self.solvent_counts)
         total_solvents = solvent_counts.reindex(coordinated_solvents.index, level=1)
         diluent_solvents = total_solvents - coordinated_solvents
-        diluent_series = diluent_solvents / diluent_solvents.groupby(['frame']).sum()
+        diluent_series = diluent_solvents / diluent_solvents.groupby([FRAME]).sum()
         diluent_by_frame = diluent_series.unstack().T
         diluent_counts = diluent_solvents.unstack().T
         diluent_dict = diluent_by_frame.mean(axis=1).to_dict()
