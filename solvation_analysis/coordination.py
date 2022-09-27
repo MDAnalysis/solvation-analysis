@@ -98,7 +98,7 @@ class Coordination:
         )
 
     def _mean_cn(self):
-        counts = self.solvation_data.groupby([FRAME, SOLVATED_ATOM, RESNAME]).count()["res_ix"]
+        counts = self.solvation_data.groupby([FRAME, SOLVATED_ATOM, RESNAME]).count()[RES_IX]
         cn_series = counts.groupby([RESNAME, FRAME]).sum() / (
                 self.n_solutes * self.n_frames
         )

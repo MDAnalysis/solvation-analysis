@@ -272,7 +272,7 @@ class Residence:
         adjacency_df : pandas.DataFrame
         """
         # generate an adjacency matrix from the solvation data
-        adjacency_group = solvation_data.groupby([FRAME, SOLVATED_ATOM, "res_ix"])
+        adjacency_group = solvation_data.groupby([FRAME, SOLVATED_ATOM, RES_IX])
         adjacency_df = adjacency_group[DISTANCE].count().unstack(fill_value=0)
         return adjacency_df
 

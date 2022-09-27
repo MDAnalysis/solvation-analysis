@@ -1,3 +1,12 @@
+"""
+To change the string name a variable:
+1. change the string name in this file
+2. search through the documentation and change the string name wherever it appears
+
+To change the variable name of a variable:
+1. change the variable name in all files
+"""
+
 
 # for solvation_data
 FRAME = "frame"

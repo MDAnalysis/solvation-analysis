@@ -297,13 +297,13 @@ class Solution(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solvated_atom with solute?
-            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, RESNAME, "res_ix"]
+            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, RESNAME, RES_IX]
         )
         # clean up solvation_data df
-        for column in [FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, "res_ix"]:
+        for column in [FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, RES_IX]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
         solvation_data_df = solvation_data_df.sort_values([FRAME, SOLVATED_ATOM, DISTANCE])
-        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLVATED_ATOM, "res_ix"])
+        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLVATED_ATOM, RES_IX])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
         self.solvation_data = solvation_data.set_index([FRAME, SOLVATED_ATOM, ATOM_IX])
         # instantiate analysis classes
@@ -501,7 +501,7 @@ class Solution(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        ix = df["res_ix"].values  # -1 to go from res_ix -> res_ix
+        ix = df[RES_IX].values  # -1 to go from res_ix -> res_ix
         atoms = self.u.residues[ix].atoms
         if solute_index is not None:
             atoms = atoms | self.u.atoms[solute_index]

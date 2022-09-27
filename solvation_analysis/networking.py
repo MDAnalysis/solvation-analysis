@@ -177,7 +177,7 @@ class Networking:
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=[FRAME, "network", RESNAME, "res_ix"])
+            pd.DataFrame(all_clusters, columns=[FRAME, "network", RESNAME, RES_IX])
                 .set_index([FRAME, "network"])
                 .sort_values([FRAME, "network"])
         )
@@ -236,5 +236,5 @@ class Networking:
             <AtomGroup with 126 Atoms>
 
         """
-        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], "res_ix"].values
+        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], RES_IX].values
         return res_ix.astype(int)
