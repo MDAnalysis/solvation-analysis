@@ -112,15 +112,15 @@ class Coordination:
         return the types of those atoms
         """
         # lookup atom types
-        atom_types = self.solvation_data.reset_index(['atom_ix'])
-        atom_types['atom_type'] = self.atom_group[atom_types['atom_ix']].types
+        atom_types = self.solvation_data.reset_index([ATOM_IX])
+        atom_types['atom_type'] = self.atom_group[atom_types[ATOM_IX]].types
         # count atom types
-        atoms_by_type = atom_types[['atom_type', 'res_name', 'atom_ix']]
+        atoms_by_type = atom_types[['atom_type', 'res_name', ATOM_IX]]
         type_counts = atoms_by_type.groupby(['res_name', 'atom_type']).count()
-        solvent_counts = type_counts.groupby(['res_name']).sum()['atom_ix']
+        solvent_counts = type_counts.groupby(['res_name']).sum()[ATOM_IX]
         # calculate percent of each
         solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
-        type_percents = type_counts['atom_ix'] / solvent_counts_list
+        type_percents = type_counts[ATOM_IX] / solvent_counts_list
         type_percents.name = 'percent'
         # change index type
         type_percents = (type_percents

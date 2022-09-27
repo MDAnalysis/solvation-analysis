@@ -149,7 +149,7 @@ class Networking:
         reindexed_subset = solvation_subset.reset_index(level=1)
         reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom].values
         dropped_reindexed = reindexed_subset.set_index([SOLVATED_ATOM], append=True)
-        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, SOLVATED_ATOM, 'atom_ix'])
+        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, SOLVATED_ATOM, ATOM_IX])
         # create adjacency matrix from reindexed df
         graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
         network_arrays = []
