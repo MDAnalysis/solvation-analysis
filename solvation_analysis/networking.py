@@ -45,7 +45,7 @@ class Networking:
     solvents : str or list[str]
         the solvents to include in the solute-solvent network.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns FRAME, "solvated_atom", "atom_ix",
+        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix".
     solute_res_ix : np.ndarray
         the residue indices of the solutes in solvation_data

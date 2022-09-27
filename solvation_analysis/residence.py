@@ -258,8 +258,8 @@ class Residence:
         Calculate a frame-by-frame adjacency matrix from the solvation data.
 
         This will calculate the adjacency matrix of the solute and all possible
-        solvents. It will maintain an index of [FRAME, 'solvated_atom', 'res_ix']
-        where each FRAME is a sparse adjacency matrix between solvated atom ix
+        solvents. It will maintain an index of ["frame", 'solvated_atom', 'res_ix']
+        where each "frame" is a sparse adjacency matrix between solvated atom ix
         and residue ix.
 
         Parameters

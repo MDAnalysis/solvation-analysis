@@ -122,7 +122,7 @@ class Solution(AnalysisBase):
         a dictionary of RDF data, keys are solvent names and values
         are (bins, data) tuples.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns FRAME, "solvated_atom", "atom_ix",
+        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
         "dist", "res_name", and "res_ix". If multiple entries share a frame, solvated_atom,
         and atom_ix, all but the closest atom is dropped.
     solvation_data_dupicates : pandas.DataFrame
