@@ -88,7 +88,7 @@ class Networking:
     def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
         self.solvents = solvents
         self.solvation_data = solvation_data
-        solvent_present = np.isin(self.solvents, self.solvation_data['res_name'].unique())
+        solvent_present = np.isin(self.solvents, self.solvation_data[RESNAME].unique())
         if not solvent_present.all():
             raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
         self.solute_res_ix = solute_res_ix
@@ -177,17 +177,17 @@ class Networking:
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=[FRAME, 'network', 'res_name', 'res_ix'])
-                .set_index([FRAME, 'network'])
-                .sort_values([FRAME, 'network'])
+            pd.DataFrame(all_clusters, columns=[FRAME, "network", RESNAME, "res_ix"])
+                .set_index([FRAME, "network"])
+                .sort_values([FRAME, "network"])
         )
         return cluster_df
 
     def _calculate_network_sizes(self):
         # This utility calculates the network sizes and returns a convenient dataframe.
         cluster_df = self.network_df
-        cluster_sizes = cluster_df.groupby([FRAME, 'network']).count()
-        size_counts = cluster_sizes.groupby([FRAME, 'res_name']).count().unstack(fill_value=0)
+        cluster_sizes = cluster_df.groupby([FRAME, "network"]).count()
+        size_counts = cluster_sizes.groupby([FRAME, RESNAME]).count().unstack(fill_value=0)
         size_counts.columns = size_counts.columns.droplevel()
         return size_counts
 
@@ -197,10 +197,10 @@ class Networking:
         Namely, whether the solvent is "alone", "paired" (with a single solvent), or
         "in_network" of > 2 species.
         """
-        status = self.network_sizes.rename(columns={2: 'paired'})
-        status['in_network'] = status.iloc[:, 1:].sum(axis=1).astype(int)
-        status['alone'] = self.n_solute - status.loc[:, ['paired', 'in_network']].sum(axis=1)
-        status = status.loc[:, ['alone', 'paired', 'in_network']]
+        status = self.network_sizes.rename(columns={2: "paired"})
+        status["in_network"] = status.iloc[:, 1:].sum(axis=1).astype(int)
+        status["alone"] = self.n_solute - status.loc[:, ["paired", "in_network"]].sum(axis=1)
+        status = status.loc[:, ["alone", "paired", "in_network"]]
         solute_status_by_frame = status / self.n_solute
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame
@@ -236,5 +236,5 @@ class Networking:
             <AtomGroup with 126 Atoms>
 
         """
-        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], 'res_ix'].values
+        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], "res_ix"].values
         return res_ix.astype(int)

@@ -297,7 +297,7 @@ class Solution(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solvated_atom with solute?
-            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, "res_name", "res_ix"]
+            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, RESNAME, "res_ix"]
         )
         # clean up solvation_data df
         for column in [FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, "res_ix"]:
@@ -493,7 +493,7 @@ class Solution(AnalysisBase):
         Parameters
         ----------
         df : pandas.DataFrame
-            a df with a 'res_ix' column
+            a df with a "res_ix" column
         solute_index : int, optional
             if given, will include the solute with solute_index
 
@@ -501,7 +501,7 @@ class Solution(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        ix = df['res_ix'].values  # -1 to go from res_ix -> res_ix
+        ix = df["res_ix"].values  # -1 to go from res_ix -> res_ix
         atoms = self.u.residues[ix].atoms
         if solute_index is not None:
             atoms = atoms | self.u.atoms[solute_index]

@@ -17,9 +17,9 @@ def networking(run_solution):
 @pytest.mark.parametrize(
     "status, percent",
     [
-        ('alone', 0.876),
-        ('paired', 0.112),
-        ('in_network', 0.012),
+        ("alone", 0.876),
+        ("paired", 0.112),
+        ("in_network", 0.012),
     ],
 )
 def test_get_cluster_res_ix(status, percent, networking):
