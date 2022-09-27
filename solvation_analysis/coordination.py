@@ -113,10 +113,10 @@ class Coordination:
         """
         # lookup atom types
         atom_types = self.solvation_data.reset_index([ATOM_IX])
-        atom_types["atom_type"] = self.atom_group[atom_types[ATOM_IX]].types
+        atom_types[ATOM_TYPE] = self.atom_group[atom_types[ATOM_IX]].types
         # count atom types
-        atoms_by_type = atom_types[["atom_type", RESNAME, ATOM_IX]]
-        type_counts = atoms_by_type.groupby([RESNAME, "atom_type"]).count()
+        atoms_by_type = atom_types[[ATOM_TYPE, RESNAME, ATOM_IX]]
+        type_counts = atoms_by_type.groupby([RESNAME, ATOM_TYPE]).count()
         solvent_counts = type_counts.groupby([RESNAME]).sum()[ATOM_IX]
         # calculate percent of each
         solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
@@ -125,7 +125,7 @@ class Coordination:
         # change index type
         type_percents = (type_percents
                          .reset_index(level=1)
-                         .astype({"atom_type": str})
-                         .set_index("atom_type", append=True)
+                         .astype({ATOM_TYPE: str})
+                         .set_index(ATOM_TYPE, append=True)
                          )
         return type_percents[type_percents.percent > tol]

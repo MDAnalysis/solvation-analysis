@@ -3,6 +3,8 @@ import pytest
 
 from solvation_analysis.networking import Networking
 
+from solvation_analysis._column_names import *
+
 
 def test_networking_from_solution(run_solution):
     networking = Networking.from_solution(run_solution, 'pf6')
@@ -17,9 +19,9 @@ def networking(run_solution):
 @pytest.mark.parametrize(
     "status, percent",
     [
-        ("alone", 0.876),
-        ("paired", 0.112),
-        ("in_network", 0.012),
+        (ALONE, 0.876),
+        (PAIRED, 0.112),
+        (NETWORKED, 0.012),
     ],
 )
 def test_get_cluster_res_ix(status, percent, networking):

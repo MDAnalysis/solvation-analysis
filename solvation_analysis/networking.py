@@ -46,7 +46,7 @@ class Networking:
         the solvents to include in the solute-solvent network.
     solvation_data : pandas.DataFrame
         a dataframe of solvation data with columns "frame", SOLVATED_ATOM, "atom_ix",
-        "dist", "res_name", and "res_ix".
+        "dist", resname, and "res_ix".
     solute_res_ix : np.ndarray
         the residue indices of the solutes in solvation_data
     res_name_map : pd.Series
@@ -70,11 +70,11 @@ class Networking:
         "paired" means the solute and is coordinated with a single networking
         solvent and that solvent is not coordinated to any other solutes, network
         size is 2.
-        "in_network" means that the solute is coordinated to more than one solvent
+        "networked" means that the solute is coordinated to more than one solvent
         or its solvent is coordinated to more than one solute, network size >= 3.
     solute_status_by_frame : pd.DataFrame
         as described above, except organized into a dataframe where each
-        row is a unique frame and the columns are "alone", "paired", and "in_network".
+        row is a unique frame and the columns are "alone", "paired", and "networked".
 
     Examples
     --------
@@ -177,16 +177,16 @@ class Networking:
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=[FRAME, "network", RESNAME, RES_IX])
-                .set_index([FRAME, "network"])
-                .sort_values([FRAME, "network"])
+            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, RESNAME, RES_IX])
+                .set_index([FRAME, NETWORK])
+                .sort_values([FRAME, NETWORK])
         )
         return cluster_df
 
     def _calculate_network_sizes(self):
         # This utility calculates the network sizes and returns a convenient dataframe.
         cluster_df = self.network_df
-        cluster_sizes = cluster_df.groupby([FRAME, "network"]).count()
+        cluster_sizes = cluster_df.groupby([FRAME, NETWORK]).count()
         size_counts = cluster_sizes.groupby([FRAME, RESNAME]).count().unstack(fill_value=0)
         size_counts.columns = size_counts.columns.droplevel()
         return size_counts
@@ -195,12 +195,12 @@ class Networking:
         """
         This utility calculates the percentage of each solute with a given "status".
         Namely, whether the solvent is "alone", "paired" (with a single solvent), or
-        "in_network" of > 2 species.
+        "networked" of > 2 species.
         """
-        status = self.network_sizes.rename(columns={2: "paired"})
-        status["in_network"] = status.iloc[:, 1:].sum(axis=1).astype(int)
-        status["alone"] = self.n_solute - status.loc[:, ["paired", "in_network"]].sum(axis=1)
-        status = status.loc[:, ["alone", "paired", "in_network"]]
+        status = self.network_sizes.rename(columns={2: PAIRED})
+        status[NETWORKED] = status.iloc[:, 1:].sum(axis=1).astype(int)
+        status[ALONE] = self.n_solute - status.loc[:, [PAIRED, NETWORKED]].sum(axis=1)
+        status = status.loc[:, [ALONE, PAIRED, NETWORKED]]
         solute_status_by_frame = status / self.n_solute
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame

@@ -107,8 +107,8 @@ class Speciation:
         speciation_data.columns = res_names
         sum_series = speciation_data.groupby(speciation_data.columns.to_list()).size()
         sum_sorted = sum_series.sort_values(ascending=False)
-        speciation_percent = sum_sorted.reset_index().rename(columns={0: "count"})
-        speciation_percent["count"] = speciation_percent["count"] / (self.n_frames * self.n_solutes)
+        speciation_percent = sum_sorted.reset_index().rename(columns={0: COUNT})
+        speciation_percent[COUNT] = speciation_percent[COUNT] / (self.n_frames * self.n_solutes)
         return speciation_data, speciation_percent
 
     @classmethod
@@ -153,7 +153,7 @@ class Speciation:
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
         query_counts = self.speciation_percent.query(query)
-        return query_counts["count"].sum()
+        return query_counts[COUNT].sum()
 
     def find_shells(self, shell_dict):
         """
