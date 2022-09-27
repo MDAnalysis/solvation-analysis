@@ -297,15 +297,15 @@ class Solution(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solvated_atom with solute?
-            columns=[FRAME, "solvated_atom", "atom_ix", "dist", "res_name", "res_ix"]
+            columns=[FRAME, SOLVATED_ATOM, "atom_ix", "dist", "res_name", "res_ix"]
         )
         # clean up solvation_data df
-        for column in [FRAME, "solvated_atom", "atom_ix", "dist", "res_ix"]:
+        for column in [FRAME, SOLVATED_ATOM, "atom_ix", "dist", "res_ix"]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
-        solvation_data_df = solvation_data_df.sort_values([FRAME, "solvated_atom", "dist"])
-        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, "solvated_atom", "res_ix"])
+        solvation_data_df = solvation_data_df.sort_values([FRAME, SOLVATED_ATOM, "dist"])
+        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLVATED_ATOM, "res_ix"])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
-        self.solvation_data = solvation_data.set_index([FRAME, "solvated_atom", "atom_ix"])
+        self.solvation_data = solvation_data.set_index([FRAME, SOLVATED_ATOM, "atom_ix"])
         # instantiate analysis classes
         self.has_run = True
         classes_dict = {
@@ -463,7 +463,7 @@ class Solution(AnalysisBase):
                                       "of an analyzed frames in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
-        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, "solvated_atom"))
+        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLVATED_ATOM))
         # remove mols
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name

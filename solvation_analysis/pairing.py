@@ -108,7 +108,7 @@ class Pairing:
 
     def _percent_coordinated(self):
         # calculate the percent of solute coordinated with each solvent
-        counts = self.solvation_data.groupby([FRAME, "solvated_atom", "res_name"]).count()["res_ix"]
+        counts = self.solvation_data.groupby([FRAME, SOLVATED_ATOM, "res_name"]).count()["res_ix"]
         pairing_series = counts.astype(bool).groupby(["res_name", FRAME]).sum() / (
             self.n_solutes
         )  # mean coordinated overall

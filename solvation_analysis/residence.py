@@ -238,7 +238,7 @@ class Residence:
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
         auto_covariances = []
-        for solute_ix, df in adjacency_matrix.groupby(['solvated_atom']):
+        for solute_ix, df in adjacency_matrix.groupby([SOLVATED_ATOM]):
             non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
                 acovf,
@@ -272,7 +272,7 @@ class Residence:
         adjacency_df : pandas.DataFrame
         """
         # generate an adjacency matrix from the solvation data
-        adjacency_group = solvation_data.groupby([FRAME, 'solvated_atom', 'res_ix'])
+        adjacency_group = solvation_data.groupby([FRAME, SOLVATED_ATOM, 'res_ix'])
         adjacency_df = adjacency_group['dist'].count().unstack(fill_value=0)
         return adjacency_df
 

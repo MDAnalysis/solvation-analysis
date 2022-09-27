@@ -45,7 +45,7 @@ class Networking:
     solvents : str or list[str]
         the solvents to include in the solute-solvent network.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
+        a dataframe of solvation data with columns "frame", SOLVATED_ATOM, "atom_ix",
         "dist", "res_name", and "res_ix".
     solute_res_ix : np.ndarray
         the residue indices of the solutes in solvation_data
@@ -148,8 +148,8 @@ class Networking:
         # reindex solvated_atom to residue indexes
         reindexed_subset = solvation_subset.reset_index(level=1)
         reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom].values
-        dropped_reindexed = reindexed_subset.set_index(['solvated_atom'], append=True)
-        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, 'solvated_atom', 'atom_ix'])
+        dropped_reindexed = reindexed_subset.set_index([SOLVATED_ATOM], append=True)
+        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, SOLVATED_ATOM, 'atom_ix'])
         # create adjacency matrix from reindexed df
         graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
         network_arrays = []
