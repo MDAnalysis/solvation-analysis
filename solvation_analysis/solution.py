@@ -167,7 +167,6 @@ class Solution(AnalysisBase):
         networking_solvents=None,
         verbose=False,
     ):
-        # TODO: create global variables for column names
         super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
         self.solvent_counts = solvent_counts or {}
