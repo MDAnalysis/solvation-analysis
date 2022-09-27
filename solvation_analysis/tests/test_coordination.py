@@ -38,3 +38,16 @@ def test_coordinating_atoms(name, atom_type, percent, solvation_data, run_soluti
     calculated_percent = coordination.coordinating_atoms.loc[(name, atom_type)]
     np.testing.assert_allclose(percent, calculated_percent, atol=0.05)
 
+
+
+
+
+
+
+
+
+
+
+
+
+

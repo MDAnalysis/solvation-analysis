@@ -10,7 +10,7 @@ from solvation_analysis.tests.conftest import u_eax_series, u_eax_atom_groups
 
 def test_instantiate_solute(pre_solution):
     # these check basic properties of the instantiation
-    assert len(pre_solution.radii) == 1
+    assert len(pre_solution.radii) == 3
     assert callable(pre_solution.kernel)
     assert pre_solution.solute.n_residues == 49
     assert pre_solution.solvents['pf6'].n_residues == 49
@@ -49,13 +49,13 @@ def test_radii_finding(run_solution):
 
 def test_run_warning(pre_solution_mutable):
     # checks that an error is thrown if there are not enough radii
+    pre_solution_mutable.radii = {'pf6': 2.8}
     with pytest.raises(AssertionError):
         pre_solution_mutable.run(step=1)
 
 
 def test_run(pre_solution_mutable):
     # checks that run is run correctly
-    pre_solution_mutable.radii = {'pf6': 2.8}
     pre_solution_mutable.run(step=1)
     assert len(pre_solution_mutable.solvation_frames) == 10
     assert len(pre_solution_mutable.solvation_frames[0]) == 228
@@ -64,7 +64,6 @@ def test_run(pre_solution_mutable):
 
 def test_run_w_all(pre_solution_mutable):
     # checks that run is run correctly
-    pre_solution_mutable.radii = {'pf6': 2.8}
     pre_solution_mutable.analysis_classes = [
         "pairing", "coordination", "speciation", "residence", "networking"
     ]
@@ -92,9 +91,9 @@ def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solutio
 @pytest.mark.parametrize(
     "solute_index, n_mol, frame, expected_res_ids",
     [
-        (1, 4, 5, [46, 100, 171, 255, 650]),
-        (2, 5, 6, [13, 59, 177, 264, 314, 651]),
-        (40, 6, 0, [101, 126, 127, 360, 368, 305, 689])
+        (6741, 4, 5, [46, 100, 171, 255, 650]),
+        (6749, 5, 6, [13, 59, 177, 264, 314, 651]),
+        (7053, 6, 0, [101, 126, 127, 360, 368, 305, 689])
     ],
 )
 def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solution):
@@ -106,9 +105,9 @@ def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solutio
 @pytest.mark.parametrize(
     "solute_index, step, expected_res_ids",
     [
-        (1, 5, [46, 100, 171, 255, 650]),
-        (2, 6, [13, 59, 177, 264, 314, 651]),
-        (40, 0, [101, 126, 127, 360, 689])
+        (6741, 5, [46, 100, 171, 255, 650]),
+        (6749, 6, [13, 59, 177, 264, 314, 651]),
+        (7053, 0, [101, 126, 127, 360, 689])
     ],
 )
 def test_solvation_shell(solute_index, step, expected_res_ids, run_solution):
@@ -119,9 +118,9 @@ def test_solvation_shell(solute_index, step, expected_res_ids, run_solution):
 @pytest.mark.parametrize(
     "solute_index, step, remove, expected_res_ids",
     [
-        (1, 5, {'bn': 1}, [46, 171, 255, 650]),
-        (2, 6, {'bn': 2, 'fec': 1}, [13, 177, 314, 651]),
-        (40, 0, {'fec': 1}, [101, 126, 127, 360, 689])
+        (6741, 5, {'bn': 1}, [46, 171, 255, 650]),
+        (6749, 6, {'bn': 2, 'fec': 1}, [13, 177, 314, 651]),
+        (7053, 0, {'fec': 1}, [101, 126, 127, 360, 689])
     ],
 )
 def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_ids, run_solution):
@@ -132,10 +131,10 @@ def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_id
 @pytest.mark.parametrize(
     "solute_index, step, n, expected_res_ids",
     [
-        (1, 5, 3, [46, 171, 255, 650]),
-        (2, 6, 3, [13, 177, 314, 651]),
-        (40, 0, 4, [101, 126, 127, 360, 689]),
-        (40, 0, 1, [101, 689])
+        (6741, 5, 3, [46, 171, 255, 650]),
+        (6749, 6, 3, [13, 177, 314, 651]),
+        (7053, 0, 4, [101, 126, 127, 360, 689]),
+        (7053, 0, 1, [101, 689])
     ],
 )
 def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids, run_solution):
@@ -201,3 +200,16 @@ def test_instantiate_eax_atom_groups(name, u_eax_atom_groups):
 @pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
 def test_instantiate_eax_solutions(name, eax_solutions):
     assert isinstance(eax_solutions[name], Solution)
+
+
+def test_iba_atom_groups(iba_atom_groups):
+    n_atoms = len(iba_atom_groups['iba'].universe.atoms)
+    group_names = [
+        'h2o_O', 'h2o_H', 'iba_alcohol_O', 'iba_alcohol_H', 'iba_ketone', 'iba_C', 'iba_C_H'
+    ]
+    group_lengths = [len(iba_atom_groups[name]) for name in group_names]
+    assert sum(group_lengths) == n_atoms
+
+
+def test_iba_solutions(iba_solution):
+    assert isinstance(iba_solution, Solution)

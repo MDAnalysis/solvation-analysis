@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 import warnings
 from scipy.signal import find_peaks, gaussian
 
+from solvation_analysis._column_names import *
+
 
 def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
     """
@@ -139,7 +141,7 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
 
 def good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins):
     """
-    Uses several heuristics to determine if the a solvation cutoff is valid
+    Uses several heuristics to determine if the solvation cutoff is valid
     solvation cutoff. This fails if there is no solvation shell.
 
     Heuristics:
@@ -166,11 +168,13 @@ def good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins
     boolean : True if good cutoff, False if bad cutoff
 
     """
+    # normalize rdf
+    norm_rdf = rdf / np.max(rdf)
     if (
         len(peaks) == 0 or len(troughs) == 0  # insufficient critical points
         or troughs[0] < peaks[0]  # not a min and max
         or not (cutoff_region[0] < bins[troughs[0]] < cutoff_region[1])  # min not in cutoff
-        or abs(rdf[peaks[0]] - rdf[troughs[0]]) < min_trough_depth  # peak too small
+        or abs(norm_rdf[peaks[0]] - norm_rdf[troughs[0]]) < min_trough_depth  # peak too small
     ):
         return False
     return True
@@ -223,7 +227,7 @@ def identify_cutoff_scipy(
     rdf,
     cutoff_region=(1.5, 4),
     failure_behavior="warn",
-    min_trough_depth = 0.05,
+    min_trough_depth=0.02,
     **kwargs
 ):
     """

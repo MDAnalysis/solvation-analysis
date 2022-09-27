@@ -19,6 +19,8 @@ import numpy as np
 import MDAnalysis as mda
 from MDAnalysis.analysis import distances
 
+from solvation_analysis._column_names import *
+
 
 def get_atom_group(selection):
     """

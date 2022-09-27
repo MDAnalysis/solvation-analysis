@@ -24,6 +24,8 @@ import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import acovf
 from scipy.optimize import curve_fit
 
+from solvation_analysis._column_names import *
+
 
 class Residence:
     """
@@ -126,7 +128,7 @@ class Residence:
     def _calculate_auto_covariance_dict(self):
         frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
         auto_covariance_dict = {}
-        for res_name, res_solvation_data in self.solvation_data.groupby(['res_name']):
+        for res_name, res_solvation_data in self.solvation_data.groupby([RESNAME]):
             adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
@@ -236,7 +238,7 @@ class Residence:
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
         auto_covariances = []
-        for solute_ix, df in adjacency_matrix.groupby(['solvated_atom']):
+        for solute_ix, df in adjacency_matrix.groupby([SOLVATED_ATOM]):
             non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
                 acovf,
@@ -256,8 +258,8 @@ class Residence:
         Calculate a frame-by-frame adjacency matrix from the solvation data.
 
         This will calculate the adjacency matrix of the solute and all possible
-        solvents. It will maintain an index of ['frame', 'solvated_atom', 'res_ix']
-        where each 'frame' is a sparse adjacency matrix between solvated atom ix
+        solvents. It will maintain an index of ["frame", "solvated_atom", "res_ix"]
+        where each "frame" is a sparse adjacency matrix between solvated atom ix
         and residue ix.
 
         Parameters
@@ -270,7 +272,7 @@ class Residence:
         adjacency_df : pandas.DataFrame
         """
         # generate an adjacency matrix from the solvation data
-        adjacency_group = solvation_data.groupby(['frame', 'solvated_atom', 'res_ix'])
-        adjacency_df = adjacency_group['dist'].count().unstack(fill_value=0)
+        adjacency_group = solvation_data.groupby([FRAME, SOLVATED_ATOM, RES_IX])
+        adjacency_df = adjacency_group[DISTANCE].count().unstack(fill_value=0)
         return adjacency_df
 
