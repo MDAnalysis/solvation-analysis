@@ -12,8 +12,6 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_dcd_unwrap,
     bn_fec_atom_types,
     eax_data,
-    zn_data,
-    zn_dcd,
     iba_data,
     iba_dcd,
 )
