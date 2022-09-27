@@ -144,7 +144,7 @@ class Networking:
         3. tabulate the res_ix involved in each network and store in a DataFrame
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
-        solvation_subset = self.solvation_data[np.isin(self.solvation_data.res_name, solvents)]
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data[RESNAME], solvents)]
         # reindex solvated_atom to residue indexes
         reindexed_subset = solvation_subset.reset_index(level=1)
         reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom].values

@@ -467,7 +467,7 @@ class Solution(AnalysisBase):
         # remove mols
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
-            is_mol = shell.res_name == mol_name
+            is_mol = shell[RESNAME] == mol_name
             res_ix = shell[is_mol].res_ix
             mol_count = len(res_ix)
             n_remove = min(mol_count, n_remove)
