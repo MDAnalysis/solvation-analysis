@@ -39,14 +39,6 @@ def test_coordinating_atoms(name, atom_type, percent, solvation_data, run_soluti
     np.testing.assert_allclose(percent, calculated_percent, atol=0.05)
 
 
-def test_coordination_multi_atom(otf_f_solution):
-    coordination = Coordination.from_solution(otf_f_solution)
-    assert len(coordination.cn_dict) == 3
-
-
-
-
-
 
 
 

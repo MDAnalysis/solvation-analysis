@@ -10,8 +10,6 @@ bn_fec_solv_df_large = resource_filename(__name__, "data/bn_fec_data/bn_solv_df_
 ea_fec_dcd = resource_filename(__name__, "data/ea_fec_data/ea_fec.dcd")
 ea_fec_pdb = resource_filename(__name__, "data/ea_fec_data/ea_fec.pdb")
 eax_data = resource_filename(__name__, "data/eax_data/")
-zn_data = resource_filename(__name__, "data/zn_data/ZnOTf.data")
-zn_dcd = resource_filename(__name__, "data/zn_data/ZnOTf.dcd")
 iba_data = resource_filename(__name__, "data/iba_data/isobutyric_acid.pdb")
 iba_dcd = resource_filename(__name__, "data/iba_data/isobutyric_acid.dcd")
 

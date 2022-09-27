@@ -226,62 +226,6 @@ def eax_solutions(u_eax_atom_groups):
 
 
 @pytest.fixture(scope='module')
-def zn_atom_groups():
-    u = mda.Universe(zn_data, zn_dcd)
-    zn_atom_groups = {
-        'h2o': u.atoms.select_atoms("byres type 1"),
-        'zn': u.atoms.select_atoms("byres type 3"),
-        'otf': u.atoms.select_atoms("byres type 5")
-    }
-    return zn_atom_groups
-
-
-@pytest.fixture(scope='module')
-def zn_solution(zn_atom_groups):
-    solution = Solution(
-        zn_atom_groups['zn'],
-        {'h2o': zn_atom_groups['h2o'], 'otf': zn_atom_groups['otf']}
-    )
-    solution.run()
-    return solution
-
-
-@pytest.fixture(scope='module')
-def otf_o_solution(zn_atom_groups):
-    otf_o = zn_atom_groups['otf'].select_atoms("mass 16")
-    solution = Solution(
-        otf_o,
-        {
-            'zn': zn_atom_groups['zn'],
-            'h2o': zn_atom_groups['h2o'],
-            'otf': zn_atom_groups['otf']
-        }
-    )
-    solution.run()
-    solution.plot_solvation_radius('otf')[0].show()
-    return solution
-
-
-@pytest.fixture(scope='module')
-def otf_f_solution(zn_atom_groups):
-    otf_f = zn_atom_groups['otf'].select_atoms("type 5")
-    solution = Solution(
-        otf_f,
-        {
-            'zn': zn_atom_groups['zn'],
-            'h2o': zn_atom_groups['h2o'],
-            'otf': zn_atom_groups['otf']
-        },
-        radii={'otf': 2.8, "zn": 5.0, "h2o": 3.0}
-    )
-    solution.run()
-    solution.plot_solvation_radius('otf')[0].show()  # TODO remove this
-    solution.plot_solvation_radius('h2o')[0].show()
-    solution.plot_solvation_radius('zn')[0].show()
-    return solution
-
-
-@pytest.fixture(scope='module')
 def iba_atom_groups():
     u = mda.Universe(iba_data, iba_dcd)
     iba = u.select_atoms("byres element C")
