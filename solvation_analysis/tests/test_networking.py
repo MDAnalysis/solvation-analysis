@@ -6,14 +6,14 @@ from solvation_analysis.networking import Networking
 from solvation_analysis._column_names import *
 
 
-def test_networking_from_solution(run_solution):
-    networking = Networking.from_solution(run_solution, 'pf6')
+def test_networking_from_solute(run_solute):
+    networking = Networking.from_solute(run_solute, 'pf6')
     assert len(networking.network_df) == 128
 
 
 @pytest.fixture(scope='module')
-def networking(run_solution):
-    return Networking.from_solution(run_solution, 'pf6')
+def networking(run_solute):
+    return Networking.from_solute(run_solute, 'pf6')
 
 
 @pytest.mark.parametrize(

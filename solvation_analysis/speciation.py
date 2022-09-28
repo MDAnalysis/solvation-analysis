@@ -15,7 +15,7 @@ From this, it provides search functionality to query for specific solvation shel
 compositions. Extremely convenient for visualization.
 
 While ``speciation`` can be used in isolation, it is meant to be used
-as an attribute of the Solution class. This makes instantiating it and calculating the
+as an attribute of the Solute class. This makes instantiating it and calculating the
 solvation data a non-issue.
 """
 
@@ -46,7 +46,7 @@ class Speciation:
     Parameters
     ----------
     solvation_data : pandas.DataFrame
-        The solvation data frame output by Solution.
+        The solvation data frame output by Solute.
     n_frames : int
         The number of frames in solvation_data.
     n_solutes : int
@@ -80,23 +80,23 @@ class Speciation:
         self.co_occurrence = self._solvent_co_occurrence()
 
     @staticmethod
-    def from_solution(solution):
+    def from_solute(solute):
         """
-        Generate a Speciation object from a solution.
+        Generate a Speciation object from a solute.
 
         Parameters
         ----------
-        solution : Solution
+        solute : Solute
 
         Returns
         -------
         Pairing
         """
-        assert solution.has_run, "The solution must be run before calling from_solution"
+        assert solute.has_run, "The solute must be run before calling from_solute"
         return Speciation(
-            solution.solvation_data,
-            solution.n_frames,
-            solution.n_solute,
+            solute.solvation_data,
+            solute.n_frames,
+            solute.n_solute,
         )
 
     def _compute_speciation(self):
@@ -145,9 +145,9 @@ class Speciation:
          .. code-block:: python
 
             # first define Li, BN, and FEC AtomGroups
-            >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-            >>> solution.run()
-            >>> solution.speciation.shell_percent({'BN': 4, 'PF6': 1})
+            >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+            >>> solute.run()
+            >>> solute.speciation.shell_percent({'BN': 4, 'PF6': 1})
             0.0898
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
@@ -211,7 +211,7 @@ class Speciation:
 
     def plot_co_occurrence(self):
         """
-        Plot the co-occurrence matrix of the solution.
+        Plot the co-occurrence matrix of the solute.
 
         Co-occurrence as a heatmap with numerical values in addition to colors.
 

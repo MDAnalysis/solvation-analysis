@@ -4,8 +4,8 @@ import pytest
 from solvation_analysis.residence import Residence
 
 
-def test_residence_from_solution(run_solution):
-    residence = Residence.from_solution(run_solution)
+def test_residence_from_solute(run_solute):
+    residence = Residence.from_solute(run_solute)
     assert len(residence.residence_times) == 3
     assert len(residence.residence_times_fit) == 3
 
