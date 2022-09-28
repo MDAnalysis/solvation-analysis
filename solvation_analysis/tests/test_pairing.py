@@ -5,8 +5,8 @@ import pytest
 from solvation_analysis.pairing import Pairing
 
 
-def test_pairing_from_solute(run_solute):
-    pairing = Pairing.from_solute(run_solute)
+def test_pairing_from_solution(run_solution):
+    pairing = Pairing.from_solution(run_solution)
     assert len(pairing.pairing_dict) == 3
     assert len(pairing.percent_free_solvents) == 3
 

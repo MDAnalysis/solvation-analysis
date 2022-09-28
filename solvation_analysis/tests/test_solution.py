@@ -1,21 +1,21 @@
 import matplotlib.pyplot as plt
 import warnings
 import pytest
-from solvation_analysis.solute import Solute
+from solvation_analysis.solution import Solution
 import numpy as np
 from MDAnalysis import Universe
 
 from solvation_analysis.tests.conftest import u_eax_series, u_eax_atom_groups
 
 
-def test_instantiate_solute(pre_solute):
+def test_instantiate_solute(pre_solution):
     # these check basic properties of the instantiation
-    assert len(pre_solute.radii) == 3
-    assert callable(pre_solute.kernel)
-    assert pre_solute.solute.n_residues == 49
-    assert pre_solute.solvents['pf6'].n_residues == 49
-    assert pre_solute.solvents['fec'].n_residues == 237
-    assert pre_solute.solvents['bn'].n_residues == 363
+    assert len(pre_solution.radii) == 3
+    assert callable(pre_solution.kernel)
+    assert pre_solution.solute.n_residues == 49
+    assert pre_solution.solvents['pf6'].n_residues == 49
+    assert pre_solution.solvents['fec'].n_residues == 237
+    assert pre_solution.solvents['bn'].n_residues == 363
 
 
 def test_networking_instantiation_error(atom_groups):
@@ -24,54 +24,54 @@ def test_networking_instantiation_error(atom_groups):
     bn = atom_groups['bn']
     fec = atom_groups['fec']
     with pytest.raises(Exception):
-        solute = Solute(
+        solution = Solution(
             li, {'pf6': pf6, 'bn': bn, 'fec': fec}, analysis_classes=['networking']
         )
 
 
 def test_plot_solvation_distance(rdf_bins_and_data_easy):
     bins, data = rdf_bins_and_data_easy['pf6_all']
-    fig, ax = Solute._plot_solvation_radius(bins, data, 2)
+    fig, ax = Solution._plot_solvation_radius(bins, data, 2)
     # fig.show()  # comment out for global testing
 
 
-def test_radii_finding(run_solute):
+def test_radii_finding(run_solution):
     # checks that the solvation radii are plotted
-    assert len(run_solute.radii) == 3
-    assert len(run_solute.rdf_data) == 3
+    assert len(run_solution.radii) == 3
+    assert len(run_solution.rdf_data) == 3
     # checks that the identified solvation radii are approximately correct
-    assert 2 < run_solute.radii['pf6'] < 3
-    assert 2 < run_solute.radii['fec'] < 3
-    assert 2 < run_solute.radii['bn'] < 3
+    assert 2 < run_solution.radii['pf6'] < 3
+    assert 2 < run_solution.radii['fec'] < 3
+    assert 2 < run_solution.radii['bn'] < 3
     # for fig, ax in run_solute.rdf_plots.values():
     # plt.show()  # comment out for global testing
 
 
-def test_run_warning(pre_solute_mutable):
+def test_run_warning(pre_solution_mutable):
     # checks that an error is thrown if there are not enough radii
-    pre_solute_mutable.radii = {'pf6': 2.8}
+    pre_solution_mutable.radii = {'pf6': 2.8}
     with pytest.raises(AssertionError):
-        pre_solute_mutable.run(step=1)
+        pre_solution_mutable.run(step=1)
 
 
-def test_run(pre_solute_mutable):
+def test_run(pre_solution_mutable):
     # checks that run is run correctly
-    pre_solute_mutable.run(step=1)
-    assert len(pre_solute_mutable.solvation_frames) == 10
-    assert len(pre_solute_mutable.solvation_frames[0]) == 228
-    assert len(pre_solute_mutable.solvation_data) == 2312
+    pre_solution_mutable.run(step=1)
+    assert len(pre_solution_mutable.solvation_frames) == 10
+    assert len(pre_solution_mutable.solvation_frames[0]) == 228
+    assert len(pre_solution_mutable.solvation_data) == 2312
 
 
-def test_run_w_all(pre_solute_mutable):
+def test_run_w_all(pre_solution_mutable):
     # checks that run is run correctly
-    pre_solute_mutable.analysis_classes = [
+    pre_solution_mutable.analysis_classes = [
         "pairing", "coordination", "speciation", "residence", "networking"
     ]
-    pre_solute_mutable.networking_solvents = 'pf6'
-    pre_solute_mutable.run(step=1)
-    assert len(pre_solute_mutable.solvation_frames) == 10
-    assert len(pre_solute_mutable.solvation_frames[0]) == 228
-    assert len(pre_solute_mutable.solvation_data) == 2312
+    pre_solution_mutable.networking_solvents = 'pf6'
+    pre_solution_mutable.run(step=1)
+    assert len(pre_solution_mutable.solvation_frames) == 10
+    assert len(pre_solution_mutable.solvation_frames[0]) == 228
+    assert len(pre_solution_mutable.solvation_data) == 2312
 
 
 @pytest.mark.parametrize(
@@ -82,9 +82,9 @@ def test_run_w_all(pre_solute_mutable):
         (40, 3.5, 0, [101, 126, 127, 360, 368, 305, 689])
     ],
 )
-def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solute):
-    run_solute.u.trajectory[frame]
-    shell = run_solute.radial_shell(solute_index, radius)
+def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solution):
+    run_solution.u.trajectory[frame]
+    shell = run_solution.radial_shell(solute_index, radius)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -96,9 +96,9 @@ def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solute)
         (7053, 6, 0, [101, 126, 127, 360, 368, 305, 689])
     ],
 )
-def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solute):
-    run_solute.u.trajectory[frame]
-    shell = run_solute.closest_n_mol(solute_index, n_mol)
+def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solution):
+    run_solution.u.trajectory[frame]
+    shell = run_solution.closest_n_mol(solute_index, n_mol)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -110,8 +110,8 @@ def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solute)
         (7053, 0, [101, 126, 127, 360, 689])
     ],
 )
-def test_solvation_shell(solute_index, step, expected_res_ids, run_solute):
-    shell = run_solute.solvation_shell(solute_index, step)
+def test_solvation_shell(solute_index, step, expected_res_ids, run_solution):
+    shell = run_solution.solvation_shell(solute_index, step)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -123,8 +123,8 @@ def test_solvation_shell(solute_index, step, expected_res_ids, run_solute):
         (7053, 0, {'fec': 1}, [101, 126, 127, 360, 689])
     ],
 )
-def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_ids, run_solute):
-    shell = run_solute.solvation_shell(solute_index, step, remove_mols=remove)
+def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_ids, run_solution):
+    shell = run_solution.solvation_shell(solute_index, step, remove_mols=remove)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -137,8 +137,8 @@ def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_id
         (7053, 0, 1, [101, 689])
     ],
 )
-def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids, run_solute):
-    shell = run_solute.solvation_shell(solute_index, step, closest_n_only=n)
+def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids, run_solution):
+    shell = run_solution.solvation_shell(solute_index, step, closest_n_only=n)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -151,9 +151,9 @@ def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids,
         ({'bn': 4}, 260),
     ],
 )
-def test_speciation_find_shells(shell, n_shells, run_solute):
-    # duplicated to test in solute
-    df = run_solute.speciation.find_shells(shell)
+def test_speciation_find_shells(shell, n_shells, run_solution):
+    # duplicated to test in solution
+    df = run_solution.speciation.find_shells(shell)
     assert len(df) == n_shells
 
 
@@ -165,9 +165,9 @@ def test_speciation_find_shells(shell, n_shells, run_solute):
         ("pf6", 0.15),
     ],
 )
-def test_coordination_numbers(name, cn, run_solute):
-    # duplicated to test in solute
-    coord_dict = run_solute.coordination.cn_dict
+def test_coordination_numbers(name, cn, run_solution):
+    # duplicated to test in solution
+    coord_dict = run_solution.coordination.cn_dict
     np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
 
 
@@ -179,9 +179,9 @@ def test_coordination_numbers(name, cn, run_solute):
         ("pf6", 0.14),
     ],
 )
-def test_pairing(name, percent, run_solute):
-    # duplicated to test in solute
-    pairing_dict = run_solute.pairing.pairing_dict
+def test_pairing(name, percent, run_solution):
+    # duplicated to test in solution
+    pairing_dict = run_solution.pairing.pairing_dict
     np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
 
 
@@ -198,8 +198,8 @@ def test_instantiate_eax_atom_groups(name, u_eax_atom_groups):
 
 
 @pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
-def test_instantiate_eax_solutes(name, eax_solutes):
-    assert isinstance(eax_solutes[name], Solute)
+def test_instantiate_eax_solutions(name, eax_solutions):
+    assert isinstance(eax_solutions[name], Solution)
 
 
 def test_iba_atom_groups(iba_atom_groups):
@@ -211,5 +211,5 @@ def test_iba_atom_groups(iba_atom_groups):
     assert sum(group_lengths) == n_atoms
 
 
-def test_iba_solutes(iba_solute):
-    assert isinstance(iba_solute, Solute)
+def test_iba_solutions(iba_solution):
+    assert isinstance(iba_solution, Solution)

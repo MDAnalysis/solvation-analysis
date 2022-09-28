@@ -4,8 +4,8 @@ import pytest
 from solvation_analysis.speciation import Speciation
 
 
-def test_speciation_from_solute(run_solute):
-    speciation = Speciation.from_solute(run_solute)
+def test_speciation_from_solution(run_solution):
+    speciation = Speciation.from_solution(run_solution)
     assert len(speciation.speciation_data) == 490
 
 

@@ -9,11 +9,11 @@ Networking
 Study the topology and structure of solute-solvent networks.
 
 Networking yields a complete description of coordinated solute-solvent networks
-in the solute, regardless of identify. This could include cation-anion networks
+in the solution, regardless of identify. This could include cation-anion networks
 or hydrogen bond networks.
 
 While ``networking`` can be used in isolation, it is meant to be used
-as an attribute of the Solute class. This makes instantiating it and calculating the
+as an attribute of the Solution class. This makes instantiating it and calculating the
 solvation data a non-issue.
 """
 import pandas as pd
@@ -50,7 +50,7 @@ class Networking:
     solute_res_ix : np.ndarray
         the residue indices of the solutes in solvation_data
     res_name_map : pd.Series
-        a mapping between residue indices and the solute & solvent names in a Solute.
+        a mapping between residue indices and the solute & solvent names in a Solution.
 
     Attributes
     ----------
@@ -81,8 +81,8 @@ class Networking:
      .. code-block:: python
 
         # first define Li, BN, and FEC AtomGroups
-        >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-        >>> networking = Networking.from_solute(solute, 'PF6')
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> networking = Networking.from_solution(solution, 'PF6')
     """
 
     def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
@@ -100,15 +100,15 @@ class Networking:
         self.solute_status = self.solute_status.to_dict()
 
     @staticmethod
-    def from_solute(solute, solvents):
+    def from_solution(solution, solvents):
         """
-        Generate a Networking object from a solute and solvent names.
+        Generate a Networking object from a solution and solvent names.
 
         Parameters
         ----------
-        solute : Solute
+        solution : Solution
         solvents : str or list of str
-            the strings should be the name of solvents in the Solute. The
+            the strings should be the name of solvents in the Solution. The
             strings must match exactly for Networking to work properly. The
             selected solvents will be used to construct the networking graph
             that is described in documentation for the Networking class.
@@ -119,9 +119,9 @@ class Networking:
         """
         return Networking(
             solvents,
-            solute.solvation_data,
-            solute.solute_res_ix,
-            solute.res_name_map,
+            solution.solvation_data,
+            solution.solute_res_ix,
+            solution.res_name_map,
         )
 
     @staticmethod
@@ -229,10 +229,10 @@ class Networking:
          .. code-block:: python
 
             # first define Li, BN, and FEC AtomGroups
-            >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-            >>> networking = Networking.from_solute(solute, 'PF6')
+            >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+            >>> networking = Networking.from_solution(solution, 'PF6')
             >>> res_ix = networking.get_network_res_ix(1, 5)
-            >>> solute.u.residues[res_ix].atoms
+            >>> solution.u.residues[res_ix].atoms
             <AtomGroup with 126 Atoms>
 
         """

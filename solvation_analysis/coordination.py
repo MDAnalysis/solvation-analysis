@@ -12,7 +12,7 @@ Coordination numbers for each solvent are automatically calculated, along with
 the types of every coordinating atom.
 
 While ``coordination`` can be used in isolation, it is meant to be used
-as an attribute of the Solute class. This makes instantiating it and calculating the
+as an attribute of the Solution class. This makes instantiating it and calculating the
 solvation data a non-issue.
 """
 
@@ -39,7 +39,7 @@ class Coordination:
     Parameters
     ----------
     solvation_data : pandas.DataFrame
-        The solvation data frame output by Solute.
+        The solvation data frame output by Solution.
     n_frames : int
         The number of frames in solvation_data.
     n_solutes : int
@@ -61,9 +61,9 @@ class Coordination:
      .. code-block:: python
 
         # first define Li, BN, and FEC AtomGroups
-        >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-        >>> solute.run()
-        >>> solute.coordination.cn_dict
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> solution.run()
+        >>> solution.coordination.cn_dict
         {'BN': 4.328, 'FEC': 0.253, 'PF6': 0.128}
 
     """
@@ -77,24 +77,24 @@ class Coordination:
         self.coordinating_atoms = self._calculate_coordinating_atoms()
 
     @staticmethod
-    def from_solute(solute):
+    def from_solution(solution):
         """
-        Generate a Coordination object from a solute.
+        Generate a Coordination object from a solution.
 
         Parameters
         ----------
-        solute : Solute
+        solution : Solution
 
         Returns
         -------
         Pairing
         """
-        assert solute.has_run, "The solute must be run before calling from_solute"
+        assert solution.has_run, "The solution must be run before calling from_solution"
         return Coordination(
-            solute.solvation_data,
-            solute.n_frames,
-            solute.n_solute,
-            solute.u.atoms,
+            solution.solvation_data,
+            solution.n_frames,
+            solution.n_solute,
+            solution.u.atoms,
         )
 
     def _mean_cn(self):

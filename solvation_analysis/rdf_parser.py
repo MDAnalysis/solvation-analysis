@@ -146,7 +146,7 @@ def good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins
 
     Heuristics:
       -  trough follows peak
-      -  in `Solute.cutoff_region` (specified by kwarg)
+      -  in `Solution.cutoff_region` (specified by kwarg)
       -  normalized peak height > 0.05
 
     Parameters
@@ -265,7 +265,7 @@ def identify_cutoff_scipy(
             warnings.warn("No solvation shell detected.")
             return np.NaN
         if failure_behavior == "exception":
-            raise RuntimeError("Solute could not identify a solvation radius for at least one solvent. "
+            raise RuntimeError("Solution could not identify a solvation radius for at least one solvent. "
                                "Please enter the missing radii manually by adding them to the radii dict"
                                "and rerun the analysis.")
     cutoff = bins[troughs[0]]
@@ -346,7 +346,7 @@ def identify_cutoff_poly(
             warnings.warn("No solvation shell detected.")
             return np.NaN
         if failure_behavior == "exception":
-            raise RuntimeError("Solute could not identify a solvation radius for at least one solvent. "
+            raise RuntimeError("Solution could not identify a solvation radius for at least one solvent. "
                                "Please enter the missing radii manually by adding them to the radii dict"
                                "and rerun the analysis.")
     return cr_pts[1]

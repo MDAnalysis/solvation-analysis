@@ -12,7 +12,7 @@ Residence times for all solvents are automatically calculated from autocovarianc
 of the solvent-solute adjacency matrix.
 
 While ``residence`` can be used in isolation, it is meant to be used
-as an attribute of the Solute class. This makes instantiating it and calculating the
+as an attribute of the Solution class. This makes instantiating it and calculating the
 solvation data a non-issue.
 """
 import math
@@ -32,7 +32,7 @@ class Residence:
     Calculate the residence times of solvents.
 
     This class calculates the residence time of each solvent on the solute.
-    The residence time is in units of Solute frames, so if the Solute object
+    The residence time is in units of Solution frames, so if the Solution object
     has 1000 frames over 1 nanosecond, then each frame will be 1 picosecond.
     Thus a residence time of 100 would translate to 100 picoseconds.
 
@@ -65,10 +65,10 @@ class Residence:
     Parameters
     ----------
     solvation_data : pandas.DataFrame
-        The solvation data frame output by Solute.
+        The solvation data frame output by Solution.
     step : int
         The spacing of frames in solvation_data. This should be equal
-        to solute.step.
+        to solution.step.
 
     Attributes
     ----------
@@ -90,8 +90,8 @@ class Residence:
      .. code-block:: python
 
         # first define Li, BN, and FEC AtomGroups
-        >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-        >>> residence = Residence.from_solute(solute)
+        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> residence = Residence.from_solution(solution)
         >>> residence.residence_times
         {'BN': 4.02, 'FEC': 3.79, 'PF6': 1.15}
     """
@@ -107,22 +107,22 @@ class Residence:
 
 
     @staticmethod
-    def from_solute(solute):
+    def from_solution(solution):
         """
-        Generate a Residence object from a solute.
+        Generate a Residence object from a solution.
 
         Parameters
         ----------
-        solute : Solute
+        solution : Solution
 
         Returns
         -------
         Residence
         """
-        assert solute.has_run, "The solute must be run before calling from_solute"
+        assert solution.has_run, "The solution must be run before calling from_solution"
         return Residence(
-            solute.solvation_data,
-            solute.step
+            solution.solvation_data,
+            solution.step
         )
 
     def _calculate_auto_covariance_dict(self):
@@ -175,7 +175,7 @@ class Residence:
         Parameters
         ----------
         res_name : str
-            the name of a solvent in the solute.
+            the name of a solvent in the solution.
 
         Returns
         -------
@@ -265,7 +265,7 @@ class Residence:
         Parameters
         ----------
         solvation_data : pd.DataFrame
-            the solvation_data from a Solute.
+            the solvation_data from a Solution.
 
         Returns
         -------

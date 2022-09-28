@@ -24,7 +24,7 @@ from solvation_analysis.tests.datafiles import (
     non_solv_rdf_data,
     bn_fec_solv_df_large,
 )
-from solvation_analysis.solute import Solute
+from solvation_analysis.solution import Solution
 import pathlib
 
 
@@ -139,12 +139,12 @@ def rdf_bins_and_data_non_solv():
 
 
 @pytest.fixture(scope='module')
-def pre_solute(atom_groups):
+def pre_solution(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solute(
+    return Solution(
         li,
         {'pf6': pf6, 'bn': bn, 'fec': fec},
         radii={'pf6': 2.8, 'bn': 2.61468, 'fec': 2.43158},
@@ -153,12 +153,12 @@ def pre_solute(atom_groups):
 
 
 @pytest.fixture(scope='function')
-def pre_solute_mutable(atom_groups):
+def pre_solution_mutable(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solute(
+    return Solution(
         li,
         {'pf6': pf6, 'bn': bn, 'fec': fec},
         radii={'pf6': 2.8, 'bn': 2.61468, 'fec': 2.43158},
@@ -168,9 +168,9 @@ def pre_solute_mutable(atom_groups):
 
 
 @pytest.fixture(scope='module')
-def run_solute(pre_solute):
-    pre_solute.run(step=1)
-    return pre_solute
+def run_solution(pre_solution):
+    pre_solution.run(step=1)
+    return pre_solution
 
 
 @pytest.fixture(scope='module')
@@ -211,16 +211,16 @@ def u_eax_atom_groups(u_eax_series):
 
 
 @pytest.fixture(scope='module')
-def eax_solutes(u_eax_atom_groups):
-    solutes = {}
+def eax_solutions(u_eax_atom_groups):
+    solutions = {}
     for name, atom_groups in u_eax_atom_groups.items():
-        solute = Solute(
+        solution = Solution(
             atom_groups['li'],
             {'pf6': atom_groups['pf6'], name: atom_groups[name], 'fec': atom_groups['fec']},
         )
-        solute.run()
-        solutes[name] = solute
-    return solutes
+        solution.run()
+        solutions[name] = solution
+    return solutions
 
 
 @pytest.fixture(scope='module')
@@ -250,26 +250,26 @@ def iba_atom_groups():
 
 
 @pytest.fixture(scope='module')
-def iba_solute(iba_atom_groups):
-    solute = Solute(
+def iba_solution(iba_atom_groups):
+    solution = Solution(
         iba_atom_groups['iba_ketone'],
         {
             'h2o': iba_atom_groups['h2o'],
             'iba': iba_atom_groups['iba'],
         },
     )
-    solute.run()
-    return solute
+    solution.run()
+    return solution
 
 
 @pytest.fixture
-def solvation_results(run_solute):
-    return run_solute.solvation_frames
+def solvation_results(run_solution):
+    return run_solution.solvation_frames
 
 
 @pytest.fixture
-def solvation_data(run_solute):
-    return run_solute.solvation_data
+def solvation_data(run_solution):
+    return run_solution.solvation_data
 
 
 @pytest.fixture(scope='module')
