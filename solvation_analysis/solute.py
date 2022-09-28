@@ -1,22 +1,22 @@
 """
 ========
-Solution
+Solute
 ========
 :Author: Orion Cohen
 :Year: 2021
 :Copyright: GNU Public License v3
 
-The solvation_analysis module is centered around the Solution class, which defines
-solvation as coordination of a central solute with surrounding solvents. The Solution
+The solvation_analysis module is centered around the Solute class, which defines
+solvation as coordination of a central solute with surrounding solvents. The Solute
 class provides a convenient interface for specifying a solute and solvents, calculating
 their solvation radii, and collecting the solvation shells of each solute into a
 pandas.DataFrame for convenient analysis.
 
-Solution uses the solvation data to instantiate each of the analysis classes in
+Solute uses the solvation data to instantiate each of the analysis classes in
 the analysis_library as attributes. Creating a convenient interface for more in
 depth analysis of specific aspects of solvation.
 
-Solution also provides several functions to select a particular solute and its solvation
+Solute also provides several functions to select a particular solute and its solvation
 shell, returning an AtomGroup for visualization or further analysis.
 """
 
@@ -41,28 +41,28 @@ from solvation_analysis.selection import get_radial_shell, get_closest_n_mol, ge
 from solvation_analysis._column_names import *
 
 
-class Solution(AnalysisBase):
+class Solute(AnalysisBase):
     """
-    Analyze the solvation structure of a solution.
+    Analyze the solvation structure of a solute.
 
-    Solution finds the coordination between the solute and each solvent
+    Solute finds the coordination between the solute and each solvent
     and collects that information in a pandas.DataFrame (solvation_data)
     for convenient analysis. The names provided in the solvents dictionary
     are used throughout the class.
 
-    First, Solution calculates the RDF between the solute and each solvent and
+    First, Solute calculates the RDF between the solute and each solvent and
     uses it to identify the radius of the first solvation shell. Radii can
-    instead be supplied with the radii parameter. After Solution.run() is
+    instead be supplied with the radii parameter. After Solute.run() is
     called, these radii can be queried with the plot_solvation_radius method.
 
-    Second, Solution finds all atoms in the first solvation shell, using
+    Second, Solute finds all atoms in the first solvation shell, using
     the cutoff radii for each solvent. For each coordinating atom the id,
     residue id, and distance from the solute are saved in solvation_data.
     This analysis is repeated for each solute at every frame in the
     analysis and the data is compiled into a pandas.DataFrame and indexed
     by frame, solute number, and atom id.
 
-    Finally, Solution instantiates Speciation, Coordination, and Pairing
+    Finally, Solute instantiates Speciation, Coordination, and Pairing
     objects from the solvation_data, providing a convenient interface to
     further analysis.
 
@@ -72,7 +72,7 @@ class Solution(AnalysisBase):
     Parameters
     ----------
     solute : MDAnalysis.AtomGroup
-        the solute in the solutions
+        the solute in the solutes
     solvents: dict of {str: MDAnalysis.AtomGroup}
         a dictionary of solvent names and associated MDAnalysis.AtomGroups.
         e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}
@@ -96,7 +96,7 @@ class Solution(AnalysisBase):
     rdf_run_kwargs : dict, optional
         kwargs passed to the internal MDAnalysis.InterRDF.run() command
         e.g. ``inner_rdf.run(**rdf_run_kwargs)``. By default, step, start, and
-        stop will use any kwargs provided to ``solution.run(**kwargs)``.
+        stop will use any kwargs provided to ``solute.run(**kwargs)``.
     solute_name: str, optional
         the name of the solute, used for labeling.
     analysis_classes : List[str], optional
@@ -133,7 +133,7 @@ class Solution(AnalysisBase):
         a numpy array of the atom indices of every solute.
     res_name_map : pd.Series
         a map from residue indices in the Universe to solvent and solute names from
-        the solution. For example, if the first residue in the universe was in
+        the solute. For example, if the first residue in the universe was in
         ``self.solvent['res_one']``, then ``res_name_map[0] == 'res_one'``.
     pairing : analysis_library.Pairing (optional)
         pairing analyzes the fraction solutes and solvents that are coordinated.
@@ -167,8 +167,7 @@ class Solution(AnalysisBase):
         networking_solvents=None,
         verbose=False,
     ):
-        # TODO: create global variables for column names
-        super(Solution, self).__init__(solute.universe.trajectory, verbose=verbose)
+        super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
         self.solvent_counts = solvent_counts or {}
         for name in solvents.keys():
@@ -246,7 +245,7 @@ class Solution(AnalysisBase):
         missing_solvents = set(self.solvents.keys()) - calculated_radii
         missing_solvents_str = ' '.join([str(i) for i in missing_solvents])
         assert len(missing_solvents) == 0, (
-            f"Solution could not identify a solvation radius for "
+            f"Solute could not identify a solvation radius for "
             f"{missing_solvents_str}. Please manually enter missing radii "
             f"by editing the radii dict and rerun the analysis."
         )
@@ -317,9 +316,9 @@ class Solution(AnalysisBase):
         }
         for analysis_class in self.analysis_classes:
             if analysis_class == 'networking':
-                setattr(self, 'networking', Networking.from_solution(self, self.networking_solvents))
+                setattr(self, 'networking', Networking.from_solute(self, self.networking_solvents))
             else:
-                setattr(self, analysis_class, classes_dict[analysis_class].from_solution(self))
+                setattr(self, analysis_class, classes_dict[analysis_class].from_solute(self))
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):

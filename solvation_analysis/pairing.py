@@ -12,7 +12,7 @@ Pairing tracks the percent of all solvent molecules paired with the solute, as w
 as the composition of the diluent.
 
 While ``pairing`` can be used in isolation, it is meant to be used
-as an attribute of the Solution class. This makes instantiating it and calculating the
+as an attribute of the Solute class. This makes instantiating it and calculating the
 solvation data a non-issue.
 """
 
@@ -37,7 +37,7 @@ class Pairing:
     Parameters
     ----------
     solvation_data : pandas.DataFrame
-        The solvation data frame output by Solution.
+        The solvation data frame output by Solute.
     n_frames : int
         The number of frames in solvation_data.
     n_solutes : int
@@ -70,9 +70,9 @@ class Pairing:
      .. code-block:: python
 
         # first define Li, BN, and FEC AtomGroups
-        >>> solution = Solution(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
-        >>> solution.run()
-        >>> solution.pairing.pairing_dict
+        >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> solute.run()
+        >>> solute.pairing.pairing_dict
         {'BN': 1.0, 'FEC': 0.210, 'PF6': 0.120}
     """
 
@@ -86,24 +86,24 @@ class Pairing:
         self.diluent_dict, self.diluent_by_frame, self.diluent_counts = self._diluent_composition()
 
     @staticmethod
-    def from_solution(solution):
+    def from_solute(solute):
         """
-        Generate a Pairing object from a solution.
+        Generate a Pairing object from a solute.
 
         Parameters
         ----------
-        solution : Solution
+        solute : Solute
 
         Returns
         -------
         Pairing
         """
-        assert solution.has_run, "The solution must be run before calling from_solution"
+        assert solute.has_run, "The solute must be run before calling from_solute"
         return Pairing(
-            solution.solvation_data,
-            solution.n_frames,
-            solution.n_solute,
-            solution.solvent_counts
+            solute.solvation_data,
+            solute.n_frames,
+            solute.n_solute,
+            solute.solvent_counts
         )
 
     def _percent_coordinated(self):
