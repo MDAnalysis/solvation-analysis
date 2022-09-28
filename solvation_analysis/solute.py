@@ -152,6 +152,58 @@ class Solute(AnalysisBase):
         kwarg must be specified.
     """
 
+    def from_molecules(self, residues, **kwargs):
+        """
+        Create a solute from an AtomGroup containing multiple
+        atoms per residue.
+
+        Parameters
+        ----------
+        residues : AtomGroup
+            an AtomGroup or ResidueGroup containing multiple atoms per residue.
+        kwargs : dict
+            kwargs passed to the Solute constructor.
+
+        Returns
+        -------
+        solute : Solute
+            a solute object
+        """
+        return
+
+    def from_solutes(self, solutes, **kwargs):
+        """
+        Create a Solute from a list of Solutes.
+
+        Parameters
+        ----------
+        solutes
+        kwargs
+
+        Returns
+        -------
+
+        """
+
+    def from_atoms(self, atoms, **kwargs):
+        """
+        Create a solute from an AtomGroup containing one atom per residue.
+
+        Parameters
+        ----------
+        atoms : AtomGroup
+            an AtomGroup or ResidueGroup containing one atom per residue.
+        kwargs : dict
+            kwargs passed to the Solute constructor.
+
+        Returns
+        -------
+        solute : Solute
+            a solute object
+        """
+        return
+
+
     def __init__(
         self,
         solute,
