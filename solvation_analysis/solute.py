@@ -122,9 +122,9 @@ class Solute(AnalysisBase):
         a dictionary of RDF data, keys are solvent names and values
         are (bins, data) tuples.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solute_atom", "atom_ix",
-        "dist", resname, and "res_ix". If multiple entries share a frame, solute_atom,
-        and atom_ix, all but the closest atom is dropped.
+        a dataframe of solvation data with columns "frame", "solute_atom", "solvent_atom",
+        "distance", "solvent_name", and "solvent". If multiple entries share a frame, solute_atom,
+        and solvent_atom, all but the closest atom is dropped.
     solvation_data_dupicates : pandas.DataFrame
         All rows that are dropped from solvation_data when duplicates are dropped.
     solute_res_ix : np.array
@@ -357,15 +357,15 @@ class Solute(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solute_atom with solute?
-            columns=[FRAME, SOLUTE_ATOM, ATOM_IX, DISTANCE, SOLVENT_NAME, RES_IX]
+            columns=[FRAME, SOLUTE_ATOM, SOLVENT_ATOM, DISTANCE, SOLVENT_NAME, SOLVENT]
         )
         # clean up solvation_data df
-        for column in [FRAME, SOLUTE_ATOM, ATOM_IX, DISTANCE, RES_IX]:
+        for column in [FRAME, SOLUTE_ATOM, SOLVENT_ATOM, DISTANCE, SOLVENT]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
         solvation_data_df = solvation_data_df.sort_values([FRAME, SOLUTE_ATOM, DISTANCE])
-        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM, RES_IX])
+        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM, SOLVENT])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
-        self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_ATOM, ATOM_IX])
+        self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_ATOM, SOLVENT_ATOM])
         # instantiate analysis classes
         self.has_run = True
         classes_dict = {
@@ -528,13 +528,13 @@ class Solute(AnalysisBase):
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
             is_mol = shell[SOLVENT_NAME] == mol_name
-            res_ix = shell[is_mol].res_ix
+            res_ix = shell[is_mol][SOLVENT]
             mol_count = len(res_ix)
             n_remove = min(mol_count, n_remove)
             # then truncate resnames to remove mols
             remove_ix = res_ix[(mol_count - n_remove):]
             # then apply to original shell
-            remove = shell.res_ix.isin(remove_ix)
+            remove = shell[SOLVENT].isin(remove_ix)
             shell = shell[np.invert(remove)]
         # filter based on length
         if closest_n_only:
@@ -548,12 +548,12 @@ class Solute(AnalysisBase):
 
     def _df_to_atom_group(self, df, solute_index=None):
         """
-        Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with res_ix.
+        Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with solvent.
 
         Parameters
         ----------
         df : pandas.DataFrame
-            a df with a "res_ix" column
+            a df with a "solvent" column
         solute_index : int, optional
             if given, will include the solute with solute_index
 
@@ -561,7 +561,7 @@ class Solute(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        ix = df[RES_IX].values  # -1 to go from res_ix -> res_ix
+        ix = df[SOLVENT].values
         atoms = self.u.residues[ix].atoms
         if solute_index is not None:
             atoms = atoms | self.u.atoms[solute_index]

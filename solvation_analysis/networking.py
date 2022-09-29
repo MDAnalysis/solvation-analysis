@@ -45,8 +45,8 @@ class Networking:
     solvents : str or list[str]
         the solvents to include in the solute-solvent network.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", SOLUTE_ATOM, "atom_ix",
-        "dist", resname, and "res_ix".
+        a dataframe of solvation data with columns "frame", "solute_atom", "solvent_atom",
+        "distance", "solvent_name", and "solvent".
     solute_res_ix : np.ndarray
         the residue indices of the solutes in solvation_data
     res_name_map : pd.Series
@@ -141,7 +141,7 @@ class Networking:
 
         1. transform the solvation_data DataFrame into an adjacency matrix
         2. determine the connected subgraphs in the adjacency matrix
-        3. tabulate the res_ix involved in each network and store in a DataFrame
+        3. tabulate the solvent involved in each network and store in a DataFrame
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
         solvation_subset = self.solvation_data[np.isin(self.solvation_data[SOLVENT_NAME], solvents)]
@@ -149,7 +149,7 @@ class Networking:
         reindexed_subset = solvation_subset.reset_index(level=1)
         reindexed_subset.solute_atom = self.solute_res_ix[reindexed_subset.solute_atom].values
         dropped_reindexed = reindexed_subset.set_index([SOLUTE_ATOM], append=True)
-        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, SOLUTE_ATOM, ATOM_IX])
+        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, SOLUTE_ATOM, SOLVENT_ATOM])
         # create adjacency matrix from reindexed df
         graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
         network_arrays = []
@@ -177,7 +177,7 @@ class Networking:
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, SOLVENT_NAME, RES_IX])
+            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, SOLVENT_NAME, SOLVENT])
                 .set_index([FRAME, NETWORK])
                 .sort_values([FRAME, NETWORK])
         )
@@ -236,5 +236,5 @@ class Networking:
             <AtomGroup with 126 Atoms>
 
         """
-        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], RES_IX].values
+        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], SOLVENT].values
         return res_ix.astype(int)

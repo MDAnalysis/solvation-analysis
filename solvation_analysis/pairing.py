@@ -108,7 +108,7 @@ class Pairing:
 
     def _fraction_coordinated(self):
         # calculate the fraction of solute coordinated with each solvent
-        counts = self.solvation_data.groupby([FRAME, SOLUTE_ATOM, SOLVENT_NAME]).count()[RES_IX]
+        counts = self.solvation_data.groupby([FRAME, SOLUTE_ATOM, SOLVENT_NAME]).count()[SOLVENT]
         pairing_series = counts.astype(bool).groupby([SOLVENT_NAME, FRAME]).sum() / (
             self.n_solutes
         )  # mean coordinated overall
@@ -119,14 +119,14 @@ class Pairing:
 
     def _fraction_free_solvent(self):
         # calculate the fraction of each solvent NOT coordinated with the solute
-        counts = self.solvation_data.groupby([FRAME, RES_IX, SOLVENT_NAME]).count()[DISTANCE]
+        counts = self.solvation_data.groupby([FRAME, SOLVENT, SOLVENT_NAME]).count()[DISTANCE]
         totals = counts.groupby([SOLVENT_NAME]).count() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
 
     def _diluent_composition(self):
-        coordinated_solvents = self.solvation_data.groupby([FRAME, SOLVENT_NAME]).nunique()[RES_IX]
+        coordinated_solvents = self.solvation_data.groupby([FRAME, SOLVENT_NAME]).nunique()[SOLVENT]
         solvent_counts = pd.Series(self.solvent_counts)
         total_solvents = solvent_counts.reindex(coordinated_solvents.index, level=1)
         diluent_solvents = total_solvents - coordinated_solvents

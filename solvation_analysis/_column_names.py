@@ -12,12 +12,12 @@ To change the variable name of a variable:
 # for solvation_data
 FRAME = "frame"
 # RESIDUE = "solute"
-SOLUTE_ATOM = "solute_atom"  # solute_atom
-ATOM_IX = "atom_ix"  # solvent_atom
-DISTANCE = "dist"  # distance
+SOLUTE_ATOM = "solute_atom"
+SOLVENT_ATOM = "solvent_atom"
+DISTANCE = "distance"  # distance
 # SOLUTE_NAME = "solute_name"
 SOLVENT_NAME = "solvent_name"
-RES_IX = "res_ix"  # solvent
+SOLVENT = "solvent"  # solvent
 
 # for coordination
 ATOM_TYPE = "atom_type"

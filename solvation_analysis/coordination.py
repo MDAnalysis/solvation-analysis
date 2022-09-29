@@ -98,7 +98,7 @@ class Coordination:
         )
 
     def _mean_cn(self):
-        counts = self.solvation_data.groupby([FRAME, SOLUTE_ATOM, SOLVENT_NAME]).count()[RES_IX]
+        counts = self.solvation_data.groupby([FRAME, SOLUTE_ATOM, SOLVENT_NAME]).count()[SOLVENT]
         cn_series = counts.groupby([SOLVENT_NAME, FRAME]).sum() / (
                 self.n_solutes * self.n_frames
         )
@@ -112,15 +112,15 @@ class Coordination:
         return the types of those atoms
         """
         # lookup atom types
-        atom_types = self.solvation_data.reset_index([ATOM_IX])
-        atom_types[ATOM_TYPE] = self.atom_group[atom_types[ATOM_IX]].types
+        atom_types = self.solvation_data.reset_index([SOLVENT_ATOM])
+        atom_types[ATOM_TYPE] = self.atom_group[atom_types[SOLVENT_ATOM]].types
         # count atom types
-        atoms_by_type = atom_types[[ATOM_TYPE, SOLVENT_NAME, ATOM_IX]]
+        atoms_by_type = atom_types[[ATOM_TYPE, SOLVENT_NAME, SOLVENT_ATOM]]
         type_counts = atoms_by_type.groupby([SOLVENT_NAME, ATOM_TYPE]).count()
-        solvent_counts = type_counts.groupby([SOLVENT_NAME]).sum()[ATOM_IX]
+        solvent_counts = type_counts.groupby([SOLVENT_NAME]).sum()[SOLVENT_ATOM]
         # calculate fraction of each
         solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
-        type_fractions = type_counts[ATOM_IX] / solvent_counts_list
+        type_fractions = type_counts[SOLVENT_ATOM] / solvent_counts_list
         type_fractions.name = FRACTION
         # change index type
         type_fractions = (type_fractions
