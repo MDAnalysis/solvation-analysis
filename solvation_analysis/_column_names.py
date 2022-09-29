@@ -10,8 +10,8 @@ To change the variable name of a variable:
 
 # for solvation_data
 FRAME = "frame"
-# RESIDUE =
-# SOLUTE_NAME =
+# RESIDUE = "solute_res_ix"
+# SOLUTE_NAME = "solute_name"
 SOLVATED_ATOM = "solvated_atom"
 ATOM_IX = "atom_ix"
 DISTANCE = "dist"
@@ -20,7 +20,7 @@ RES_IX = "res_ix"
 
 # for coordination
 ATOM_TYPE = "atom_type"
-PERCENT = "percent"
+FRACTION = "fraction"
 
 # for networking
 NETWORK = "network"

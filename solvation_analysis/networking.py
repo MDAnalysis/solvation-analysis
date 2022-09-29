@@ -193,7 +193,7 @@ class Networking:
 
     def _calculate_solute_status(self):
         """
-        This utility calculates the percentage of each solute with a given "status".
+        This utility calculates the fraction of each solute with a given "status".
         Namely, whether the solvent is "alone", "paired" (with a single solvent), or
         "networked" of > 2 species.
         """

@@ -8,7 +8,7 @@ Pairing
 
 Elucidate the composition of the the uncoordinated solvent molecules.
 
-Pairing tracks the percent of all solvent molecules paired with the solute, as well
+Pairing tracks the fraction of all solvent molecules paired with the solute, as well
 as the composition of the diluent.
 
 While ``pairing`` can be used in isolation, it is meant to be used
@@ -25,13 +25,13 @@ from solvation_analysis._column_names import *
 
 class Pairing:
     """
-    Calculate the percent of solutes that are coordinated with each solvent.
+    Calculate the fraction of solutes that are coordinated with each solvent.
 
-    The pairing percentage is the percent of solutes that are coordinated with
+    The pairing fraction is the fraction of solutes that are coordinated with
     ANY solvent with matching type. So if the pairing of mol1 is 0.5, then 50% of
     solutes are coordinated with at least 1 mol1.
 
-    The pairing percentages are made available as an mean over the whole
+    The pairing fractions are made available as an mean over the whole
     simulation and by frame.
 
     Parameters
@@ -49,11 +49,11 @@ class Pairing:
     ----------
     pairing_dict : dict of {str: float}
         a dictionary where keys are residue names (str) and values are the
-        percentage of solutes that contain that residue (float).
+        fraction of solutes that contain that residue (float).
     pairing_by_frame : pd.DataFrame
-        a dictionary tracking the mean percentage of each residue across frames.
-    percent_free_solvents : dict of {str: float}
-        a dictionary containing the percent of each solvent that is free. e.g.
+        a dictionary tracking the mean fraction of each residue across frames.
+    fraction_free_solvents : dict of {str: float}
+        a dictionary containing the fraction of each solvent that is free. e.g.
         not coordinated to a solute.
     diluent_dict : dict of {str: float}
         the fraction of the diluent constituted by each solvent. The diluent is
@@ -81,8 +81,8 @@ class Pairing:
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.solvent_counts = n_solvents
-        self.pairing_dict, self.pairing_by_frame = self._percent_coordinated()
-        self.percent_free_solvents = self._percent_free_solvent()
+        self.pairing_dict, self.pairing_by_frame = self._fraction_coordinated()
+        self.fraction_free_solvents = self._fraction_free_solvent()
         self.diluent_dict, self.diluent_by_frame, self.diluent_counts = self._diluent_composition()
 
     @staticmethod
@@ -106,8 +106,8 @@ class Pairing:
             solute.solvent_counts
         )
 
-    def _percent_coordinated(self):
-        # calculate the percent of solute coordinated with each solvent
+    def _fraction_coordinated(self):
+        # calculate the fraction of solute coordinated with each solvent
         counts = self.solvation_data.groupby([FRAME, SOLVATED_ATOM, SOLVENT_NAME]).count()[RES_IX]
         pairing_series = counts.astype(bool).groupby([SOLVENT_NAME, FRAME]).sum() / (
             self.n_solutes
@@ -117,8 +117,8 @@ class Pairing:
         pairing_dict = pairing_normalized.groupby([SOLVENT_NAME]).sum().to_dict()
         return pairing_dict, pairing_by_frame
 
-    def _percent_free_solvent(self):
-        # calculate the percent of each solvent NOT coordinated with the solute
+    def _fraction_free_solvent(self):
+        # calculate the fraction of each solvent NOT coordinated with the solute
         counts = self.solvation_data.groupby([FRAME, RES_IX, SOLVENT_NAME]).count()[DISTANCE]
         totals = counts.groupby([SOLVENT_NAME]).count() / self.n_frames
         n_solvents = np.array([self.solvent_counts[name] for name in totals.index.values])

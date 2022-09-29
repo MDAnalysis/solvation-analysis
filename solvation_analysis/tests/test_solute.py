@@ -172,17 +172,17 @@ def test_coordination_numbers(name, cn, run_solute):
 
 
 @pytest.mark.parametrize(
-    "name, percent",
+    "name, fraction",
     [
         ("fec", 0.21),
         ("bn", 1.0),
         ("pf6", 0.14),
     ],
 )
-def test_pairing(name, percent, run_solute):
+def test_pairing(name, fraction, run_solute):
     # duplicated to test in solute
     pairing_dict = run_solute.pairing.pairing_dict
-    np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
+    np.testing.assert_allclose([fraction], pairing_dict[name], atol=0.05)
 
 
 @pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])

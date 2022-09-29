@@ -8,7 +8,7 @@ Speciation
 
 Explore the precise solvation shell of every solute.
 
-Speciation tabulates the unique solvation shell compositions, their percentage,
+Speciation tabulates the unique solvation shell compositions, their fraction,
 and their temporal locations.
 
 From this, it provides search functionality to query for specific solvation shell
@@ -37,8 +37,8 @@ class Speciation:
     column value is how many residue of that type are in the solvation shell.
 
     Speciation provides the speciation of each solute in the speciation
-    attribute, it also calculates the percentage of each unique
-    shell and makes it available in the speciation_percent attribute.
+    attribute, it also calculates the fraction of each unique
+    shell and makes it available in the speciation_fraction attribute.
 
     Additionally, there are methods for finding solvation shells of
     interest and computing how common certain shell configurations are.
@@ -59,10 +59,10 @@ class Speciation:
         every trajectory frame. Indexed by frame and solute numbers.
         Columns are the solvent molecules and values are the number
         of solvent in the shell.
-    speciation_percent : pandas.DataFrame
-        the percentage of shells of each type. Columns are the solvent
+    speciation_fraction : pandas.DataFrame
+        the fraction of shells of each type. Columns are the solvent
         molecules and and values are the number of solvent in the shell.
-        The final column is the percentage of total shell of that
+        The final column is the fraction of total shell of that
         particular composition.
     co_occurrence : pandas.DataFrame
         The actual co-occurrence of solvents divided by the expected co-occurrence.
@@ -76,7 +76,7 @@ class Speciation:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.speciation_data, self.speciation_percent = self._compute_speciation()
+        self.speciation_data, self.speciation_fraction = self._compute_speciation()
         self.co_occurrence = self._solvent_co_occurrence()
 
     @staticmethod
@@ -107,21 +107,21 @@ class Speciation:
         speciation_data.columns = res_names
         sum_series = speciation_data.groupby(speciation_data.columns.to_list()).size()
         sum_sorted = sum_series.sort_values(ascending=False)
-        speciation_percent = sum_sorted.reset_index().rename(columns={0: COUNT})
-        speciation_percent[COUNT] = speciation_percent[COUNT] / (self.n_frames * self.n_solutes)
-        return speciation_data, speciation_percent
+        speciation_fraction = sum_sorted.reset_index().rename(columns={0: COUNT})
+        speciation_fraction[COUNT] = speciation_fraction[COUNT] / (self.n_frames * self.n_solutes)
+        return speciation_data, speciation_fraction
 
     @classmethod
     def _mean_speciation(cls, speciation_frames, solute_number, frame_number):
         means = speciation_frames.sum(axis=1) / (solute_number * frame_number)
         return means
 
-    def shell_percent(self, shell_dict):
+    def shell_fraction(self, shell_dict):
         """
-        Calculate the percentage of shells matching shell_dict.
+        Calculate the fraction of shells matching shell_dict.
 
-        This function computes the percent of solvation shells that exist with a particular
-        composition. The composition is specified by the shell_dict. The percent
+        This function computes the fraction of solvation shells that exist with a particular
+        composition. The composition is specified by the shell_dict. The fraction
         will be of all shells that match that specification.
 
         Attributes
@@ -129,7 +129,7 @@ class Speciation:
         shell_dict : dict of {str: int}
             a specification for a shell composition. Keys are residue names (str)
             and values are the number of desired residues. e.g. if shell_dict =
-            {'mol1': 4} then the function will return the percentage of shells
+            {'mol1': 4} then the function will return the fraction of shells
             that have 4 mol1. Note that this may include shells with 4 mol1 and
             any number of other solvents. To specify a shell with 4 mol1 and nothing
             else, enter a dict such as {'mol1': 4, 'mol2': 0, 'mol3': 0}.
@@ -137,7 +137,7 @@ class Speciation:
         Returns
         -------
         float
-            the percentage of shells
+            the fraction of shells
 
         Examples
         --------
@@ -147,12 +147,12 @@ class Speciation:
             # first define Li, BN, and FEC AtomGroups
             >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
             >>> solute.run()
-            >>> solute.speciation.shell_percent({'BN': 4, 'PF6': 1})
+            >>> solute.speciation.shell_fraction({'BN': 4, 'PF6': 1})
             0.0898
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
-        query_counts = self.speciation_percent.query(query)
+        query_counts = self.speciation_fraction.query(query)
         return query_counts[COUNT].sum()
 
     def find_shells(self, shell_dict):
@@ -192,8 +192,8 @@ class Speciation:
             n_solvents = shells_w_solvent.sum()
             # calculate expected number of coordinating solvents
             n_coordination_slots = n_solvents.sum() - len(shells_w_solvent)
-            coordination_percentage = self.speciation_data.sum() / self.speciation_data.sum().sum()
-            expected_solvents = coordination_percentage * n_coordination_slots
+            coordination_fraction = self.speciation_data.sum() / self.speciation_data.sum().sum()
+            expected_solvents = coordination_fraction * n_coordination_slots
             # calculate actual number of coordinating solvents
             actual_solvents = n_solvents.copy()
             actual_solvents[solvent] = actual_solvents[solvent] - len(shells_w_solvent)

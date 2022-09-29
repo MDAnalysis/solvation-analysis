@@ -53,7 +53,7 @@ class Coordination:
     cn_by_frame : pd.DataFrame
         a DataFrame of the mean coordination number of in each frame of the trajectory.
     coordinating_atoms : pd.DataFrame
-        percent of each atom_type participating in solvation, calculated for each solvent.
+        fraction of each atom_type participating in solvation, calculated for each solvent.
 
     Examples
     --------
@@ -118,14 +118,14 @@ class Coordination:
         atoms_by_type = atom_types[[ATOM_TYPE, SOLVENT_NAME, ATOM_IX]]
         type_counts = atoms_by_type.groupby([SOLVENT_NAME, ATOM_TYPE]).count()
         solvent_counts = type_counts.groupby([SOLVENT_NAME]).sum()[ATOM_IX]
-        # calculate percent of each
+        # calculate fraction of each
         solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
-        type_percents = type_counts[ATOM_IX] / solvent_counts_list
-        type_percents.name = PERCENT
+        type_fractions = type_counts[ATOM_IX] / solvent_counts_list
+        type_fractions.name = FRACTION
         # change index type
-        type_percents = (type_percents
+        type_fractions = (type_fractions
                          .reset_index(level=1)
                          .astype({ATOM_TYPE: str})
                          .set_index(ATOM_TYPE, append=True)
                          )
-        return type_percents[type_percents.percent > tol]
+        return type_fractions[type_fractions[FRACTION] > tol]
