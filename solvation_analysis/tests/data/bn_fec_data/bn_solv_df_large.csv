@@ -1,4 +1,4 @@
-frame,solvated_atom,atom_ix,dist,solvent_name,res_ix
+frame,solute_atom,atom_ix,dist,solvent_name,res_ix
 500,0,6952,2.027561907,pf6,615
 500,0,3256,2.134058583,bn,271
 500,0,4108,2.136299542,bn,342

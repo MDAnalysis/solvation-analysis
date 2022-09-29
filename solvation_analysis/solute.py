@@ -122,8 +122,8 @@ class Solute(AnalysisBase):
         a dictionary of RDF data, keys are solvent names and values
         are (bins, data) tuples.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", "solvated_atom", "atom_ix",
-        "dist", resname, and "res_ix". If multiple entries share a frame, solvated_atom,
+        a dataframe of solvation data with columns "frame", "solute_atom", "atom_ix",
+        "dist", resname, and "res_ix". If multiple entries share a frame, solute_atom,
         and atom_ix, all but the closest atom is dropped.
     solvation_data_dupicates : pandas.DataFrame
         All rows that are dropped from solvation_data when duplicates are dropped.
@@ -356,7 +356,7 @@ class Solute(AnalysisBase):
         solvation_data_np = np.vstack(self.solvation_frames)
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
-            # TODO: replace solvated_atom with solute?
+            # TODO: replace solute_atom with solute?
             columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, SOLVENT_NAME, RES_IX]
         )
         # clean up solvation_data df

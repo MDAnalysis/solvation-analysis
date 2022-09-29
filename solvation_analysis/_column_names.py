@@ -2,6 +2,7 @@
 To change the string name a variable:
 1. change the string name in this file
 2. search through the documentation and change the string name wherever it appears
+3. change the name in the bn_solve_df_large dataframe
 
 To change the variable name of a variable:
 1. change the variable name in all files
@@ -10,13 +11,13 @@ To change the variable name of a variable:
 
 # for solvation_data
 FRAME = "frame"
-# RESIDUE = "solute_res_ix"
+# RESIDUE = "solute"
+SOLVATED_ATOM = "solute_atom"  # solute_atom
+ATOM_IX = "atom_ix"  # solvent_atom
+DISTANCE = "dist"  # distance
 # SOLUTE_NAME = "solute_name"
-SOLVATED_ATOM = "solvated_atom"
-ATOM_IX = "atom_ix"
-DISTANCE = "dist"
 SOLVENT_NAME = "solvent_name"
-RES_IX = "res_ix"
+RES_IX = "res_ix"  # solvent
 
 # for coordination
 ATOM_TYPE = "atom_type"
