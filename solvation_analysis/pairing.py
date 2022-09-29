@@ -108,7 +108,7 @@ class Pairing:
 
     def _fraction_coordinated(self):
         # calculate the fraction of solute coordinated with each solvent
-        counts = self.solvation_data.groupby([FRAME, SOLVATED_ATOM, SOLVENT_NAME]).count()[RES_IX]
+        counts = self.solvation_data.groupby([FRAME, SOLUTE_ATOM, SOLVENT_NAME]).count()[RES_IX]
         pairing_series = counts.astype(bool).groupby([SOLVENT_NAME, FRAME]).sum() / (
             self.n_solutes
         )  # mean coordinated overall

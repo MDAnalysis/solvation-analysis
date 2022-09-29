@@ -357,15 +357,15 @@ class Solute(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solute_atom with solute?
-            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, SOLVENT_NAME, RES_IX]
+            columns=[FRAME, SOLUTE_ATOM, ATOM_IX, DISTANCE, SOLVENT_NAME, RES_IX]
         )
         # clean up solvation_data df
-        for column in [FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, RES_IX]:
+        for column in [FRAME, SOLUTE_ATOM, ATOM_IX, DISTANCE, RES_IX]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
-        solvation_data_df = solvation_data_df.sort_values([FRAME, SOLVATED_ATOM, DISTANCE])
-        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLVATED_ATOM, RES_IX])
+        solvation_data_df = solvation_data_df.sort_values([FRAME, SOLUTE_ATOM, DISTANCE])
+        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM, RES_IX])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
-        self.solvation_data = solvation_data.set_index([FRAME, SOLVATED_ATOM, ATOM_IX])
+        self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_ATOM, ATOM_IX])
         # instantiate analysis classes
         self.has_run = True
         classes_dict = {
@@ -523,7 +523,7 @@ class Solute(AnalysisBase):
                                       "of an analyzed frames in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
-        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLVATED_ATOM))
+        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLUTE_ATOM))
         # remove mols
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
