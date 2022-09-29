@@ -126,9 +126,10 @@ class Residence:
         )
 
     def _calculate_auto_covariance_dict(self):
-        frame_solute_index = np.unique(self.solvation_data.index.droplevel(2))
+        frame_solute_index = np.unique(self.solvation_data.index.droplevel('atom_ix'))
+        # TODO: need to remove this drop by level bullshit
         auto_covariance_dict = {}
-        for res_name, res_solvation_data in self.solvation_data.groupby([RESNAME]):
+        for res_name, res_solvation_data in self.solvation_data.groupby([SOLVENT_NAME]):
             adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)

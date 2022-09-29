@@ -93,17 +93,17 @@ class Coordination:
         return Coordination(
             solute.solvation_data,
             solute.n_frames,
-            solute.n_solute,
+            solute.n_solutes,
             solute.u.atoms,
         )
 
     def _mean_cn(self):
-        counts = self.solvation_data.groupby([FRAME, SOLVATED_ATOM, RESNAME]).count()[RES_IX]
-        cn_series = counts.groupby([RESNAME, FRAME]).sum() / (
+        counts = self.solvation_data.groupby([FRAME, SOLVATED_ATOM, SOLVENT_NAME]).count()[RES_IX]
+        cn_series = counts.groupby([SOLVENT_NAME, FRAME]).sum() / (
                 self.n_solutes * self.n_frames
         )
         cn_by_frame = cn_series.unstack()
-        cn_dict = cn_series.groupby([RESNAME]).sum().to_dict()
+        cn_dict = cn_series.groupby([SOLVENT_NAME]).sum().to_dict()
         return cn_dict, cn_by_frame
 
     def _calculate_coordinating_atoms(self, tol=0.005):
@@ -115,9 +115,9 @@ class Coordination:
         atom_types = self.solvation_data.reset_index([ATOM_IX])
         atom_types[ATOM_TYPE] = self.atom_group[atom_types[ATOM_IX]].types
         # count atom types
-        atoms_by_type = atom_types[[ATOM_TYPE, RESNAME, ATOM_IX]]
-        type_counts = atoms_by_type.groupby([RESNAME, ATOM_TYPE]).count()
-        solvent_counts = type_counts.groupby([RESNAME]).sum()[ATOM_IX]
+        atoms_by_type = atom_types[[ATOM_TYPE, SOLVENT_NAME, ATOM_IX]]
+        type_counts = atoms_by_type.groupby([SOLVENT_NAME, ATOM_TYPE]).count()
+        solvent_counts = type_counts.groupby([SOLVENT_NAME]).sum()[ATOM_IX]
         # calculate percent of each
         solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
         type_percents = type_counts[ATOM_IX] / solvent_counts_list

@@ -6,7 +6,7 @@ API Documentation
 
 .. toctree::
 
-    api/solution
+    api/solute
     api/selection
     api/coordination
     api/networking

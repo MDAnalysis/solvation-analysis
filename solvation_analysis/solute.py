@@ -113,7 +113,7 @@ class Solute(AnalysisBase):
     ----------
     u : Universe
         An MDAnalysis.Universe object
-    n_solute : int
+    n_solutes : int
         number of solute atoms
     radii : dict
         a dictionary of solvation radii for each solvent
@@ -169,6 +169,8 @@ class Solute(AnalysisBase):
         solute : Solute
             a solute object
         """
+        # 1. create solutes for each unique atom
+        # 2. create solute from using from_solutes
         return
 
     def from_solutes(self, solutes, **kwargs):
@@ -184,6 +186,9 @@ class Solute(AnalysisBase):
         -------
 
         """
+        # merge the solute DataFrames
+        return
+
 
     def from_atoms(self, atoms, **kwargs):
         """
@@ -201,7 +206,9 @@ class Solute(AnalysisBase):
         solute : Solute
             a solute object
         """
-        return
+        solute = Solute(atoms.universe, **kwargs)
+        solute.atom_solutes = {solute.solute_name: solute}
+        return solute
 
 
     def __init__(
@@ -233,7 +240,9 @@ class Solute(AnalysisBase):
         self.u = solute.universe
         assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
         self.solute = solute
-        self.n_solute = len(self.solute.residues)
+        self.atom_solutes = None
+        self.n_solutes = len(self.solute.residues)
+        self.n_solute_atoms = len(self.solute.atoms)
         self.solute_res_ix = pd.Series(solute.residues.ix, solute.atoms.ix)  # TODO: consider removing, only used in net
         self.solvents = solvents
         self.solute_name = solute_name
@@ -348,7 +357,7 @@ class Solute(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solvated_atom with solute?
-            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, RESNAME, RES_IX]
+            columns=[FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, SOLVENT_NAME, RES_IX]
         )
         # clean up solvation_data df
         for column in [FRAME, SOLVATED_ATOM, ATOM_IX, DISTANCE, RES_IX]:
@@ -518,7 +527,7 @@ class Solute(AnalysisBase):
         # remove mols
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
-            is_mol = shell[RESNAME] == mol_name
+            is_mol = shell[SOLVENT_NAME] == mol_name
             res_ix = shell[is_mol].res_ix
             mol_count = len(res_ix)
             n_remove = min(mol_count, n_remove)

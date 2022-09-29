@@ -88,7 +88,7 @@ class Networking:
     def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
         self.solvents = solvents
         self.solvation_data = solvation_data
-        solvent_present = np.isin(self.solvents, self.solvation_data[RESNAME].unique())
+        solvent_present = np.isin(self.solvents, self.solvation_data[SOLVENT_NAME].unique())
         if not solvent_present.all():
             raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
         self.solute_res_ix = solute_res_ix
@@ -144,7 +144,7 @@ class Networking:
         3. tabulate the res_ix involved in each network and store in a DataFrame
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
-        solvation_subset = self.solvation_data[np.isin(self.solvation_data[RESNAME], solvents)]
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data[SOLVENT_NAME], solvents)]
         # reindex solvated_atom to residue indexes
         reindexed_subset = solvation_subset.reset_index(level=1)
         reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom].values
@@ -177,7 +177,7 @@ class Networking:
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, RESNAME, RES_IX])
+            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, SOLVENT_NAME, RES_IX])
                 .set_index([FRAME, NETWORK])
                 .sort_values([FRAME, NETWORK])
         )
@@ -187,8 +187,8 @@ class Networking:
         # This utility calculates the network sizes and returns a convenient dataframe.
         cluster_df = self.network_df
         cluster_sizes = cluster_df.groupby([FRAME, NETWORK]).count()
-        size_counts = cluster_sizes.groupby([FRAME, RESNAME]).count().unstack(fill_value=0)
-        size_counts.columns = size_counts.columns.droplevel()
+        size_counts = cluster_sizes.groupby([FRAME, SOLVENT_NAME]).count().unstack(fill_value=0)
+        size_counts.columns = size_counts.columns.droplevel(None)  # the column value is None
         return size_counts
 
     def _calculate_solute_status(self):
