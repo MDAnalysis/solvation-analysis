@@ -214,19 +214,19 @@ class Solute(AnalysisBase):
         return solute
 
     def __init__(
-            self,
-            solute,
-            solvents,
-            radii=None,
-            solvent_counts=None,
-            rdf_kernel=None,
-            kernel_kwargs=None,
-            rdf_init_kwargs=None,
-            rdf_run_kwargs=None,
-            solute_name="solute",
-            analysis_classes=None,
-            networking_solvents=None,
-            verbose=False,
+        self,
+        solute,
+        solvents,
+        radii=None,
+        solvent_counts=None,
+        rdf_kernel=None,
+        kernel_kwargs=None,
+        rdf_init_kwargs=None,
+        rdf_run_kwargs=None,
+        solute_name="solute",
+        analysis_classes=None,
+        networking_solvents=None,
+        verbose=False,
     ):
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
