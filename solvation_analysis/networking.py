@@ -127,7 +127,7 @@ class Networking:
     @staticmethod
     def _unwrap_adjacency_dataframe(df):
         # this class will transform the biadjacency matrix into a proper adjacency matrix
-        connections = df.reset_index(level=0).drop(columns=FRAME)
+        connections = df.reset_index(level=0).drop(columns=FRAME)  # TODO change level
         idx = connections.columns.append(connections.index)
         directed = connections.reindex(index=idx, columns=idx, fill_value=0)
         undirected = directed.values + directed.values.T
@@ -145,20 +145,15 @@ class Networking:
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
         solvation_subset = self.solvation_data[np.isin(self.solvation_data[SOLVENT_NAME], solvents)]
-        # reindex solute_atom to residue indexes
-        reindexed_subset = solvation_subset.reset_index(level=1)
-        reindexed_subset.solute_atom = self.solute_res_ix[reindexed_subset.solute_atom].values
-        dropped_reindexed = reindexed_subset.set_index([SOLUTE_ATOM], append=True)
-        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, SOLUTE_ATOM, SOLVENT_ATOM])
-        # create adjacency matrix from reindexed df
-        graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
+        # create adjacency matrix from solvation_subset
+        graph = Residence.calculate_adjacency_dataframe(solvation_subset)
         network_arrays = []
         # loop through each time step / frame
         for frame, df in graph.groupby(FRAME):
             # drop empty columns
             df = df.loc[:, (df != 0).any(axis=0)]
             # save map from local index to residue index
-            solute_map = df.index.get_level_values(1).values
+            solute_map = df.index.get_level_values(1).values  # TODO: change level
             solvent_map = df.columns.values
             ix_to_res_ix = np.concatenate([solvent_map, solute_map])
             adjacency_df = Networking._unwrap_adjacency_dataframe(df)
