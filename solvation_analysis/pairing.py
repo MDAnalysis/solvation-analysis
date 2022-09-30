@@ -22,7 +22,6 @@ import numpy as np
 from solvation_analysis._column_names import *
 
 
-
 class Pairing:
     """
     Calculate the fraction of solutes that are coordinated with each solvent.
