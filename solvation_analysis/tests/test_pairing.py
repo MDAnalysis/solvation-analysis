@@ -10,6 +10,7 @@ def test_pairing_from_solute(run_solute):
     assert len(pairing.pairing_dict) == 3
     assert len(pairing.fraction_free_solvents) == 3
 
+
 @pytest.mark.parametrize(
     "name, fraction",
     [
