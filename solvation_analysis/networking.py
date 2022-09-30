@@ -153,7 +153,7 @@ class Networking:
             # drop empty columns
             df = df.loc[:, (df != 0).any(axis=0)]
             # save map from local index to residue index
-            solute_map = df.index.get_level_values(1).values  # TODO: change level
+            solute_map = df.index.get_level_values(SOLUTE).values  # TODO: change level
             solvent_map = df.columns.values
             ix_to_res_ix = np.concatenate([solvent_map, solute_map])
             adjacency_df = Networking._unwrap_adjacency_dataframe(df)
