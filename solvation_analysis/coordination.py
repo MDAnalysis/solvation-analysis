@@ -122,7 +122,7 @@ class Coordination:
         solvent_counts_list = [
             solvent_counts[solvent] for solvent in
             type_counts.index.get_level_values('solvent_name')
-        ]  # TODO: change level
+        ]
         type_fractions = type_counts[SOLVENT_ATOM] / solvent_counts_list
         type_fractions.name = FRACTION
         # change index type

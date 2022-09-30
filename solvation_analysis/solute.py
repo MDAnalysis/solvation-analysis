@@ -365,7 +365,6 @@ class Solute(AnalysisBase):
         solvation_data_np = np.vstack(self.solvation_frames)
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
-            # TODO: replace solute_atom with solute?
             columns=[
                 FRAME,
                 SOLUTE,

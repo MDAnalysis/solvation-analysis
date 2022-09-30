@@ -127,7 +127,7 @@ class Networking:
     @staticmethod
     def _unwrap_adjacency_dataframe(df):
         # this class will transform the biadjacency matrix into a proper adjacency matrix
-        connections = df.reset_index(level=0).drop(columns=FRAME)  # TODO change level
+        connections = df.reset_index(FRAME).drop(columns=FRAME)
         idx = connections.columns.append(connections.index)
         directed = connections.reindex(index=idx, columns=idx, fill_value=0)
         undirected = directed.values + directed.values.T
@@ -153,7 +153,7 @@ class Networking:
             # drop empty columns
             df = df.loc[:, (df != 0).any(axis=0)]
             # save map from local index to residue index
-            solute_map = df.index.get_level_values(SOLUTE).values  # TODO: change level
+            solute_map = df.index.get_level_values(SOLUTE).values
             solvent_map = df.columns.values
             ix_to_res_ix = np.concatenate([solvent_map, solute_map])
             adjacency_df = Networking._unwrap_adjacency_dataframe(df)
