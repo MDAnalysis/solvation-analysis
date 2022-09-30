@@ -274,7 +274,7 @@ def solvation_data(run_solute):
 
 @pytest.fixture(scope='module')
 def solvation_data_large():
-    return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2])
+    return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2, 3])
 
 
 @pytest.fixture(scope='module')

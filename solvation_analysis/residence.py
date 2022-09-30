@@ -126,8 +126,9 @@ class Residence:
         )
 
     def _calculate_auto_covariance_dict(self):
-        frame_solute_index = np.unique(self.solvation_data.index.droplevel(SOLVENT_ATOM))
-        # TODO: need to remove this drop by level bullshit
+        partial_index = self.solvation_data.index.droplevel(SOLVENT_ATOM)
+        unique_indices = np.unique(partial_index)
+        frame_solute_index = pd.MultiIndex.from_tuples(unique_indices, names=partial_index.names)
         auto_covariance_dict = {}
         for res_name, res_solvation_data in self.solvation_data.groupby([SOLVENT_NAME]):
             adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
@@ -239,7 +240,7 @@ class Residence:
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
         auto_covariances = []
-        for solute_ix, df in adjacency_matrix.groupby([SOLUTE_ATOM]):
+        for solute_ix, df in adjacency_matrix.groupby([SOLUTE]):
             non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
                 acovf,
@@ -273,7 +274,7 @@ class Residence:
         adjacency_df : pandas.DataFrame
         """
         # generate an adjacency matrix from the solvation data
-        adjacency_group = solvation_data.groupby([FRAME, SOLUTE_ATOM, SOLVENT])
+        adjacency_group = solvation_data.groupby([FRAME, SOLUTE, SOLVENT])
         adjacency_df = adjacency_group[DISTANCE].count().unstack(fill_value=0)
         return adjacency_df
 

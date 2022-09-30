@@ -383,7 +383,7 @@ class Solute(AnalysisBase):
         solvation_data_df = solvation_data_df.sort_values([FRAME, SOLUTE_ATOM, DISTANCE])
         solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM, SOLVENT])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
-        self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_ATOM, SOLVENT_ATOM])
+        self.solvation_data = solvation_data.set_index([FRAME, SOLUTE, SOLUTE_ATOM, SOLVENT_ATOM])
         # instantiate analysis classes
         self.has_run = True
         analysis_classes = {
