@@ -189,7 +189,6 @@ class Solute(AnalysisBase):
         # merge the solute DataFrames
         return
 
-
     def from_atoms(self, atoms, **kwargs):
         """
         Create a solute from an AtomGroup containing one atom per residue.
@@ -336,14 +335,24 @@ class Solute(AnalysisBase):
             tags_list.append(np.full(len(dist), name))  # creating a name array
         # create full length features arrays
         pairs_array = np.concatenate(pairs_list, dtype=int)
+        frame_number_array = np.full(len(pairs_array), self._ts.frame)
+        solute_res_ix_array = self.u.atoms[pairs_array[:, 0]].resindices
+        solvent_res_ix_array = self.u.atoms[pairs_array[:, 1]].resindices
         dist_array = np.concatenate(dist_list)
-        res_name_array = np.concatenate(tags_list)
-        res_ix_array = self.u.atoms[pairs_array[:, 1]].resindices
-        array_length = len(pairs_array)
-        frame_number_array = np.full(array_length, self._ts.frame)
+        solute_res_name_array = np.full(len(pairs_array), self.solute_name)
+        solvent_res_name_array = np.concatenate(tags_list)
         # stack the data into one large array
         solvation_data_np = np.column_stack(
-            (frame_number_array, pairs_array[:, 0], pairs_array[:, 1], dist_array, res_name_array, res_ix_array)
+            (
+                frame_number_array,
+                solute_res_ix_array,
+                pairs_array[:, 0],
+                pairs_array[:, 1],
+                dist_array,
+                solute_res_name_array,
+                solvent_res_name_array,
+                solvent_res_ix_array
+            )
         )
         # add the current frame to the growing list of solvation arrays
         self.solvation_frames.append(solvation_data_np)
@@ -357,10 +366,19 @@ class Solute(AnalysisBase):
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             # TODO: replace solute_atom with solute?
-            columns=[FRAME, SOLUTE_ATOM, SOLVENT_ATOM, DISTANCE, SOLVENT_NAME, SOLVENT]
+            columns=[
+                FRAME,
+                SOLUTE,
+                SOLUTE_ATOM,
+                SOLVENT_ATOM,
+                DISTANCE,
+                SOLUTE_NAME,
+                SOLVENT_NAME,
+                SOLVENT
+            ]
         )
         # clean up solvation_data df
-        for column in [FRAME, SOLUTE_ATOM, SOLVENT_ATOM, DISTANCE, SOLVENT]:
+        for column in [FRAME, SOLUTE, SOLUTE_ATOM, SOLVENT_ATOM, DISTANCE, SOLVENT]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
         solvation_data_df = solvation_data_df.sort_values([FRAME, SOLUTE_ATOM, DISTANCE])
         solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM, SOLVENT])
@@ -368,7 +386,7 @@ class Solute(AnalysisBase):
         self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_ATOM, SOLVENT_ATOM])
         # instantiate analysis classes
         self.has_run = True
-        classes_dict = {
+        analysis_classes = {
             'speciation': Speciation,
             'pairing': Pairing,
             'coordination': Coordination,
@@ -379,7 +397,7 @@ class Solute(AnalysisBase):
             if analysis_class == 'networking':
                 setattr(self, 'networking', Networking.from_solute(self, self.networking_solvents))
             else:
-                setattr(self, analysis_class, classes_dict[analysis_class].from_solute(self))
+                setattr(self, analysis_class, analysis_classes[analysis_class].from_solute(self))
 
     @staticmethod
     def _plot_solvation_radius(bins, data, radius):

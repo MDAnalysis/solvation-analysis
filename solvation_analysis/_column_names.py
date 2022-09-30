@@ -11,11 +11,11 @@ To change the variable name of a variable:
 
 # for solvation_data
 FRAME = "frame"
-# RESIDUE = "solute"
+SOLUTE = "solute"
 SOLUTE_ATOM = "solute_atom"
 SOLVENT_ATOM = "solvent_atom"
 DISTANCE = "distance"  # distance
-# SOLUTE_NAME = "solute_name"
+SOLUTE_NAME = "solute_name"
 SOLVENT_NAME = "solvent_name"
 SOLVENT = "solvent"  # solvent
 
