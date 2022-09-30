@@ -20,7 +20,6 @@ Solute also provides several functions to select a particular solute and its sol
 shell, returning an AtomGroup for visualization or further analysis.
 """
 
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
@@ -152,7 +151,6 @@ class Solute(AnalysisBase):
         kwarg must be specified.
     """
 
-
     @staticmethod
     def from_molecules(residues, **kwargs):
         """
@@ -174,7 +172,6 @@ class Solute(AnalysisBase):
         # 1. create solutes for each unique atom
         # 2. create solute from using from_solutes
         return
-
 
     @staticmethod
     def from_solutes(solutes, **kwargs):
@@ -217,19 +214,19 @@ class Solute(AnalysisBase):
         return solute
 
     def __init__(
-        self,
-        solute,
-        solvents,
-        radii=None,
-        solvent_counts=None,
-        rdf_kernel=None,
-        kernel_kwargs=None,
-        rdf_init_kwargs=None,
-        rdf_run_kwargs=None,
-        solute_name="solute",
-        analysis_classes=None,
-        networking_solvents=None,
-        verbose=False,
+            self,
+            solute,
+            solvents,
+            radii=None,
+            solvent_counts=None,
+            rdf_kernel=None,
+            kernel_kwargs=None,
+            rdf_init_kwargs=None,
+            rdf_run_kwargs=None,
+            solute_name="solute",
+            analysis_classes=None,
+            networking_solvents=None,
+            verbose=False,
     ):
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
