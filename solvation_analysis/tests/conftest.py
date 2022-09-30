@@ -144,7 +144,7 @@ def pre_solute(atom_groups):
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solute(
+    return Solute.from_atoms(
         li,
         {'pf6': pf6, 'bn': bn, 'fec': fec},
         radii={'pf6': 2.8, 'bn': 2.61468, 'fec': 2.43158},
@@ -158,7 +158,7 @@ def pre_solute_mutable(atom_groups):
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solute(
+    return Solute.from_atoms(
         li,
         {'pf6': pf6, 'bn': bn, 'fec': fec},
         radii={'pf6': 2.8, 'bn': 2.61468, 'fec': 2.43158},
@@ -214,7 +214,7 @@ def u_eax_atom_groups(u_eax_series):
 def eax_solutes(u_eax_atom_groups):
     solutes = {}
     for name, atom_groups in u_eax_atom_groups.items():
-        solute = Solute(
+        solute = Solute.from_atoms(
             atom_groups['li'],
             {'pf6': atom_groups['pf6'], name: atom_groups[name], 'fec': atom_groups['fec']},
         )
@@ -251,7 +251,7 @@ def iba_atom_groups():
 
 @pytest.fixture(scope='module')
 def iba_solute(iba_atom_groups):
-    solute = Solute(
+    solute = Solute.from_atoms(
         iba_atom_groups['iba_ketone'],
         {
             'h2o': iba_atom_groups['h2o'],

@@ -152,7 +152,9 @@ class Solute(AnalysisBase):
         kwarg must be specified.
     """
 
-    def from_molecules(self, residues, **kwargs):
+
+    @staticmethod
+    def from_molecules(residues, **kwargs):
         """
         Create a solute from an AtomGroup containing multiple
         atoms per residue.
@@ -173,7 +175,9 @@ class Solute(AnalysisBase):
         # 2. create solute from using from_solutes
         return
 
-    def from_solutes(self, solutes, **kwargs):
+
+    @staticmethod
+    def from_solutes(solutes, **kwargs):
         """
         Create a Solute from a list of Solutes.
 
@@ -189,7 +193,8 @@ class Solute(AnalysisBase):
         # merge the solute DataFrames
         return
 
-    def from_atoms(self, atoms, **kwargs):
+    @staticmethod
+    def from_atoms(solute, solvents, **kwargs):
         """
         Create a solute from an AtomGroup containing one atom per residue.
 
@@ -197,6 +202,8 @@ class Solute(AnalysisBase):
         ----------
         atoms : AtomGroup
             an AtomGroup or ResidueGroup containing one atom per residue.
+        solute_name : str, optional
+            the name of the solute, used for labeling.
         kwargs : dict
             kwargs passed to the Solute constructor.
 
@@ -205,10 +212,9 @@ class Solute(AnalysisBase):
         solute : Solute
             a solute object
         """
-        solute = Solute(atoms.universe, **kwargs)
+        solute = Solute(solute, solvents, **kwargs)
         solute.atom_solutes = {solute.solute_name: solute}
         return solute
-
 
     def __init__(
         self,
