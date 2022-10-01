@@ -211,5 +211,5 @@ def test_iba_atom_groups(iba_atom_groups):
     assert sum(group_lengths) == n_atoms
 
 
-def test_iba_solutes(iba_solute):
-    assert isinstance(iba_solute, Solute)
+def test_iba_solutes(iba_ketone_solute):
+    assert isinstance(iba_ketone_solute, Solute)

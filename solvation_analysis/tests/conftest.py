@@ -250,9 +250,35 @@ def iba_atom_groups():
 
 
 @pytest.fixture(scope='module')
-def iba_solute(iba_atom_groups):
+def iba_ketone_solute(iba_atom_groups):
     solute = Solute.from_atoms(
         iba_atom_groups['iba_ketone'],
+        {
+            'h2o': iba_atom_groups['h2o'],
+            'iba': iba_atom_groups['iba'],
+        },
+    )
+    solute.run()
+    return solute
+
+
+@pytest.fixture(scope='module')
+def iba_alcohol_O_solute(iba_atom_groups):
+    solute = Solute.from_atoms(
+        iba_atom_groups['iba_alcohol_O'],
+        {
+            'h2o': iba_atom_groups['h2o'],
+            'iba': iba_atom_groups['iba'],
+        },
+    )
+    solute.run()
+    return solute
+
+
+@pytest.fixture(scope='module')
+def iba_alcohol_H_solute(iba_atom_groups):
+    solute = Solute.from_atoms(
+        iba_atom_groups['iba_alcohol_H'],
         {
             'h2o': iba_atom_groups['h2o'],
             'iba': iba_atom_groups['iba'],
