@@ -569,7 +569,7 @@ class Solute(AnalysisBase):
 
     @staticmethod  # TODO: move to visualization module
     def draw_molecule(residue, filename=None):
-        """
+        """  # TODO: finish this function
         This
 
         Parameters
