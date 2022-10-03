@@ -567,6 +567,31 @@ class Solute(AnalysisBase):
         else:
             return self._df_to_atom_group(shell, solute_index=solute_index)
 
+    @staticmethod  # TODO: move to visualization module
+    def draw_molecule(residue, filename=None):
+        """
+        This
+
+        Parameters
+        ----------
+        residue: AtomGroup or Residue
+        filename: If none, returns an rdkit Molecule. If true, writes to file.
+
+        Returns
+        -------
+
+        """
+        import rdkit
+
+        mol = residue.atoms.convert_to('RDKIT')
+        # iterate over the atoms
+        for atom in mol.GetAtoms():
+            # For each atom, set the property "atomNote" to a the atom index
+            atom.SetProp("atomNote", str(atom.GetIdx()))
+        if filename:
+            rdkit.Chem.Draw.MolToFile(mol, filename='abc.png')
+        return mol
+
     def _df_to_atom_group(self, df, solute_index=None):
         """
         Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with solvent.

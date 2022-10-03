@@ -14,10 +14,10 @@ FRAME = "frame"
 SOLUTE_IX = "solute_ix"
 SOLUTE_ATOM_IX = "solute_atom_ix"
 SOLVENT_ATOM_IX = "solvent_atom_ix"
-DISTANCE = "distance"  # distance
+DISTANCE = "distance"
 SOLUTE = "solute"
 SOLVENT = "solvent"
-SOLVENT_IX = "solvent_ix"  # solvent
+SOLVENT_IX = "solvent_ix"
 
 # for coordination
 ATOM_TYPE = "atom_type"
