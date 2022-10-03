@@ -98,12 +98,12 @@ class Coordination:
         )
 
     def _mean_cn(self):
-        counts = self.solvation_data.groupby([FRAME, SOLUTE, SOLVENT_NAME]).count()[SOLVENT]
-        cn_series = counts.groupby([SOLVENT_NAME, FRAME]).sum() / (
+        counts = self.solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT]).count()[SOLVENT_IX]
+        cn_series = counts.groupby([SOLVENT, FRAME]).sum() / (
                 self.n_solutes * self.n_frames
         )
         cn_by_frame = cn_series.unstack()
-        cn_dict = cn_series.groupby([SOLVENT_NAME]).sum().to_dict()
+        cn_dict = cn_series.groupby([SOLVENT]).sum().to_dict()
         return cn_dict, cn_by_frame
 
     def _calculate_coordinating_atoms(self, tol=0.005):
@@ -112,22 +112,22 @@ class Coordination:
         return the types of those atoms
         """
         # lookup atom types
-        atom_types = self.solvation_data.reset_index([SOLVENT_ATOM])
-        atom_types[ATOM_TYPE] = self.atom_group[atom_types[SOLVENT_ATOM]].types
+        atom_types = self.solvation_data.reset_index([SOLVENT_ATOM_IX])
+        atom_types[ATOM_TYPE] = self.atom_group[atom_types[SOLVENT_ATOM_IX]].types
         # count atom types
-        atoms_by_type = atom_types[[ATOM_TYPE, SOLVENT_NAME, SOLVENT_ATOM]]
-        type_counts = atoms_by_type.groupby([SOLVENT_NAME, ATOM_TYPE]).count()
-        solvent_counts = type_counts.groupby([SOLVENT_NAME]).sum()[SOLVENT_ATOM]
+        atoms_by_type = atom_types[[ATOM_TYPE, SOLVENT, SOLVENT_ATOM_IX]]
+        type_counts = atoms_by_type.groupby([SOLVENT, ATOM_TYPE]).count()
+        solvent_counts = type_counts.groupby([SOLVENT]).sum()[SOLVENT_ATOM_IX]
         # calculate fraction of each
         solvent_counts_list = [
             solvent_counts[solvent] for solvent in
-            type_counts.index.get_level_values('solvent_name')
+            type_counts.index.get_level_values(SOLVENT)
         ]
-        type_fractions = type_counts[SOLVENT_ATOM] / solvent_counts_list
+        type_fractions = type_counts[SOLVENT_ATOM_IX] / solvent_counts_list
         type_fractions.name = FRACTION
         # change index type
         type_fractions = (type_fractions
-                         .reset_index('atom_type')
+                         .reset_index(ATOM_TYPE)
                          .astype({ATOM_TYPE: str})
                          .set_index(ATOM_TYPE, append=True)
                          )

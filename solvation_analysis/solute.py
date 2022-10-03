@@ -371,22 +371,22 @@ class Solute(AnalysisBase):
             solvation_data_np,
             columns=[
                 FRAME,
-                SOLUTE,
-                SOLUTE_ATOM,
-                SOLVENT_ATOM,
+                SOLUTE_IX,
+                SOLUTE_ATOM_IX,
+                SOLVENT_ATOM_IX,
                 DISTANCE,
-                SOLUTE_NAME,
-                SOLVENT_NAME,
-                SOLVENT
+                SOLUTE,
+                SOLVENT,
+                SOLVENT_IX
             ]
         )
         # clean up solvation_data df
-        for column in [FRAME, SOLUTE, SOLUTE_ATOM, SOLVENT_ATOM, DISTANCE, SOLVENT]:
+        for column in [FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX, DISTANCE, SOLVENT_IX]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
-        solvation_data_df = solvation_data_df.sort_values([FRAME, SOLUTE_ATOM, DISTANCE])
-        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM, SOLVENT])
+        solvation_data_df = solvation_data_df.sort_values([FRAME, SOLUTE_ATOM_IX, DISTANCE])
+        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM_IX, SOLVENT_IX])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
-        self.solvation_data = solvation_data.set_index([FRAME, SOLUTE, SOLUTE_ATOM, SOLVENT_ATOM])
+        self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX])
         # instantiate analysis classes
         self.has_run = True
         analysis_classes = {
@@ -544,18 +544,18 @@ class Solute(AnalysisBase):
                                       "of an analyzed frames in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
-        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLUTE_ATOM))
+        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLUTE_ATOM_IX))
         # remove mols
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
-            is_mol = shell[SOLVENT_NAME] == mol_name
-            res_ix = shell[is_mol][SOLVENT]
+            is_mol = shell[SOLVENT] == mol_name
+            res_ix = shell[is_mol][SOLVENT_IX]
             mol_count = len(res_ix)
             n_remove = min(mol_count, n_remove)
             # then truncate resnames to remove mols
             remove_ix = res_ix[(mol_count - n_remove):]
             # then apply to original shell
-            remove = shell[SOLVENT].isin(remove_ix)
+            remove = shell[SOLVENT_IX].isin(remove_ix)
             shell = shell[np.invert(remove)]
         # filter based on length
         if closest_n_only:
@@ -582,7 +582,7 @@ class Solute(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        ix = df[SOLVENT].values
+        ix = df[SOLVENT_IX].values
         atoms = self.u.residues[ix].atoms
         if solute_index is not None:
             atoms = atoms | self.u.atoms[solute_index]

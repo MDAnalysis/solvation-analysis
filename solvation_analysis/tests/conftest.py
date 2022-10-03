@@ -246,6 +246,7 @@ def iba_atom_groups():
         'iba_C': iba_C,
         'iba_C_H': iba_C_H
     }
+    single = iba[:12]
     return iba_atom_groups
 
 

@@ -100,9 +100,9 @@ class Speciation:
         )
 
     def _compute_speciation(self):
-        counts = self.solvation_data.groupby([FRAME, SOLUTE, SOLVENT_NAME]).count()[SOLVENT]
-        counts_re = counts.reset_index([SOLVENT_NAME])
-        speciation_data = counts_re.pivot(columns=[SOLVENT_NAME]).fillna(0).astype(int)
+        counts = self.solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT]).count()[SOLVENT_IX]
+        counts_re = counts.reset_index([SOLVENT])
+        speciation_data = counts_re.pivot(columns=[SOLVENT]).fillna(0).astype(int)
         res_names = speciation_data.columns.levels[1]
         speciation_data.columns = res_names
         sum_series = speciation_data.groupby(speciation_data.columns.to_list()).size()

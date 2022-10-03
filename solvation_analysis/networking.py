@@ -88,7 +88,7 @@ class Networking:
     def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
         self.solvents = solvents
         self.solvation_data = solvation_data
-        solvent_present = np.isin(self.solvents, self.solvation_data[SOLVENT_NAME].unique())
+        solvent_present = np.isin(self.solvents, self.solvation_data[SOLVENT].unique())
         if not solvent_present.all():
             raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
         self.solute_res_ix = solute_res_ix
@@ -144,7 +144,7 @@ class Networking:
         3. tabulate the solvent involved in each network and store in a DataFrame
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
-        solvation_subset = self.solvation_data[np.isin(self.solvation_data[SOLVENT_NAME], solvents)]
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data[SOLVENT], solvents)]
         # create adjacency matrix from solvation_subset
         graph = Residence.calculate_adjacency_dataframe(solvation_subset)
         network_arrays = []
@@ -153,7 +153,7 @@ class Networking:
             # drop empty columns
             df = df.loc[:, (df != 0).any(axis=0)]
             # save map from local index to residue index
-            solute_map = df.index.get_level_values(SOLUTE).values
+            solute_map = df.index.get_level_values(SOLUTE_IX).values
             solvent_map = df.columns.values
             ix_to_res_ix = np.concatenate([solvent_map, solute_map])
             adjacency_df = Networking._unwrap_adjacency_dataframe(df)
@@ -172,7 +172,7 @@ class Networking:
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, SOLVENT_NAME, SOLVENT])
+            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, SOLVENT, SOLVENT_IX])
                 .set_index([FRAME, NETWORK])
                 .sort_values([FRAME, NETWORK])
         )
@@ -182,7 +182,7 @@ class Networking:
         # This utility calculates the network sizes and returns a convenient dataframe.
         cluster_df = self.network_df
         cluster_sizes = cluster_df.groupby([FRAME, NETWORK]).count()
-        size_counts = cluster_sizes.groupby([FRAME, SOLVENT_NAME]).count().unstack(fill_value=0)
+        size_counts = cluster_sizes.groupby([FRAME, SOLVENT]).count().unstack(fill_value=0)
         size_counts.columns = size_counts.columns.droplevel(None)  # the column value is None
         return size_counts
 
@@ -231,5 +231,5 @@ class Networking:
             <AtomGroup with 126 Atoms>
 
         """
-        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], SOLVENT].values
+        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], SOLVENT_IX].values
         return res_ix.astype(int)
