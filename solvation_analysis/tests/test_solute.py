@@ -219,3 +219,7 @@ def test_iba_solutes(
     assert isinstance(iba_ketone_solute, Solute)
     assert isinstance(iba_alcohol_H_solute, Solute)
     assert isinstance(iba_alcohol_O_solute, Solute)
+
+
+def test_draw_molecule(iba_ketone_solute):
+    iba_ketone_solute.draw_molecule('solute')

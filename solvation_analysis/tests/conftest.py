@@ -246,6 +246,8 @@ def iba_atom_groups():
         'iba_C': iba_C,
         'iba_C_H': iba_C_H
     }
+    # TODO: finish adding all atoms in the iba_solvent
+    # iba[i::12]
     single = iba[:12]
     return iba_atom_groups
 
@@ -258,6 +260,7 @@ def iba_ketone_solute(iba_atom_groups):
             'h2o': iba_atom_groups['h2o'],
             'iba': iba_atom_groups['iba'],
         },
+        solute_name='iba_ketone',
     )
     solute.run()
     return solute

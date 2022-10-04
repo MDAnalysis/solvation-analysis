@@ -200,7 +200,7 @@ class Solute(AnalysisBase):
         ----------
         atoms : AtomGroup
             an AtomGroup or ResidueGroup containing one atom per residue.
-        solute_name : str, optional
+        solvents : str, optional
             the name of the solute, used for labeling.
         kwargs : dict
             kwargs passed to the Solute constructor.
@@ -582,19 +582,25 @@ class Solute(AnalysisBase):
         RDKit.Chem.rdchem.Mol
 
         """
-        import rdkit
+        from rdkit.Chem import Draw
+        from rdkit.Chem import rdCoordGen
+        from rdkit.Chem.Draw.MolDrawing import DrawingOptions
+        DrawingOptions.atomLabelFontSize = 100
+
         if type(residue) == str:
             if residue in [self.solute_name, "solute"]:
                 mol = self.solute.residues[0].atoms.convert_to("RDKIT")
                 mol_mda_ix = self.solute.residues[0].atoms.ix
-                solute_atoms_ix0 = {atom_group.ix[0]: solute for solute, atom_group in self.solute_atoms.items()}
+                solute_atoms_ix0 = {solute.solute.atoms.ix[0]: solute_name
+                                    for solute_name, solute in self.atom_solutes.items()}
                 for i, atom in enumerate(mol.GetAtoms()):
-                    label = solute_atoms_ix0.get(mol_mda_ix[i]) or str(i)
-                    atom.setProp("atomNote", label)
+                    atom_name = solute_atoms_ix0.get(mol_mda_ix[i])
+                    label = f"{i}, " + atom_name if atom_name else str(i)
+                    atom.SetProp("atomNote", label)
             elif residue in self.solvents.keys():
                 mol = self.solvents[residue].residues[0].atoms.convert_to("RDKIT")
                 for i, atom in enumerate(mol.GetAtoms()):
-                    atom.setProp("atomNote", str(i))
+                    atom.SetProp("atomNote", str(i))
             else:
                 mol = None
                 ValueError("If the residue is a string, it must be the name of a solute, "
@@ -604,7 +610,8 @@ class Solute(AnalysisBase):
             for i, atom in enumerate(mol.GetAtoms()):
                 atom.setProp("atomNote", str(i))
         if filename:
-            rdkit.Chem.Draw.MolToFile(mol, filename='abc.png')
+            rdCoordGen.AddCoords(mol)
+            Draw.MolToFile(mol, filename='abc.png')
         return mol
 
     def _df_to_atom_group(self, df, solute_index=None):
