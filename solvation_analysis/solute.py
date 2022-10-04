@@ -611,7 +611,7 @@ class Solute(AnalysisBase):
                 atom.setProp("atomNote", str(i))
         if filename:
             rdCoordGen.AddCoords(mol)
-            Draw.MolToFile(mol, filename='abc.png')
+            Draw.MolToFile(mol, filename=filename)
         return mol
 
     def _df_to_atom_group(self, df, solute_index=None):

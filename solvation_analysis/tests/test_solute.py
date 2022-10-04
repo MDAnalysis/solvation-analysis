@@ -202,15 +202,6 @@ def test_instantiate_eax_solutes(name, eax_solutes):
     assert isinstance(eax_solutes[name], Solute)
 
 
-def test_iba_atom_groups(iba_atom_groups):
-    n_atoms = len(iba_atom_groups['iba'].universe.atoms)
-    group_names = [
-        'h2o_O', 'h2o_H', 'iba_alcohol_O', 'iba_alcohol_H', 'iba_ketone', 'iba_C', 'iba_C_H'
-    ]
-    group_lengths = [len(iba_atom_groups[name]) for name in group_names]
-    assert sum(group_lengths) == n_atoms
-
-
 def test_iba_solutes(
         iba_ketone_solute,
         iba_alcohol_H_solute,
@@ -221,5 +212,9 @@ def test_iba_solutes(
     assert isinstance(iba_alcohol_O_solute, Solute)
 
 
+# TODO: parameterize this test
 def test_draw_molecule(iba_ketone_solute):
+    iba_ketone_solute.draw_molecule('iba_ketone')
     iba_ketone_solute.draw_molecule('solute')
+    iba_ketone_solute.draw_molecule('H2O')
+    iba_ketone_solute.draw_molecule('iba')
