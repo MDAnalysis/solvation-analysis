@@ -202,19 +202,14 @@ def test_instantiate_eax_solutes(name, eax_solutes):
     assert isinstance(eax_solutes[name], Solute)
 
 
-def test_iba_solutes(
-        iba_ketone_solute,
-        iba_alcohol_H_solute,
-        iba_alcohol_O_solute
-):
-    assert isinstance(iba_ketone_solute, Solute)
-    assert isinstance(iba_alcohol_H_solute, Solute)
-    assert isinstance(iba_alcohol_O_solute, Solute)
-
-
 # TODO: parameterize this test
 def test_draw_molecule(iba_ketone_solute):
     iba_ketone_solute.draw_molecule('iba_ketone')
     iba_ketone_solute.draw_molecule('solute')
     iba_ketone_solute.draw_molecule('H2O')
     iba_ketone_solute.draw_molecule('iba')
+
+
+def test_iba_solutes(iba_solutes):
+    for solute in iba_solutes.values():
+        assert isinstance(solute, Solute)

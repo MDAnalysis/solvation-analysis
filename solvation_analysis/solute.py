@@ -294,8 +294,8 @@ class Solute(AnalysisBase):
                 # we divide the solute and solvent into two groups, so that the rdfs
                 # are not contaminated by the solute-solvent pairs.
                 halfway_point = self.solute.n_residues // 2
-                solute_half = self.solute.residues[:halfway_point].atoms
-                solvent_half = solvent.residues[halfway_point:].atoms
+                solute_half = self.solute[halfway_point:]
+                solvent_half = (solvent.residues - solute_half.residues).atoms
                 # this is hacky and will make our rdf noisier but it was easy to implement
                 rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)
                 rdf.run(**self.rdf_run_kwargs)
@@ -450,7 +450,7 @@ class Solute(AnalysisBase):
         """
         bins, data = self.rdf_data[res_name]
         fig, ax = self._plot_solvation_radius(bins, data, self.radii[res_name])
-        ax.set_title(f"Solvation distance of {res_name}")
+        ax.set_title(f"{self.solute_name} solvation distance for {res_name}")
         return fig, ax
 
     def radial_shell(self, solute_index, radius):
@@ -567,7 +567,6 @@ class Solute(AnalysisBase):
         else:
             return self._df_to_atom_group(shell, solute_index=solute_index)
 
-    # TODO: move to visualization module
     def draw_molecule(self, residue, filename=None):
         """  # TODO: finish this function
         Returns

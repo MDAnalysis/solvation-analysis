@@ -262,43 +262,19 @@ def H2O_atom_groups(iba_solvents):
 
 
 @pytest.fixture(scope='module')
-def iba_ketone_solute(iba_atom_groups, iba_solvents):
-    solute = Solute.from_atoms(
-        iba_atom_groups['iba_ketone'],
-        {
-            'H2O': iba_solvents['H2O'],
-            'iba': iba_solvents['iba'],
-        },
-        solute_name='iba_ketone',
-    )
-    solute.run()
-    return solute
-
-
-@pytest.fixture(scope='module')
-def iba_alcohol_O_solute(iba_atom_groups):
-    solute = Solute.from_atoms(
-        iba_atom_groups['iba_alcohol_O'],
-        {
-            'H2O': iba_atom_groups['H2O'],
-            'iba': iba_atom_groups['iba'],
-        },
-    )
-    solute.run()
-    return solute
-
-
-@pytest.fixture(scope='module')
-def iba_alcohol_H_solute(iba_atom_groups):
-    solute = Solute.from_atoms(
-        iba_atom_groups['iba_alcohol_H'],
-        {
-            'H2O': iba_atom_groups['H2O'],
-            'iba': iba_atom_groups['iba'],
-        },
-    )
-    solute.run()
-    return solute
+def iba_solutes(iba_atom_groups, iba_solvents):
+    solutes = {}
+    for name, atom_group in iba_atom_groups.items():
+        radii = {'iba': 1.9, 'H2O': 1.9} if ('iba_H' in name or 'iba_C' in name) else None
+        solute = Solute.from_atoms(
+            atom_group,
+            iba_solvents,
+            solute_name=name,
+            radii=radii,
+        )
+        solute.run()
+        solutes[name] = solute
+    return solutes
 
 
 @pytest.fixture
