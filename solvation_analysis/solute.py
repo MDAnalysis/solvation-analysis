@@ -567,27 +567,42 @@ class Solute(AnalysisBase):
         else:
             return self._df_to_atom_group(shell, solute_index=solute_index)
 
-    @staticmethod  # TODO: move to visualization module
-    def draw_molecule(residue, filename=None):
+    # TODO: move to visualization module
+    def draw_molecule(self, residue, filename=None):
         """  # TODO: finish this function
-        This
+        Returns
 
         Parameters
         ----------
-        residue: AtomGroup or Residue
-        filename: If none, returns an rdkit Molecule. If true, writes to file.
+        residue: the str name of the solute or any electrolytes or a MDAnalysis.Residue
+        filename: If true, writes a file using the RDKit backend.
 
         Returns
         -------
+        RDKit.Chem.rdchem.Mol
 
         """
         import rdkit
-
-        mol = residue.atoms.convert_to('RDKIT')
-        # iterate over the atoms
-        for atom in mol.GetAtoms():
-            # For each atom, set the property "atomNote" to a the atom index
-            atom.SetProp("atomNote", str(atom.GetIdx()))
+        if type(residue) == str:
+            if residue in [self.solute_name, "solute"]:
+                mol = self.solute.residues[0].atoms.convert_to("RDKIT")
+                mol_mda_ix = self.solute.residues[0].atoms.ix
+                solute_atoms_ix0 = {atom_group.ix[0]: solute for solute, atom_group in self.solute_atoms.items()}
+                for i, atom in enumerate(mol.GetAtoms()):
+                    label = solute_atoms_ix0.get(mol_mda_ix[i]) or str(i)
+                    atom.setProp("atomNote", label)
+            elif residue in self.solvents.keys():
+                mol = self.solvents[residue].residues[0].atoms.convert_to("RDKIT")
+                for i, atom in enumerate(mol.GetAtoms()):
+                    atom.setProp("atomNote", str(i))
+            else:
+                mol = None
+                ValueError("If the residue is a string, it must be the name of a solute, "
+                           "the name of a solvent, or 'solute'.")
+        else:
+            mol = residue.atoms.convert_to("RDKIT")
+            for i, atom in enumerate(mol.GetAtoms()):
+                atom.setProp("atomNote", str(i))
         if filename:
             rdkit.Chem.Draw.MolToFile(mol, filename='abc.png')
         return mol
