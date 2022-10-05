@@ -607,7 +607,7 @@ class Solute(AnalysisBase):
         else:
             mol = residue.atoms.convert_to("RDKIT")
             for i, atom in enumerate(mol.GetAtoms()):
-                atom.setProp("atomNote", str(i))
+                atom.SetProp("atomNote", str(i))
         if filename:
             rdCoordGen.AddCoords(mol)
             Draw.MolToFile(mol, filename=filename)
