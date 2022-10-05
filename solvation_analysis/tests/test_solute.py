@@ -203,7 +203,8 @@ def test_instantiate_eax_solutes(name, eax_solutes):
 
 
 # TODO: parameterize this test
-def test_draw_molecule(iba_ketone_solute):
+def test_draw_molecule(iba_solutes):
+    iba_ketone_solute = iba_solutes['iba_ketone']
     iba_ketone_solute.draw_molecule('iba_ketone')
     iba_ketone_solute.draw_molecule('solute')
     iba_ketone_solute.draw_molecule('H2O')
