@@ -8,7 +8,7 @@ from MDAnalysis import Universe
 from solvation_analysis.tests.conftest import u_eax_series, u_eax_atom_groups
 
 
-def test_instantiate_solute(pre_solute):
+def test_instantiate_solute_from_atoms(pre_solute):
     # these check basic properties of the instantiation
     assert len(pre_solute.radii) == 3
     assert callable(pre_solute.kernel)
@@ -16,6 +16,13 @@ def test_instantiate_solute(pre_solute):
     assert pre_solute.solvents['pf6'].n_residues == 49
     assert pre_solute.solvents['fec'].n_residues == 237
     assert pre_solute.solvents['bn'].n_residues == 363
+
+
+def test_instantiate_solute_from_solutes(atom_groups):
+    return
+
+def test_instantiate_solute_from_residues(atom_groups):
+    return
 
 
 def test_networking_instantiation_error(atom_groups):

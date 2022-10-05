@@ -188,6 +188,8 @@ class Solute(AnalysisBase):
 
         """
         # merge the solute DataFrames
+        # monkeypatch the run() method
+        # TODO: write this method
 
         return
 
@@ -269,6 +271,7 @@ class Solute(AnalysisBase):
         """
         This function identifies the solvation radii and saves the associated RDF data.
         """
+        assert self.has_run is False, "Solute.run() can only be called once."
         self.rdf_data = {}
         self.solvation_data = None
         self.solvation_data_duplicates = None
@@ -448,6 +451,7 @@ class Solute(AnalysisBase):
         fig : matplotlib.Figure
         ax : matplotlib.Axes
         """
+        assert self.has_run, "Solute.run() must be called first."
         bins, data = self.rdf_data[res_name]
         fig, ax = self._plot_solvation_radius(bins, data, self.radii[res_name])
         ax.set_title(f"{self.solute_name} solvation distance for {res_name}")
