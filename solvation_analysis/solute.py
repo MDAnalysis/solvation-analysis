@@ -201,7 +201,7 @@ class Solute(AnalysisBase):
         solute = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
 
         def run(start=None, stop=None, step=None, verbose=None):
-            atom_solutes = []
+            atom_solutes = {}
             solvation_datas = []
             for solute in solutes:
                 if not solute.has_run:
@@ -211,18 +211,20 @@ class Solute(AnalysisBase):
                                   f"match the start, stop, or step for the run command so it "
                                   f"is being re-run.")
                     solute.run(start=start, stop=stop, step=step, verbose=verbose)
-                if solvents != solute.solute.solvents:
+                if solvents != solute.solvents:
                     warnings.warn(f"The solvents for {solute.solute_name} do not match the "
                                   f"solvents for the run command so it is being re-run.")
                     solute.run(start=start, stop=stop, step=step, verbose=verbose)
                 atom_solutes[solute.solute_name] = solute
                 solvation_datas.append(solute.solvation_data)
             solvation_data = pd.concat(solvation_datas)
-
+        solute = Solute(solute, solvents)
+        solute.run = run
         # merge the solute DataFrames
         # monkeypatch the run() method
         # TODO: write this method
-        return Solute(solute, solvents)
+        return solute
+
 
     @staticmethod
     def from_atoms(solute, solvents, **kwargs):
@@ -305,7 +307,8 @@ class Solute(AnalysisBase):
         """
         This function identifies the solvation radii and saves the associated RDF data.
         """
-        assert self.has_run is False, "Solute.run() can only be called once."
+        # TODO: determine how the multi-run logic should work
+        # assert self.has_run is False, "Solute.run() can only be called once."
         self.rdf_data = {}
         self.solvation_data = None
         self.solvation_data_duplicates = None
@@ -367,6 +370,10 @@ class Solute(AnalysisBase):
                 self.radii[name],
                 box=self.u.dimensions,
             )
+            # make sure pairs don't include intra-molecular interactions
+            filter = self.solute.resindices[pairs[:, 0]] == solvent.resindices[pairs[:, 1]]
+            pairs = pairs[~filter]
+            dist = dist[~filter]
             # replace local ids with absolute ids
             pairs[:, 0] = self.solute.atoms.ix[[pairs[:, 0]]]
             pairs[:, 1] = solvent.ix[[pairs[:, 1]]]
