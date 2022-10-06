@@ -113,7 +113,7 @@ class Coordination:
         """
         # lookup atom types
         atom_types = self.solvation_data.reset_index([SOLVENT_ATOM_IX])
-        atom_types[ATOM_TYPE] = self.atom_group[atom_types[SOLVENT_ATOM_IX]].types
+        atom_types[ATOM_TYPE] = self.atom_group[atom_types[SOLVENT_ATOM_IX].values].types
         # count atom types
         atoms_by_type = atom_types[[ATOM_TYPE, SOLVENT, SOLVENT_ATOM_IX]]
         type_counts = atoms_by_type.groupby([SOLVENT, ATOM_TYPE]).count()
