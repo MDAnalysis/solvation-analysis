@@ -223,3 +223,13 @@ def test_draw_molecule_residue(iba_solutes):
 def test_iba_solutes(iba_solutes):
     for solute in iba_solutes.values():
         assert isinstance(solute, Solute)
+
+
+def test_from_solutes(iba_solutes, iba_solvents):
+    solutes = [
+        iba_solutes['iba_ketone'],
+        iba_solutes['iba_alcohol_O'],
+        iba_solutes['iba_alcohol_H']
+    ]
+    solute = Solute.from_solutes(solutes, solvents=iba_solvents)
+    assert isinstance(solute, Solute)
