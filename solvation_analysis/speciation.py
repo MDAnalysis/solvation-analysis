@@ -202,6 +202,8 @@ class Speciation:
             actual_solvents.name = solvent
             expected_solvents_list.append(expected_solvents)
             actual_solvents_list.append(actual_solvents)
+        if len(actual_solvents_list) == 0 or len(expected_solvents_list) == 0:
+            return pd.DataFrame()
         # make DataFrames
         actual_df = pd.concat(actual_solvents_list, axis=1)
         expected_df = pd.concat(expected_solvents_list, axis=1)
