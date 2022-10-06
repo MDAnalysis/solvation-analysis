@@ -279,7 +279,7 @@ def iba_solutes(iba_atom_groups, iba_solvents):
 
 @pytest.fixture
 def solvation_results(run_solute):
-    return run_solute.solvation_frames
+    return run_solute._solvation_frames
 
 
 @pytest.fixture

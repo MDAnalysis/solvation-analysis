@@ -64,8 +64,8 @@ def test_run_warning(pre_solute_mutable):
 def test_run(pre_solute_mutable):
     # checks that run is run correctly
     pre_solute_mutable.run(step=1)
-    assert len(pre_solute_mutable.solvation_frames) == 10
-    assert len(pre_solute_mutable.solvation_frames[0]) == 228
+    assert len(pre_solute_mutable._solvation_frames) == 10
+    assert len(pre_solute_mutable._solvation_frames[0]) == 228
     assert len(pre_solute_mutable.solvation_data) == 2312
 
 
@@ -76,8 +76,8 @@ def test_run_w_all(pre_solute_mutable):
     ]
     pre_solute_mutable.networking_solvents = 'pf6'
     pre_solute_mutable.run(step=1)
-    assert len(pre_solute_mutable.solvation_frames) == 10
-    assert len(pre_solute_mutable.solvation_frames[0]) == 228
+    assert len(pre_solute_mutable._solvation_frames) == 10
+    assert len(pre_solute_mutable._solvation_frames[0]) == 228
     assert len(pre_solute_mutable.solvation_data) == 2312
 
 

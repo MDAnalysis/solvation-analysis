@@ -200,26 +200,54 @@ class Solute(AnalysisBase):
                                                                    "solute must be unique.")
         solute = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
 
-        def run(start=None, stop=None, step=None, verbose=None):
-            atom_solutes = {}
-            solvation_datas = []
-            for solute in solutes:
-                if not solute.has_run:
-                    solute.run(start=start, stop=stop, step=step, verbose=verbose)
-                if (start, stop, step) != (solute.start, solute.stop, solute.step):
-                    warnings.warn(f"The start, stop, or step for {solute.solute_name} do not"
-                                  f"match the start, stop, or step for the run command so it "
-                                  f"is being re-run.")
-                    solute.run(start=start, stop=stop, step=step, verbose=verbose)
-                if solvents != solute.solvents:
-                    warnings.warn(f"The solvents for {solute.solute_name} do not match the "
-                                  f"solvents for the run command so it is being re-run.")
-                    solute.run(start=start, stop=stop, step=step, verbose=verbose)
-                atom_solutes[solute.solute_name] = solute
-                solvation_datas.append(solute.solvation_data)
-            solvation_data = pd.concat(solvation_datas)
+        def curry_run(self):
+            def run(start=None, stop=None, step=None, verbose=None):
+                # like prepare
+                atom_solutes = {}
+                solvation_datas = []
+                solvation_data_dups = []
+                start, stop, step = self.u.trajectory.check_slice_indices(start, stop, step)
+                self.start, self.stop, self.step = start, stop, step
+                self.n_frames = len(range(start, stop, step))
+
+                # like run
+                for solute in solutes:
+                    if not solute.has_run:
+                        solute.run(start=start, stop=stop, step=step, verbose=verbose)
+                    if (start, stop, step) != (solute.start, solute.stop, solute.step):
+                        warnings.warn(f"The start, stop, or step for {solute.solute_name} do not"
+                                      f"match the start, stop, or step for the run command so it "
+                                      f"is being re-run.")
+                        solute.run(start=start, stop=stop, step=step, verbose=verbose)
+                    if solvents != solute.solvents:
+                        warnings.warn(f"The solvents for {solute.solute_name} do not match the "
+                                      f"solvents for the run command so it is being re-run.")
+                        solute.run(start=start, stop=stop, step=step, verbose=verbose)
+                    atom_solutes[solute.solute_name] = solute
+                    solvation_datas.append(solute.solvation_data)
+                    solvation_data_dups.append(solute.solvation_data_duplicates)
+
+                # like conclude
+                self.solvation_data = pd.concat(solvation_datas)
+                self.solvation_data_duplicates = pd.concat(solvation_data_dups)
+                self.has_run = True
+                self.rdf_data = None  # TODO: figure out the best way to handle this
+                analysis_classes = {
+                    'speciation': Speciation,
+                    'pairing': Pairing,
+                    'coordination': Coordination,
+                    'residence': Residence,
+                    'networking': Networking,
+                }
+                for analysis_class in self.analysis_classes:
+                    if analysis_class == 'networking':
+                        setattr(self, 'networking', Networking.from_solute(self, self.networking_solvents))
+                    else:
+                        setattr(self, analysis_class, analysis_classes[analysis_class].from_solute(self))
+            return run
+
         solute = Solute(solute, solvents)
-        solute.run = run
+        solute.run = curry_run(solute)
         # merge the solute DataFrames
         # monkeypatch the run() method
         # TODO: write this method
@@ -312,10 +340,7 @@ class Solute(AnalysisBase):
         self.rdf_data = {}
         self.solvation_data = None
         self.solvation_data_duplicates = None
-        self.speciation = None
-        self.pairing = None
-        self.coordination = None
-        self.solvation_frames = []
+        self._solvation_frames = []
         for name, solvent in self.solvents.items():
             # set kwargs with defaults
             self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (0, 7.5)
@@ -403,14 +428,14 @@ class Solute(AnalysisBase):
             )
         )
         # add the current frame to the growing list of solvation arrays
-        self.solvation_frames.append(solvation_data_np)
+        self._solvation_frames.append(solvation_data_np)
 
     def _conclude(self):
         """
         Creates a clean solvation_data pandas.DataFrame and instantiates several analysis classes.
         """
         # stack all solvation frames into a single data structure
-        solvation_data_np = np.vstack(self.solvation_frames)
+        solvation_data_np = np.vstack(self._solvation_frames)
         solvation_data_df = pd.DataFrame(
             solvation_data_np,
             columns=[
@@ -431,6 +456,7 @@ class Solute(AnalysisBase):
         solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM_IX, SOLVENT_IX])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
         self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX])
+        self.solvation_data_duplicates = solvation_data_df[solvation_data_duplicates]
         # instantiate analysis classes
         self.has_run = True
         analysis_classes = {
