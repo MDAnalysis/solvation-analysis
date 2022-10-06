@@ -19,6 +19,7 @@ depth analysis of specific aspects of solvation.
 Solute also provides several functions to select a particular solute and its solvation
 shell, returning an AtomGroup for visualization or further analysis.
 """
+from functools import reduce
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -152,7 +153,7 @@ class Solute(AnalysisBase):
     """
 
     @staticmethod
-    def from_molecules(residues, **kwargs):
+    def from_residues(residues, solvents, **kwargs):
         """
         Create a solute from an AtomGroup containing multiple
         atoms per residue.
@@ -174,7 +175,12 @@ class Solute(AnalysisBase):
         return
 
     @staticmethod
-    def from_solutes(solutes, **kwargs):
+    def from_atoms_dict(solutes_dict, solvents, **kwargs):
+        return
+
+
+    @staticmethod
+    def from_solutes(solutes, solvents):
         """
         Create a Solute from a list of Solutes.
 
@@ -187,11 +193,36 @@ class Solute(AnalysisBase):
         -------
 
         """
+        for solute in solutes:
+            assert type(solute) == Solute, "solutes must be a list of Solute objects."
+        solute_names = [solute.solute_name for solute in solutes]
+        assert len(np.unique(solute_names)) == len(solute_names), ("The solute_name for each"
+                                                                   "solute must be unique.")
+        solute = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
+
+        def run(start=None, stop=None, step=None, verbose=None):
+            atom_solutes = []
+            solvation_datas = []
+            for solute in solutes:
+                if not solute.has_run:
+                    solute.run(start=start, stop=stop, step=step, verbose=verbose)
+                if (start, stop, step) != (solute.start, solute.stop, solute.step):
+                    warnings.warn(f"The start, stop, or step for {solute.solute_name} do not"
+                                  f"match the start, stop, or step for the run command so it "
+                                  f"is being re-run.")
+                    solute.run(start=start, stop=stop, step=step, verbose=verbose)
+                if solvents != solute.solute.solvents:
+                    warnings.warn(f"The solvents for {solute.solute_name} do not match the "
+                                  f"solvents for the run command so it is being re-run.")
+                    solute.run(start=start, stop=stop, step=step, verbose=verbose)
+                atom_solutes[solute.solute_name] = solute
+                solvation_datas.append(solute.solvation_data)
+            solvation_data = pd.concat(solvation_datas)
+
         # merge the solute DataFrames
         # monkeypatch the run() method
         # TODO: write this method
-
-        return
+        return Solute(solute, solvents)
 
     @staticmethod
     def from_atoms(solute, solvents, **kwargs):
@@ -217,20 +248,21 @@ class Solute(AnalysisBase):
         return solute
 
     def __init__(
-        self,
-        solute,
-        solvents,
-        radii=None,
-        solvent_counts=None,
-        rdf_kernel=None,
-        kernel_kwargs=None,
-        rdf_init_kwargs=None,
-        rdf_run_kwargs=None,
-        solute_name="solute",
-        analysis_classes=None,
-        networking_solvents=None,
-        verbose=False,
+            self,
+            solute,
+            solvents,
+            radii=None,
+            solvent_counts=None,
+            rdf_kernel=None,
+            kernel_kwargs=None,
+            rdf_init_kwargs=None,
+            rdf_run_kwargs=None,
+            solute_name="solute",
+            analysis_classes=None,
+            networking_solvents=None,
+            verbose=False,
     ):
+        # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
         self.solvent_counts = solvent_counts or {}
@@ -243,12 +275,14 @@ class Solute(AnalysisBase):
         self.rdf_run_kwargs = rdf_run_kwargs or {}
         self.has_run = False
         self.u = solute.universe
-        assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
+        # move this assertion logic elsewhere
+        # assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
         self.solute = solute
         self.atom_solutes = None
         self.n_solutes = len(self.solute.residues)
         self.n_solute_atoms = len(self.solute.atoms)
-        self.solute_res_ix = pd.Series(solute.residues.ix, solute.atoms.ix)  # TODO: consider removing, only used in net
+        # TODO: consider removing solute_res_ix, only used in net
+        self.solute_res_ix = pd.Series(solute.atoms.resindices, solute.atoms.ix)
         self.solvents = solvents
         self.solute_name = solute_name
         self.res_name_map = pd.Series(['none'] * len(self.u.residues))
