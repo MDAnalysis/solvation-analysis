@@ -231,7 +231,6 @@ def test_from_solutes(iba_solutes, iba_solvents):
         iba_solutes['iba_alcohol_O'],
         iba_solutes['iba_alcohol_H']
     ]
-    solv_data = iba_solutes['iba_alcohol_O'].solvation_data
     solute = Solute.from_solutes(solutes, solvents=iba_solvents)
     solute.run()
     assert isinstance(solute, Solute)

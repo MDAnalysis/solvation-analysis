@@ -248,9 +248,6 @@ class Solute(AnalysisBase):
 
         solute = Solute(solute, solvents)
         solute.run = curry_run(solute)
-        # merge the solute DataFrames
-        # monkeypatch the run() method
-        # TODO: write this method
         return solute
 
 
