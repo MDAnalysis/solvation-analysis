@@ -201,6 +201,7 @@ class Solute(AnalysisBase):
         solute = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
 
         def curry_run(self):
+            # we do this so we can monkey patch run onto a solute
             def run(start=None, stop=None, step=None, verbose=None):
                 # like prepare
                 atom_solutes = {}
@@ -228,7 +229,7 @@ class Solute(AnalysisBase):
                     solvation_data_dups.append(solute.solvation_data_duplicates)
 
                 # like conclude
-                self.solvation_data = pd.concat(solvation_datas)
+                self.solvation_data = pd.concat(solvation_datas).sort_index()
                 self.solvation_data_duplicates = pd.concat(solvation_data_dups)
                 self.has_run = True
                 self.rdf_data = None  # TODO: figure out the best way to handle this
