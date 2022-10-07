@@ -80,10 +80,6 @@ class Solute(AnalysisBase):
         an optional dictionary of solvent names and associated solvation radii
         e.g. {"name_2": radius_2, "name_5": radius_5} Any radii not given will
         be calculated. The solvent names should match the solvents parameter.
-    solvent_counts : dict of {str: int}, optional
-        an optional dictionary of solvent counts e.g. the number of solvent. Any
-        solvents not included will be set equal to the number of residues in the
-        solvents AtomGroup.
     rdf_kernel : function, optional
         this function must take RDF bins and data as input and return
         a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
@@ -280,7 +276,6 @@ class Solute(AnalysisBase):
             solute,
             solvents,
             radii=None,
-            solvent_counts=None,
             rdf_kernel=None,
             kernel_kwargs=None,
             rdf_init_kwargs=None,
@@ -293,10 +288,7 @@ class Solute(AnalysisBase):
         # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
         self.radii = radii or {}
-        self.solvent_counts = solvent_counts or {}
-        for name in solvents.keys():
-            if name not in self.solvent_counts.keys():
-                self.solvent_counts[name] = len(solvents[name].residues)
+        self.solvent_counts = {name: len(atoms.residues) for name, atoms in solvents.items()}
         self.kernel = rdf_kernel or identify_cutoff_scipy
         self.kernel_kwargs = kernel_kwargs or {}
         self.rdf_init_kwargs = rdf_init_kwargs or {}
@@ -328,6 +320,13 @@ class Solute(AnalysisBase):
             )
         else:
             self.networking_solvents = networking_solvents
+
+    def _shared_init(self, solvents, **kwargs):
+        self.radii = kwargs['radii'] or {}
+        self.solvent_counts = {name: len(atoms.residues) for name, atoms in solvents.items()}
+        self.solvents = solvents
+
+
 
     def _prepare(self):
         """
