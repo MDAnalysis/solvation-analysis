@@ -520,7 +520,7 @@ class Solute(AnalysisBase):
         ax.legend()
         return fig, ax
 
-    def plot_solvation_radius(self, res_name):
+    def plot_solvation_radius(self, solvent_name, solute_name=None):
         """
         Plot the RDF of a solvent molecule
 
@@ -529,7 +529,7 @@ class Solute(AnalysisBase):
 
         Parameters
         ----------
-        res_name : str
+        solvent_name : str
             the name of the residue of interest, as written in the solvents dict
 
         Returns
@@ -537,10 +537,12 @@ class Solute(AnalysisBase):
         fig : matplotlib.Figure
         ax : matplotlib.Axes
         """
+        if solute_name:
+            return  # make this work
         assert self.has_run, "Solute.run() must be called first."
-        bins, data = self.rdf_data[res_name]
-        fig, ax = self._plot_solvation_radius(bins, data, self.radii[res_name])
-        ax.set_title(f"{self.solute_name} solvation distance for {res_name}")
+        bins, data = self.rdf_data[solvent_name]
+        fig, ax = self._plot_solvation_radius(bins, data, self.radii[solvent_name])
+        ax.set_title(f"{self.solute_name} solvation distance for {solvent_name}")
         return fig, ax
 
     def radial_shell(self, solute_index, radius):

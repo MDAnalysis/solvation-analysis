@@ -56,7 +56,7 @@ class Networking:
     ----------
     network_df : pd.DataFrame
         the dataframe containing all networking data. the indices are the frame and
-        network index, respectively. the columns are the res_name and res_ix.
+        network index, respectively. the columns are the solvent_name and res_ix.
     network_sizes : pd.DataFrame
         a dataframe of network sizes. the index is the frame. the column headers
         are network sizes, or the number of solutes + solvents in the network, so

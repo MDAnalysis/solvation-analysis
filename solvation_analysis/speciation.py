@@ -33,7 +33,7 @@ class Speciation:
     Speciation organizes the solvation data by the type of residue
     coordinated with the central solvent. It collects this information in a
     pandas.DataFrame indexed by the frame and solute number. Each column is
-    one of the solvents in the res_name column of the solvation data. The
+    one of the solvents in the solvent_name column of the solvation data. The
     column value is how many residue of that type are in the solvation shell.
 
     Speciation provides the speciation of each solute in the speciation
