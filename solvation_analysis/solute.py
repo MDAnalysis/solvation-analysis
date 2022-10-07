@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 
+import MDAnalysis as mda
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
@@ -286,14 +287,34 @@ class Solute(AnalysisBase):
     ):
         # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
-        self._shared_init(solute, solvents, radii, rdf_kernel, kernel_kwargs,
-                          rdf_init_kwargs, rdf_run_kwargs, solute_name, analysis_classes,
-                          networking_solvents)
-        # move this assertion logic elsewhere
-        # assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
+
+        if isinstance(solute, mda.AtomGroup):
+            # TODO: these should probably be methods to keep things clean
+            # coerce to list of solutes
+            return
+
+        if isinstance(solute, dict):
+            # TODO: make sure this is a list of single-atom solutes
+            # coerce to list of solutes
+            return
+
+        if len(solute) == 1:
+            # assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
+            # perform single atom solute routine
+            return
+
+        else:
+            # perform multi atom solute routine
+            return
+
         self.solute = solute  # TODO: this shit!
         self.atom_solutes = None
 
+        self._shared_init(solute, solvents, radii, rdf_kernel, kernel_kwargs,
+                          rdf_init_kwargs, rdf_run_kwargs, solute_name, analysis_classes,
+                          networking_solvents)
+
+    # TODO: this should probably be removed and the logic returned to init
     def _shared_init(self, solute, solvents, radii, rdf_kernel, kernel_kwargs,
                           rdf_init_kwargs, rdf_run_kwargs, solute_name, analysis_classes,
                           networking_solvents):
