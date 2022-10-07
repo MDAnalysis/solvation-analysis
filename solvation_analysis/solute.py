@@ -174,7 +174,6 @@ class Solute(AnalysisBase):
     def from_atoms_dict(solutes_dict, solvents, **kwargs):
         return
 
-
     @staticmethod
     def from_solutes(solutes, solvents):
         """
@@ -241,12 +240,12 @@ class Solute(AnalysisBase):
                         setattr(self, 'networking', Networking.from_solute(self, self.networking_solvents))
                     else:
                         setattr(self, analysis_class, analysis_classes[analysis_class].from_solute(self))
+
             return run
 
         solute = Solute(solute, solvents)
         solute.run = curry_run(solute)
         return solute
-
 
     @staticmethod
     def from_atoms(solute, solvents, **kwargs):
@@ -287,28 +286,37 @@ class Solute(AnalysisBase):
     ):
         # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
+        self._shared_init(solute, solvents, radii, rdf_kernel, kernel_kwargs,
+                          rdf_init_kwargs, rdf_run_kwargs, solute_name, analysis_classes,
+                          networking_solvents)
+        # move this assertion logic elsewhere
+        # assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
+        self.solute = solute  # TODO: this shit!
+        self.atom_solutes = None
+
+    def _shared_init(self, solute, solvents, radii, rdf_kernel, kernel_kwargs,
+                          rdf_init_kwargs, rdf_run_kwargs, solute_name, analysis_classes,
+                          networking_solvents):
         self.radii = radii or {}
-        self.solvent_counts = {name: len(atoms.residues) for name, atoms in solvents.items()}
+        self.solvent_counts = {name: atoms.n_residues for name, atoms in solvents.items()}
         self.kernel = rdf_kernel or identify_cutoff_scipy
         self.kernel_kwargs = kernel_kwargs or {}
         self.rdf_init_kwargs = rdf_init_kwargs or {}
         self.rdf_run_kwargs = rdf_run_kwargs or {}
         self.has_run = False
         self.u = solute.universe
-        # move this assertion logic elsewhere
-        # assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
-        self.solute = solute
-        self.atom_solutes = None
-        self.n_solutes = len(self.solute.residues)
-        self.n_solute_atoms = len(self.solute.atoms)
-        # TODO: consider removing solute_res_ix, only used in net
+        self.n_solutes = solute.n_residues
         self.solute_res_ix = pd.Series(solute.atoms.resindices, solute.atoms.ix)
+        self.solute_name = solute_name  # need this?
+
         self.solvents = solvents
-        self.solute_name = solute_name
+
+        # instantiate the res_name_map
         self.res_name_map = pd.Series(['none'] * len(self.u.residues))
-        self.res_name_map[self.solute.residues.ix] = self.solute_name
+        self.res_name_map[solute.residues.ix] = self.solute_name
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
+
         # logic for instantiating analysis classes.
         if analysis_classes is None:
             self.analysis_classes = ["pairing", "coordination", "speciation"]
@@ -320,13 +328,6 @@ class Solute(AnalysisBase):
             )
         else:
             self.networking_solvents = networking_solvents
-
-    def _shared_init(self, solvents, **kwargs):
-        self.radii = kwargs['radii'] or {}
-        self.solvent_counts = {name: len(atoms.residues) for name, atoms in solvents.items()}
-        self.solvents = solvents
-
-
 
     def _prepare(self):
         """
