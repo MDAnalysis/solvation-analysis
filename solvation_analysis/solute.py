@@ -199,11 +199,11 @@ class Solute(AnalysisBase):
         assert len(np.unique(solute_names)) == len(solute_names), (
             "The solute_name for each solute must be unique."
         )
-        solute_atoms = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
+        solute_atom_group = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
         # TODO: check length
         atom_solutes = {solute.solute_name: solute for solute in solutes}
         solute = Solute(
-            solute_atoms,
+            solute_atom_group,
             solvents,
             atom_solutes=atom_solutes,
             internal_call=True,
@@ -213,7 +213,7 @@ class Solute(AnalysisBase):
         return solute
 
     @staticmethod
-    def from_atoms(solute_atoms, solvents, **kwargs):
+    def from_atoms(solute_atom_group, solvents, **kwargs):
         """
 
         Parameters
@@ -230,20 +230,20 @@ class Solute(AnalysisBase):
         solute_atoms : Solute
             a solute_atoms object
         """
-        res_atom_ix_array = verify_solute_atoms(solute_atoms)
+        res_atom_ix_array = verify_solute_atoms(solute_atom_group)
         atom_solutes = {}
         for i in range(0, res_atom_ix_array.shape[1]):
             atom_solute = Solute(
-                solute_atoms.universe.atoms[res_atom_ix_array[:, i]],
+                solute_atom_group.universe.atoms[res_atom_ix_array[:, i]],
                 solvents,
-                **kwargs,
-                solute_name=f"solute_atoms{i}",
                 internal_call=True,
+                **kwargs,  # solute_name must be after kwargs to overwrite defaults
+                solute_name=f"solute_atoms{i}",
             )
             atom_solutes[atom_solute.solute_name] = atom_solute
 
         solute = Solute(
-            solute_atoms,
+            solute_atom_group,
             solvents,
             atom_solutes=atom_solutes,
             internal_call=True,
@@ -275,7 +275,7 @@ class Solute(AnalysisBase):
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
 
         self.solute = solute  # TODO: this shit!
-        atom_solutes = atom_solutes or {solute_name: self}
+        self.atom_solutes = atom_solutes or {solute_name: self}
         self.radii = radii or {}
         self.solvent_counts = {name: atoms.n_residues for name, atoms in solvents.items()}
         self.kernel = rdf_kernel or identify_cutoff_scipy
