@@ -149,34 +149,18 @@ class Solute(AnalysisBase):
         kwarg must be specified.
     """
 
-    @staticmethod
-    def from_residues(residues, solvents, **kwargs):
-        """
-        Create a solute from an AtomGroup containing multiple
-        atoms per residue.
-
-        Parameters
-        ----------
-        residues : AtomGroup
-            an AtomGroup or ResidueGroup containing multiple atoms per residue.
-        kwargs : dict
-            kwargs passed to the Solute constructor.
-
-        Returns
-        -------
-        solute : Solute
-            a solute object
-        """
-        # 1. create solutes for each unique atom
-        # 2. create solute from using from_solutes
-        return
 
     @staticmethod
     def from_atoms_dict(solutes_dict, solvents, **kwargs):
+        # transform to solutes
+
+
+        if len(solutes_dict) == 1:
+            return  # do something special
         return
 
     @staticmethod
-    def from_solutes(solutes, solvents):
+    def from_solute_list(solutes, solvents, **kwargs):
         """
         Create a Solute from a list of Solutes.
 
@@ -196,56 +180,8 @@ class Solute(AnalysisBase):
                                                                    "solute must be unique.")
         solute = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
 
-        def curry_run(self):
-            # we do this so we can monkey patch run onto a solute
-            def run(start=None, stop=None, step=None, verbose=None):
-                # like prepare
-                atom_solutes = {}
-                solvation_datas = []
-                solvation_data_dups = []
-                start, stop, step = self.u.trajectory.check_slice_indices(start, stop, step)
-                self.start, self.stop, self.step = start, stop, step
-                self.n_frames = len(range(start, stop, step))
-
-                # like run
-                for solute in solutes:
-                    if not solute.has_run:
-                        solute.run(start=start, stop=stop, step=step, verbose=verbose)
-                    if (start, stop, step) != (solute.start, solute.stop, solute.step):
-                        warnings.warn(f"The start, stop, or step for {solute.solute_name} do not"
-                                      f"match the start, stop, or step for the run command so it "
-                                      f"is being re-run.")
-                        solute.run(start=start, stop=stop, step=step, verbose=verbose)
-                    if solvents != solute.solvents:
-                        warnings.warn(f"The solvents for {solute.solute_name} do not match the "
-                                      f"solvents for the run command so it is being re-run.")
-                        solute.run(start=start, stop=stop, step=step, verbose=verbose)
-                    atom_solutes[solute.solute_name] = solute
-                    solvation_datas.append(solute.solvation_data)
-                    solvation_data_dups.append(solute.solvation_data_duplicates)
-
-                # like conclude
-                self.solvation_data = pd.concat(solvation_datas).sort_index()
-                self.solvation_data_duplicates = pd.concat(solvation_data_dups)
-                self.has_run = True
-                self.rdf_data = None  # TODO: figure out the best way to handle this
-                analysis_classes = {
-                    'speciation': Speciation,
-                    'pairing': Pairing,
-                    'coordination': Coordination,
-                    'residence': Residence,
-                    'networking': Networking,
-                }
-                for analysis_class in self.analysis_classes:
-                    if analysis_class == 'networking':
-                        setattr(self, 'networking', Networking.from_solute(self, self.networking_solvents))
-                    else:
-                        setattr(self, analysis_class, analysis_classes[analysis_class].from_solute(self))
-
-            return run
-
-        solute = Solute(solute, solvents)
-        solute.run = curry_run(solute)
+        solute = Solute(solute, solvents, internal_call=True, **kwargs)
+        solute.run = solute._run_solute_atoms
         return solute
 
     @staticmethod
@@ -284,28 +220,23 @@ class Solute(AnalysisBase):
             analysis_classes=None,
             networking_solvents=None,
             verbose=False,
+            internal_call=False,
     ):
+        if not internal_call:
+            raise RuntimeError("Please use the from_atoms, from_atoms_dict, or from_solute_list "
+                               "classmethods instead of the constructor.")
         # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
-
-        if isinstance(solute, mda.AtomGroup):
-            # TODO: these should probably be methods to keep things clean
-            # coerce to list of solutes
-            return
-
-        if isinstance(solute, dict):
-            # TODO: make sure this is a list of single-atom solutes
-            # coerce to list of solutes
-            return
-
-        if len(solute) == 1:
-            # assert solute.n_atoms == solute.n_residues, "each solute residue must contain only one solute atom"
-            # perform single atom solute routine
-            return
-
-        else:
-            # perform multi atom solute routine
-            return
+        init_kwargs = dict(
+            radii=None,
+            rdf_kernel=None,
+            kernel_kwargs=None,
+            rdf_init_kwargs=None,
+            rdf_run_kwargs=None,
+            solute_name="solute",
+            analysis_classes=None,
+            networking_solvents=None,
+        )
 
         self.solute = solute  # TODO: this shit!
         self.atom_solutes = None
@@ -349,6 +280,50 @@ class Solute(AnalysisBase):
             )
         else:
             self.networking_solvents = networking_solvents
+
+    def _run_solute_atoms(self, start=None, stop=None, step=None, verbose=None):
+        # like prepare
+        atom_solutes = {}
+        solvation_datas = []
+        solvation_data_dups = []
+        start, stop, step = self.u.trajectory.check_slice_indices(start, stop, step)
+        self.start, self.stop, self.step = start, stop, step
+        self.n_frames = len(range(start, stop, step))
+
+        # like run
+        for solute in solutes:
+            if not solute.has_run:
+                solute.run(start=start, stop=stop, step=step, verbose=verbose)
+            if (start, stop, step) != (solute.start, solute.stop, solute.step):
+                warnings.warn(f"The start, stop, or step for {solute.solute_name} do not"
+                              f"match the start, stop, or step for the run command so it "
+                              f"is being re-run.")
+                solute.run(start=start, stop=stop, step=step, verbose=verbose)
+            if solvents != solute.solvents:
+                warnings.warn(f"The solvents for {solute.solute_name} do not match the "
+                              f"solvents for the run command so it is being re-run.")
+                solute.run(start=start, stop=stop, step=step, verbose=verbose)
+            atom_solutes[solute.solute_name] = solute
+            solvation_datas.append(solute.solvation_data)
+            solvation_data_dups.append(solute.solvation_data_duplicates)
+
+        # like conclude
+        self.solvation_data = pd.concat(solvation_datas).sort_index()
+        self.solvation_data_duplicates = pd.concat(solvation_data_dups)
+        self.has_run = True
+        self.rdf_data = None  # TODO: figure out the best way to handle this
+        analysis_classes = {
+            'speciation': Speciation,
+            'pairing': Pairing,
+            'coordination': Coordination,
+            'residence': Residence,
+            'networking': Networking,
+        }
+        for analysis_class in self.analysis_classes:
+            if analysis_class == 'networking':
+                setattr(self, 'networking', Networking.from_solute(self, self.networking_solvents))
+            else:
+                setattr(self, analysis_class, analysis_classes[analysis_class].from_solute(self))
 
     def _prepare(self):
         """
