@@ -152,12 +152,22 @@ class Solute(AnalysisBase):
 
     @staticmethod
     def from_atoms_dict(solutes_dict, solvents, **kwargs):
+        # TODO: do some type checking
+        # TODO: do some length checking
         # transform to solutes
-
-
         if len(solutes_dict) == 1:
             return  # do something special
-        return
+
+        solute_atoms = reduce(lambda x, y: x | y, [atoms for atoms in solutes_dict.values()])
+        assert solute_atoms.n_atoms == sum([atoms.n_atoms for atoms in solutes_dict.values()])
+
+        atom_solutes = {solute_name: Solute(atoms, solvents, **kwargs)
+                        for solute_name, atoms in solutes_dict.items()}
+
+        solute = Solute(solute_atoms, solvents, **kwargs)
+        solute.atom_solutes = atom_solutes
+        solute.run = solute._run_solute_atoms
+        return solute
 
     @staticmethod
     def from_solute_list(solutes, solvents, **kwargs):
@@ -173,14 +183,17 @@ class Solute(AnalysisBase):
         -------
 
         """
+        # TODO: check types
         for solute in solutes:
             assert type(solute) == Solute, "solutes must be a list of Solute objects."
         solute_names = [solute.solute_name for solute in solutes]
-        assert len(np.unique(solute_names)) == len(solute_names), ("The solute_name for each"
-                                                                   "solute must be unique.")
-        solute = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
-
-        solute = Solute(solute, solvents, internal_call=True, **kwargs)
+        assert len(np.unique(solute_names)) == len(solute_names), (
+            "The solute_name for each solute must be unique."
+        )
+        solute_atoms = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
+        # TODO: check length
+        solute = Solute(solute_atoms, solvents, internal_call=True, **kwargs)
+        solute.atom_solutes = {solute.solute_name: solute for solute in solutes}
         solute.run = solute._run_solute_atoms
         return solute
 
