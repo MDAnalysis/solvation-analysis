@@ -216,8 +216,14 @@ class Solute(AnalysisBase):
         solute : Solute
             a solute object
         """
+        # we presume that the solute has the same number of atoms on each residue
+        # and that they all have the same indices on those residues
+        # and that the residues are all the same length
+        # then this should work
+
         solute = Solute(solute, solvents, **kwargs)
         solute.atom_solutes = {solute.solute_name: solute}
+        solute.run = solute._run_solute_atoms
         return solute
 
     def __init__(
@@ -240,28 +246,10 @@ class Solute(AnalysisBase):
                                "classmethods instead of the constructor.")
         # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
-        init_kwargs = dict(
-            radii=None,
-            rdf_kernel=None,
-            kernel_kwargs=None,
-            rdf_init_kwargs=None,
-            rdf_run_kwargs=None,
-            solute_name="solute",
-            analysis_classes=None,
-            networking_solvents=None,
-        )
 
         self.solute = solute  # TODO: this shit!
-        self.atom_solutes = None
 
-        self._shared_init(solute, solvents, radii, rdf_kernel, kernel_kwargs,
-                          rdf_init_kwargs, rdf_run_kwargs, solute_name, analysis_classes,
-                          networking_solvents)
 
-    # TODO: this should probably be removed and the logic returned to init
-    def _shared_init(self, solute, solvents, radii, rdf_kernel, kernel_kwargs,
-                          rdf_init_kwargs, rdf_run_kwargs, solute_name, analysis_classes,
-                          networking_solvents):
         self.radii = radii or {}
         self.solvent_counts = {name: atoms.n_residues for name, atoms in solvents.items()}
         self.kernel = rdf_kernel or identify_cutoff_scipy
@@ -303,6 +291,11 @@ class Solute(AnalysisBase):
         self.start, self.stop, self.step = start, stop, step
         self.n_frames = len(range(start, stop, step))
 
+        # TODO: figure out what needs to be done here
+        if len(self.atom_solutes) == 1:
+            return
+
+        # TODO: fix this method to work on atom_solutes
         # like run
         for solute in solutes:
             if not solute.has_run:

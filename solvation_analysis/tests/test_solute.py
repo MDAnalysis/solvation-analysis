@@ -234,3 +234,5 @@ def test_from_solutes(iba_solutes, iba_solvents):
     solute = Solute.from_solutes(solutes, solvents=iba_solvents)
     solute.run()
     assert isinstance(solute, Solute)
+
+# TODO: write a ton of tests with garbage input
