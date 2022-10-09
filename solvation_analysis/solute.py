@@ -175,7 +175,8 @@ class Solute(AnalysisBase):
             internal_call=True,
             **kwargs
         )
-        solute.run = solute._run_solute_atoms
+        if len(atom_solutes) > 1:
+           solute.run = solute._run_solute_atoms
         return solute
 
     @staticmethod
@@ -209,7 +210,8 @@ class Solute(AnalysisBase):
             internal_call=True,
             **kwargs
         )
-        solute.run = solute._run_solute_atoms
+        if len(atom_solutes) > 1:
+           solute.run = solute._run_solute_atoms
         return solute
 
     @staticmethod
@@ -218,7 +220,7 @@ class Solute(AnalysisBase):
 
         Parameters
         ----------
-        atoms : AtomGroup
+        solute_atom_group : AtomGroup
             an AtomGroup or ResidueGroup containing one atom per residue.
         solvents : str, optional
             the name of the solute, used for labeling.
@@ -233,12 +235,13 @@ class Solute(AnalysisBase):
         res_atom_ix_array = verify_solute_atoms(solute_atom_group)
         atom_solutes = {}
         for i in range(0, res_atom_ix_array.shape[1]):
+            temp_kwargs = kwargs
+            temp_kwargs["solute_name"] = f"solute_{i}"
             atom_solute = Solute(
                 solute_atom_group.universe.atoms[res_atom_ix_array[:, i]],
                 solvents,
                 internal_call=True,
-                **kwargs,  # solute_name must be after kwargs to overwrite defaults
-                solute_name=f"solute_atoms{i}",
+                **temp_kwargs,
             )
             atom_solutes[atom_solute.solute_name] = atom_solute
 
@@ -249,7 +252,8 @@ class Solute(AnalysisBase):
             internal_call=True,
             **kwargs
         )
-        solute.run = solute._run_solute_atoms
+        if len(atom_solutes) > 1:
+            solute.run = solute._run_solute_atoms
         return solute
 
     def __init__(
@@ -275,7 +279,9 @@ class Solute(AnalysisBase):
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
 
         self.solute = solute  # TODO: this shit!
-        self.atom_solutes = atom_solutes or {solute_name: self}
+        self.atom_solutes = atom_solutes
+        if self.atom_solutes is None or len(atom_solutes) <= 1:
+            self.atom_solutes = {solute_name: self}
         self.radii = radii or {}
         self.solvent_counts = {name: atoms.n_residues for name, atoms in solvents.items()}
         self.kernel = rdf_kernel or identify_cutoff_scipy
@@ -311,15 +317,12 @@ class Solute(AnalysisBase):
     def _run_solute_atoms(self, start=None, stop=None, step=None, verbose=None):
         # like prepare
         atom_solutes = {}
+        rdf_data = {}
         solvation_datas = []
         solvation_data_dups = []
         start, stop, step = self.u.trajectory.check_slice_indices(start, stop, step)
         self.start, self.stop, self.step = start, stop, step
         self.n_frames = len(range(start, stop, step))
-
-        # TODO: figure out what needs to be done here
-        if len(self.atom_solutes) == 1:
-            return
 
         # TODO: fix this method to work on atom_solutes
         # like run
@@ -336,14 +339,16 @@ class Solute(AnalysisBase):
                               f"solvents for the run command so it is being re-run.")
                 solute.run(start=start, stop=stop, step=step, verbose=verbose)
             atom_solutes[solute.solute_name] = solute
+            rdf_data[solute.solute_name] = solute.rdf_data
             solvation_datas.append(solute.solvation_data)
             solvation_data_dups.append(solute.solvation_data_duplicates)
 
-        # like conclude
+        self.rdf_data = rdf_data
         self.solvation_data = pd.concat(solvation_datas).sort_index()
         self.solvation_data_duplicates = pd.concat(solvation_data_dups)
         self.has_run = True
-        self.rdf_data = None  # TODO: figure out the best way to handle this
+
+        # like conclude
         analysis_classes = {
             'speciation': Speciation,
             'pairing': Pairing,
@@ -391,7 +396,7 @@ class Solute(AnalysisBase):
                 rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)
                 rdf.run(**self.rdf_run_kwargs)
                 bins, data = rdf.results.bins, rdf.results.rdf
-            self.rdf_data[name] = (bins, data)
+            self.rdf_data[name] = (bins, data) # TODO: deal with this
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)

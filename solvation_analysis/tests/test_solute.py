@@ -225,17 +225,6 @@ def test_iba_solutes(iba_solutes):
         assert isinstance(solute, Solute)
 
 
-def test_from_solutes(iba_solutes, iba_solvents):
-    solutes = [
-        iba_solutes['iba_ketone'],
-        iba_solutes['iba_alcohol_O'],
-        iba_solutes['iba_alcohol_H']
-    ]
-    solute = Solute.from_solutes(solutes, solvents=iba_solvents)
-    # solute.run()
-    assert isinstance(solute, Solute)
-
-
 def test_from_atoms(iba_atom_groups, iba_solvents):
     solute_atoms = (
             iba_atom_groups['iba_ketone'] +
