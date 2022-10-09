@@ -161,7 +161,7 @@ class Solute(AnalysisBase):
         solute_atom_group = reduce(lambda x, y: x | y, [atoms for atoms in solutes_dict.values()])
         assert solute_atom_group.n_atoms == sum([atoms.n_atoms for atoms in solutes_dict.values()])
 
-        atom_solutes = {solute_name: Solute(atoms, solvents, **kwargs)
+        atom_solutes = {solute_name: Solute(atoms, solvents, **kwargs, internal_call=True)
                         for solute_name, atoms in solutes_dict.items()}
 
         solute = Solute(solute_atom_group, solvents, **kwargs, internal_call=True)
