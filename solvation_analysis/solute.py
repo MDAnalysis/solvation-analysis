@@ -235,13 +235,11 @@ class Solute(AnalysisBase):
         res_atom_ix_array = verify_solute_atoms(solute_atom_group)
         atom_solutes = {}
         for i in range(0, res_atom_ix_array.shape[1]):
-            temp_kwargs = kwargs
-            temp_kwargs["solute_name"] = f"solute_{i}"
             atom_solute = Solute(
                 solute_atom_group.universe.atoms[res_atom_ix_array[:, i]],
                 solvents,
                 internal_call=True,
-                **temp_kwargs,
+                **{**kwargs, "solute_name": f"solute_{i}"},
             )
             atom_solutes[atom_solute.solute_name] = atom_solute
 
