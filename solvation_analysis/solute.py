@@ -20,6 +20,7 @@ Solute also provides several functions to select a particular solute and its sol
 shell, returning an AtomGroup for visualization or further analysis.
 """
 from functools import reduce
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -158,13 +159,13 @@ class Solute(AnalysisBase):
         if len(solutes_dict) == 1:
             return  # do something special
 
-        solute_atoms = reduce(lambda x, y: x | y, [atoms for atoms in solutes_dict.values()])
-        assert solute_atoms.n_atoms == sum([atoms.n_atoms for atoms in solutes_dict.values()])
+        solute_atom_group = reduce(lambda x, y: x | y, [atoms for atoms in solutes_dict.values()])
+        assert solute_atom_group.n_atoms == sum([atoms.n_atoms for atoms in solutes_dict.values()])
 
         atom_solutes = {solute_name: Solute(atoms, solvents, **kwargs)
                         for solute_name, atoms in solutes_dict.items()}
 
-        solute = Solute(solute_atoms, solvents, **kwargs)
+        solute = Solute(solute_atom_group, solvents, **kwargs, internal_call=True)
         solute.atom_solutes = atom_solutes
         solute.run = solute._run_solute_atoms
         return solute
@@ -200,7 +201,6 @@ class Solute(AnalysisBase):
     @staticmethod
     def from_atoms(solute, solvents, **kwargs):
         """
-        Create a solute from an AtomGroup containing one atom per residue.
 
         Parameters
         ----------
@@ -220,8 +220,29 @@ class Solute(AnalysisBase):
         # and that they all have the same indices on those residues
         # and that the residues are all the same length
         # then this should work
+        all_res_len = np.array([res.atoms.n_atoms for res in solute.residues])
+        assert np.all(all_res_len[0] == all_res_len), (
+            "All residues must be the same length."
+        )
+        res_atom_local_ix = defaultdict(list)
 
-        solute = Solute(solute, solvents, **kwargs)
+        for atom in solute.atoms:
+            res_atom_local_ix[atom.resindex].append(atom.index - atom.resindex)
+        res_occupancy = np.array([len(ix) for ix in res_atom_local_ix.values()])
+        assert np.all(res_occupancy[0] == res_occupancy), (
+            "All residues must have the same number of solute atoms on them."
+        )
+
+        res_atom_array = np.array(res_atom_local_ix.values())
+        assert np.all(res_atom_array[0] == res_atom_array), (
+            "All residues must have the same solute atoms on them."
+        )
+
+        all_atom_ix = np.array([res.atoms.ix for res in ag.residues])
+
+
+
+        solute = Solute(solute, solvents, **kwargs, internal_call=True)
         solute.atom_solutes = {solute.solute_name: solute}
         solute.run = solute._run_solute_atoms
         return solute
@@ -297,7 +318,7 @@ class Solute(AnalysisBase):
 
         # TODO: fix this method to work on atom_solutes
         # like run
-        for solute in solutes:
+        for solute in self.atom_solutes.values():
             if not solute.has_run:
                 solute.run(start=start, stop=stop, step=step, verbose=verbose)
             if (start, stop, step) != (solute.start, solute.stop, solute.step):
@@ -305,7 +326,7 @@ class Solute(AnalysisBase):
                               f"match the start, stop, or step for the run command so it "
                               f"is being re-run.")
                 solute.run(start=start, stop=stop, step=step, verbose=verbose)
-            if solvents != solute.solvents:
+            if self.solvents != solute.solvents:
                 warnings.warn(f"The solvents for {solute.solute_name} do not match the "
                               f"solvents for the run command so it is being re-run.")
                 solute.run(start=start, stop=stop, step=step, verbose=verbose)
