@@ -163,11 +163,18 @@ class Solute(AnalysisBase):
         solute_atom_group = reduce(lambda x, y: x | y, [atoms for atoms in solutes_dict.values()])
         assert solute_atom_group.n_atoms == sum([atoms.n_atoms for atoms in solutes_dict.values()])
 
-        atom_solutes = {solute_name: Solute(atoms, solvents, **kwargs, internal_call=True)
-                        for solute_name, atoms in solutes_dict.items()}
+        atom_solutes = {
+            solute_name: Solute(atoms, solvents, internal_call=True, **kwargs)
+            for solute_name, atoms in solutes_dict.items()
+        }
 
-        solute = Solute(solute_atom_group, solvents, **kwargs, internal_call=True)
-        solute.atom_solutes = atom_solutes
+        solute = Solute(
+            solute_atom_group,
+            solvents,
+            atom_solutes=atom_solutes,
+            internal_call=True,
+            **kwargs
+        )
         solute.run = solute._run_solute_atoms
         return solute
 
@@ -194,8 +201,14 @@ class Solute(AnalysisBase):
         )
         solute_atoms = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
         # TODO: check length
-        solute = Solute(solute_atoms, solvents, internal_call=True, **kwargs)
-        solute.atom_solutes = {solute.solute_name: solute for solute in solutes}
+        atom_solutes = {solute.solute_name: solute for solute in solutes}
+        solute = Solute(
+            solute_atoms,
+            solvents,
+            atom_solutes=atom_solutes,
+            internal_call=True,
+            **kwargs
+        )
         solute.run = solute._run_solute_atoms
         return solute
 
@@ -229,8 +242,13 @@ class Solute(AnalysisBase):
             )
             atom_solutes[atom_solute.solute_name] = atom_solute
 
-        solute = Solute(solute_atoms, solvents, **kwargs, internal_call=True)
-        solute.atom_solutes = atom_solutes
+        solute = Solute(
+            solute_atoms,
+            solvents,
+            atom_solutes=atom_solutes,
+            internal_call=True,
+            **kwargs
+        )
         solute.run = solute._run_solute_atoms
         return solute
 
@@ -238,6 +256,7 @@ class Solute(AnalysisBase):
             self,
             solute,
             solvents,
+            atom_solutes=None,
             radii=None,
             rdf_kernel=None,
             kernel_kwargs=None,
@@ -256,7 +275,7 @@ class Solute(AnalysisBase):
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
 
         self.solute = solute  # TODO: this shit!
-
+        atom_solutes = atom_solutes or {solute_name: self}
         self.radii = radii or {}
         self.solvent_counts = {name: atoms.n_residues for name, atoms in solvents.items()}
         self.kernel = rdf_kernel or identify_cutoff_scipy
