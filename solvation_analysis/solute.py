@@ -150,7 +150,6 @@ class Solute(AnalysisBase):
         kwarg must be specified.
     """
 
-
     @staticmethod
     def from_atoms_dict(solutes_dict, solvents, **kwargs):
         # TODO: do some type checking
@@ -225,9 +224,11 @@ class Solute(AnalysisBase):
             "All residues must be the same length."
         )
         res_atom_local_ix = defaultdict(list)
+        res_atom_ix = []
 
         for atom in solute.atoms:
             res_atom_local_ix[atom.resindex].append(atom.index - atom.resindex)
+            res_atom_ix.append(atom.index)
         res_occupancy = np.array([len(ix) for ix in res_atom_local_ix.values()])
         assert np.all(res_occupancy[0] == res_occupancy), (
             "All residues must have the same number of solute atoms on them."
@@ -238,12 +239,14 @@ class Solute(AnalysisBase):
             "All residues must have the same solute atoms on them."
         )
 
-        all_atom_ix = np.array([res.atoms.ix for res in ag.residues])
-
-
+        res_atom_ix_array = np.array(res_atom_ix)
+        atom_solutes = {}
+        for i in range(0, len(res_atom_ix_array)):
+            solute = Solute(solute[res_atom_ix_array[i, :]], solvents, **kwargs, solute_name=f"solute{i}")
+            atom_solutes[solute.solute_name] = solute
 
         solute = Solute(solute, solvents, **kwargs, internal_call=True)
-        solute.atom_solutes = {solute.solute_name: solute}
+        solute.atom_solutes = atom_solutes
         solute.run = solute._run_solute_atoms
         return solute
 
@@ -269,7 +272,6 @@ class Solute(AnalysisBase):
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
 
         self.solute = solute  # TODO: this shit!
-
 
         self.radii = radii or {}
         self.solvent_counts = {name: atoms.n_residues for name, atoms in solvents.items()}
