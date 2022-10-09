@@ -235,6 +235,7 @@ def test_from_solutes(iba_solutes, iba_solvents):
     # solute.run()
     assert isinstance(solute, Solute)
 
+
 def test_from_atoms(iba_atom_groups, iba_solvents):
     solute_atoms = (
             iba_atom_groups['iba_ketone'] +
@@ -242,6 +243,7 @@ def test_from_atoms(iba_atom_groups, iba_solvents):
             iba_atom_groups['iba_alcohol_H']
     )
     Solute.from_atoms(solute_atoms, iba_solvents)
+    # TODO: add some more rigorous verification
 
 
 def test_from_atoms_dict(iba_atom_groups, iba_solvents):
@@ -252,4 +254,5 @@ def test_from_atoms_dict(iba_atom_groups, iba_solvents):
     }
 
     Solute.from_atoms_dict(solute_atoms, iba_solvents)
+
 # TODO: write a ton of tests with garbage input

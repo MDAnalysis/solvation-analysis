@@ -198,7 +198,7 @@ class Solute(AnalysisBase):
         return solute
 
     @staticmethod
-    def from_atoms(solute, solvents, **kwargs):
+    def from_atoms(solute_atoms, solvents, **kwargs):
         """
 
         Parameters
@@ -212,40 +212,46 @@ class Solute(AnalysisBase):
 
         Returns
         -------
-        solute : Solute
-            a solute object
+        solute_atoms : Solute
+            a solute_atoms object
         """
-        # we presume that the solute has the same number of atoms on each residue
+        # we presume that the solute_atoms has the same number of atoms on each residue
         # and that they all have the same indices on those residues
         # and that the residues are all the same length
         # then this should work
-        all_res_len = np.array([res.atoms.n_atoms for res in solute.residues])
+        all_res_len = np.array([res.atoms.n_atoms for res in solute_atoms.residues])
         assert np.all(all_res_len[0] == all_res_len), (
             "All residues must be the same length."
         )
         res_atom_local_ix = defaultdict(list)
-        res_atom_ix = []
+        res_atom_ix = defaultdict(list)
 
-        for atom in solute.atoms:
-            res_atom_local_ix[atom.resindex].append(atom.index - atom.resindex)
-            res_atom_ix.append(atom.index)
+        for atom in solute_atoms.atoms:
+            res_atom_local_ix[atom.resindex].append(atom.ix - atom.residue.atoms[0].ix)
+            res_atom_ix[atom.resindex].append(atom.index)
         res_occupancy = np.array([len(ix) for ix in res_atom_local_ix.values()])
         assert np.all(res_occupancy[0] == res_occupancy), (
-            "All residues must have the same number of solute atoms on them."
+            "All residues must have the same number of solute_atoms atoms on them."
         )
 
-        res_atom_array = np.array(res_atom_local_ix.values())
+        res_atom_array = np.array(list(res_atom_local_ix.values()))
         assert np.all(res_atom_array[0] == res_atom_array), (
-            "All residues must have the same solute atoms on them."
+            "All residues must have the same solute_atoms atoms on them."
         )
 
-        res_atom_ix_array = np.array(res_atom_ix)
+        res_atom_ix_array = np.array(list(res_atom_ix.values()))
         atom_solutes = {}
-        for i in range(0, len(res_atom_ix_array)):
-            solute = Solute(solute[res_atom_ix_array[i, :]], solvents, **kwargs, solute_name=f"solute{i}")
-            atom_solutes[solute.solute_name] = solute
+        for i in range(0, res_atom_ix_array.shape[1]):
+            atom_solute = Solute(
+                solute_atoms.universe.atoms[res_atom_ix_array[:, i]],
+                solvents,
+                **kwargs,
+                solute_name=f"solute_atoms{i}",
+                internal_call=True,
+            )
+            atom_solutes[atom_solute.solute_name] = atom_solute
 
-        solute = Solute(solute, solvents, **kwargs, internal_call=True)
+        solute = Solute(solute_atoms, solvents, **kwargs, internal_call=True)
         solute.atom_solutes = atom_solutes
         solute.run = solute._run_solute_atoms
         return solute
