@@ -231,7 +231,8 @@ def test_from_atoms(iba_atom_groups, iba_solvents):
             iba_atom_groups['iba_alcohol_O'] +
             iba_atom_groups['iba_alcohol_H']
     )
-    Solute.from_atoms(solute_atoms, iba_solvents)
+    solute = Solute.from_atoms(solute_atoms, iba_solvents)
+    solute.run()
     # TODO: add some more rigorous verification
 
 
@@ -241,7 +242,8 @@ def test_from_atoms_dict(iba_atom_groups, iba_solvents):
         'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
         'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
     }
-    Solute.from_atoms_dict(solute_atoms, iba_solvents)
+    solute = Solute.from_atoms_dict(solute_atoms, iba_solvents)
+    solute.run()
 
 
 def test_from_solute_list(iba_solutes, iba_solvents):
@@ -250,6 +252,7 @@ def test_from_solute_list(iba_solutes, iba_solvents):
             iba_solutes['iba_alcohol_O'],
             iba_solutes['iba_alcohol_H']
     ]
-    Solute.from_solute_list(solute_list, iba_solvents)
+    solute = Solute.from_solute_list(solute_list, iba_solvents)
+    solute.run()
 
 # TODO: write a ton of tests with garbage input
