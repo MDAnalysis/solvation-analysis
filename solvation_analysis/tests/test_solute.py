@@ -254,5 +254,7 @@ def test_from_solute_list(iba_solutes, iba_solvents):
     ]
     solute = Solute.from_solute_list(solute_list, iba_solvents)
     solute.run()
+    # TODO: duplicate dataframe loses index
+    # TODO: check that there aren't too many duplicates
 
 # TODO: write a ton of tests with garbage input
