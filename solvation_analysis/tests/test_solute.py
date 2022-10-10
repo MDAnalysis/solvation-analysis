@@ -243,4 +243,13 @@ def test_from_atoms_dict(iba_atom_groups, iba_solvents):
     }
     Solute.from_atoms_dict(solute_atoms, iba_solvents)
 
+
+def test_from_solute_list(iba_solutes, iba_solvents):
+    solute_list = [
+            iba_solutes['iba_ketone'],
+            iba_solutes['iba_alcohol_O'],
+            iba_solutes['iba_alcohol_H']
+    ]
+    Solute.from_solute_list(solute_list, iba_solvents)
+
 # TODO: write a ton of tests with garbage input
