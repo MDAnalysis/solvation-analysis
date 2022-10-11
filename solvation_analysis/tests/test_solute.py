@@ -299,6 +299,7 @@ def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
         iba_solutes['iba_alcohol_O'],
         iba_solutes['iba_alcohol_H']
     ]
+
     H2O_solute = Solute.from_atoms(H2O_atom_groups['H2O_O'], iba_solvents)
     with pytest.raises(AssertionError):
         bad_solute_list = [*solute_list]
@@ -318,3 +319,25 @@ def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
     with pytest.raises(AssertionError):
         bad_solute_list = [1, 2, 3]
         Solute.from_solute_list(bad_solute_list, iba_solvents)
+
+
+def test_multi_atom_all_analysis(iba_atom_groups, iba_solvents):
+    solute_atoms = {
+        'iba_ketone': iba_atom_groups['iba_ketone'],
+        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
+        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
+    }
+    solute = Solute.from_atoms_dict(
+        solute_atoms,
+        iba_solvents,
+        networking_solvents=['iba'],
+        analysis_classes=[
+            'coordination',
+            'networking',
+            'pairing',
+            'residence',
+            'speciation'
+        ]
+    )
+    # TODO: residence is broken
+    solute.run()
