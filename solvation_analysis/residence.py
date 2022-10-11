@@ -135,6 +135,10 @@ class Residence:
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
             # normalize
+            try:
+                auto_covariance / np.max(auto_covariance)
+            except ValueError:
+                return
             auto_covariance = auto_covariance / np.max(auto_covariance)
             auto_covariance_dict[res_name] = auto_covariance
         return auto_covariance_dict
@@ -240,8 +244,11 @@ class Residence:
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
         auto_covariances = []
-        for solute_ix, df in adjacency_matrix.groupby([SOLUTE_IX]):
-            non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
+        auto_covariances_dfs = []
+        non_zero_cols_list = []
+        auto_cov_split = []
+        for solute_ix, solute_df in adjacency_matrix.groupby([SOLUTE_IX, SOLUTE_ATOM_IX]):
+            non_zero_cols = solute_df.loc[:, (solute_df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
                 acovf,
                 axis=0,
@@ -250,7 +257,12 @@ class Residence:
                 unbiased=True,
                 fft=True
             )
+            # columns = ['frame', 'solute_ix', 'solute_atom_ix']
             auto_covariances.append(auto_covariance_df.values)
+        try:
+            np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
+        except ValueError:
+            return
         auto_covariance = np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
         return auto_covariance
 
