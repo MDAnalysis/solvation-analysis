@@ -150,6 +150,8 @@ class Solute(AnalysisBase):
         if 'networking' is included in the analysis_classes kwarg. the networking_solvents
         kwarg must be specified.
     """
+    # TODO: duplicate dataframe loses index
+    # TODO: check that there aren't too many duplicates
 
     @staticmethod
     def from_atoms_dict(solute_atoms_dict, solvents, **kwargs):

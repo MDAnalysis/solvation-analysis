@@ -291,3 +291,30 @@ def test_from_solute_list(iba_solutes, iba_solvents):
     solute = Solute.from_solute_list(solute_list, iba_solvents)
     solute.run()
     assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
+
+
+def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
+    solute_list = [
+        iba_solutes['iba_ketone'],
+        iba_solutes['iba_alcohol_O'],
+        iba_solutes['iba_alcohol_H']
+    ]
+    H2O_solute = Solute.from_atoms(H2O_atom_groups['H2O_O'], iba_solvents)
+    with pytest.raises(AssertionError):
+        bad_solute_list = [*solute_list]
+        bad_solute_list.append(H2O_solute)
+        Solute.from_solute_list(bad_solute_list, iba_solvents)
+
+    iba_ketone_renamed = Solute.from_atoms(
+        iba_solutes['iba_ketone'].solute,
+        iba_solvents,
+        solute_name='iba_alcohol_O'
+    )
+    with pytest.raises(AssertionError):
+        bad_solute_list = [*solute_list]
+        bad_solute_list[0] = iba_ketone_renamed
+        Solute.from_solute_list(bad_solute_list, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_solute_list = [1, 2, 3]
+        Solute.from_solute_list(bad_solute_list, iba_solvents)
