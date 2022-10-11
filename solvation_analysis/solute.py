@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 
+import MDAnalysis as mda
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
@@ -158,11 +159,14 @@ class Solute(AnalysisBase):
         solute_atom_group = verify_solute_atoms_dict(solute_atoms_dict)
 
         # create the solutes for each atom
-        atom_solutes = {
-            solute_name: Solute(atoms, solvents, internal_call=True, **kwargs)
-            for solute_name, atoms in solute_atoms_dict.items()
-        }
-
+        atom_solutes = {}
+        for solute_name, atoms in solute_atoms_dict.items():
+            atom_solutes[solute_name] = Solute(
+                atoms,
+                solvents,
+                internal_call=True,
+                **{**kwargs, "solute_name": solute_name}
+            )
         # create the solute for the whole solute
         solute = Solute(
             solute_atom_group,
@@ -326,7 +330,7 @@ class Solute(AnalysisBase):
                               f"solvents for the run command so it is being re-run.")
                 solute.run(start=start, stop=stop, step=step, verbose=verbose)
             atom_solutes[solute.solute_name] = solute
-            rdf_data[solute.solute_name] = solute.rdf_data
+            rdf_data[solute.solute_name] = solute.rdf_data[solute.solute_name]
             solvation_datas.append(solute.solvation_data)
             solvation_data_dups.append(solute.solvation_data_duplicates)
 
@@ -518,7 +522,7 @@ class Solute(AnalysisBase):
         ax.legend()
         return fig, ax
 
-    def plot_solvation_radius(self, solvent_name, solute_name=None):
+    def plot_solvation_radius(self, solvent_name, solute_name):
         """
         Plot the RDF of a solvent molecule
 
@@ -535,11 +539,12 @@ class Solute(AnalysisBase):
         fig : matplotlib.Figure
         ax : matplotlib.Axes
         """
-        if solute_name:
-            return  # make this work
+        if len(self.atom_solutes) == 1:
+            solute_name = self.solute_name
         assert self.has_run, "Solute.run() must be called first."
-        bins, data = self.rdf_data[solvent_name]
-        fig, ax = self._plot_solvation_radius(bins, data, self.radii[solvent_name])
+        bins, data = self.rdf_data[solute_name][solvent_name]
+        radius = self.atom_solutes[solute_name].radii[solvent_name]
+        fig, ax = self._plot_solvation_radius(bins, data, radius)
         ax.set_title(f"{self.solute_name} solvation distance for {solvent_name}")
         return fig, ax
 
@@ -676,7 +681,7 @@ class Solute(AnalysisBase):
         from rdkit.Chem.Draw.MolDrawing import DrawingOptions
         DrawingOptions.atomLabelFontSize = 100
 
-        if type(residue) == str:
+        if isinstance(residue, str):
             if residue in [self.solute_name, "solute"]:
                 mol = self.solute.residues[0].atoms.convert_to("RDKIT")
                 mol_mda_ix = self.solute.residues[0].atoms.ix
@@ -691,10 +696,10 @@ class Solute(AnalysisBase):
                 for i, atom in enumerate(mol.GetAtoms()):
                     atom.SetProp("atomNote", str(i))
             else:
-                mol = None
-                ValueError("If the residue is a string, it must be the name of a solute, "
-                           "the name of a solvent, or 'solute'.")
+                raise ValueError("If the residue is a string, it must be the name of a solute, "
+                             "the name of a solvent, or 'solute'.")
         else:
+            assert isinstance(residue, mda.core.groups.Residue)
             mol = residue.atoms.convert_to("RDKIT")
             for i, atom in enumerate(mol.GetAtoms()):
                 atom.SetProp("atomNote", str(i))
