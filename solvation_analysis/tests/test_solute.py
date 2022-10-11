@@ -340,4 +340,3 @@ def test_multi_atom_all_analysis(iba_atom_groups, iba_solvents):
         ]
     )
     solute.run()
-    return
