@@ -277,6 +277,22 @@ def iba_solutes(iba_atom_groups, iba_solvents):
     return solutes
 
 
+@pytest.fixture(scope='module')
+def iba_small_solute(iba_atom_groups, iba_solvents):
+    solute_atoms = {
+        'iba_ketone': iba_atom_groups['iba_ketone'],
+        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
+        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
+    }
+    solute = Solute.from_atoms_dict(
+        solute_atoms,
+        iba_solvents,
+        solute_name='iba',
+    )
+    solute.run()
+    return solute
+
+
 @pytest.fixture
 def solvation_results(run_solute):
     return run_solute._solvation_frames

@@ -202,9 +202,14 @@ def test_instantiate_eax_solutes(name, eax_solutes):
     assert isinstance(eax_solutes[name], Solute)
 
 
+def test_plot_solvation_radius(run_solute, iba_small_solute):
+    run_solute.plot_solvation_radius('fec', 'solute_0')
+    iba_small_solute.plot_solvation_radius('iba', 'iba_ketone')
+
+
 @pytest.mark.parametrize("residue", ['iba_ketone', 'solute', 'H2O', 'iba'])
 def test_draw_molecule_string(iba_solutes, residue):
-    iba_solutes['iba_ketone'].draw_molecule('residue')
+    iba_solutes['iba_ketone'].draw_molecule(residue)
 
 
 def test_draw_molecule_residue(iba_solutes):
@@ -291,6 +296,26 @@ def test_from_solute_list(iba_solutes, iba_solvents):
     solute = Solute.from_solute_list(solute_list, iba_solvents)
     solute.run()
     assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
+
+def test_from_solute_list_restepped(iba_solutes, iba_atom_groups, iba_solvents):
+    new_solvent = {"H2O": iba_solvents["H2O"]}
+    new_ketone = Solute.from_atoms(
+        iba_atom_groups['iba_ketone'],
+        new_solvent,
+        solute_name='iba_ketone'
+    )
+    new_ketone.run(step=2)
+    solute_list = [iba_solutes['iba_alcohol_O'], new_ketone]
+    solute = Solute.from_solute_list(solute_list, iba_solvents)
+    with pytest.warns(UserWarning, match='re-run') as record:
+        solute.run(step=2)
+        user_warnings = 0
+        for warning in record:
+            if warning.category == UserWarning:
+                user_warnings += 1
+        assert user_warnings == 2
+    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O'}
+
 
 
 def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
