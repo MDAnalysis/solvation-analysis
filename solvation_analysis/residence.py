@@ -135,10 +135,6 @@ class Residence:
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
             # normalize
-            try:
-                auto_covariance / np.max(auto_covariance)
-            except ValueError:
-                return
             auto_covariance = auto_covariance / np.max(auto_covariance)
             auto_covariance_dict[res_name] = auto_covariance
         return auto_covariance_dict

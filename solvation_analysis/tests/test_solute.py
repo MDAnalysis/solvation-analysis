@@ -339,5 +339,4 @@ def test_multi_atom_all_analysis(iba_atom_groups, iba_solvents):
             'speciation'
         ]
     )
-    # TODO: residence is broken
     solute.run()
