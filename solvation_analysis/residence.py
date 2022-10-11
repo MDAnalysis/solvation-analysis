@@ -244,9 +244,6 @@ class Residence:
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
         auto_covariances = []
-        auto_covariances_dfs = []
-        non_zero_cols_list = []
-        auto_cov_split = []
         for solute_ix, solute_df in adjacency_matrix.groupby([SOLUTE_IX, SOLUTE_ATOM_IX]):
             non_zero_cols = solute_df.loc[:, (solute_df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
@@ -257,12 +254,7 @@ class Residence:
                 unbiased=True,
                 fft=True
             )
-            # columns = ['frame', 'solute_ix', 'solute_atom_ix']
             auto_covariances.append(auto_covariance_df.values)
-        try:
-            np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
-        except ValueError:
-            return
         auto_covariance = np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
         return auto_covariance
 
