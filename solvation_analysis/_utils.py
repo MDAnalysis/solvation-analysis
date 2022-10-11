@@ -53,7 +53,7 @@ def verify_solute_atoms_dict(solute_atoms_dict):
         atom_group_lengths.append(len(solute_atom_group))
     assert np.all(np.array(atom_group_lengths) == atom_group_lengths[0]), (
         "AtomGroups in solutes_dict must have the same length because there should be"
-        "one atom per solute molecule."
+        "one atom per solute residue."
     )
 
     # verify that the solute_atom_groups have no overlap

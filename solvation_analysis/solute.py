@@ -162,7 +162,7 @@ class Solute(AnalysisBase):
             for solute_name, atoms in solute_atoms_dict.items()
         }
 
-        #
+        # create the solute for the whole solute
         solute = Solute(
             solute_atom_group,
             solvents,
@@ -188,15 +188,17 @@ class Solute(AnalysisBase):
         -------
 
         """
-        # TODO: check types
+        # check types and name uniqueness
         for solute in solutes:
             assert type(solute) == Solute, "solutes must be a list of Solute objects."
         solute_names = [solute.solute_name for solute in solutes]
         assert len(np.unique(solute_names)) == len(solute_names), (
             "The solute_name for each solute must be unique."
         )
+
         solute_atom_group = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
-        # TODO: check length
+        verify_solute_atoms(solute_atom_group)
+
         atom_solutes = {solute.solute_name: solute for solute in solutes}
         solute = Solute(
             solute_atom_group,
@@ -236,27 +238,11 @@ class Solute(AnalysisBase):
         rename_solutes = rename_solutes or {}
         # a dict with keys as integers and values as AtomGroups
         solute_atom_group_dict = verify_solute_atoms(solute_atom_group)
-        atom_solutes = {}
-        for i, atom_group in solute_atom_group_dict.items():
-            solute_name = rename_solutes.get(i) or f"solute_{i}"
-            atom_solute = Solute(
-                atom_group,
-                solvents,
-                internal_call=True,
-                **{**kwargs, "solute_name": solute_name},
-            )
-            atom_solutes[solute_name] = atom_solute
-
-        solute = Solute(
-            solute_atom_group,
-            solvents,
-            atom_solutes=atom_solutes,
-            internal_call=True,
-            **kwargs
-        )
-        if len(atom_solutes) > 1:
-            solute.run = solute._run_solute_atoms
-        return solute
+        solute_atom_group_dict_renamed = {
+            rename_solutes.get(i) or f"solute_{i}": atom_group
+            for i, atom_group in solute_atom_group_dict.items()
+        }
+        return Solute.from_atoms_dict(solute_atom_group_dict_renamed, solvents, **kwargs)
 
     def __init__(
             self,
