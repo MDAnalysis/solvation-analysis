@@ -105,7 +105,6 @@ class Residence:
             step
         )
 
-
     @staticmethod
     def from_solute(solute):
         """

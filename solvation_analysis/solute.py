@@ -150,8 +150,6 @@ class Solute(AnalysisBase):
         if 'networking' is included in the analysis_classes kwarg. the networking_solvents
         kwarg must be specified.
     """
-    # TODO: duplicate dataframe loses index
-    # TODO: check that there aren't too many duplicates
 
     @staticmethod
     def from_atoms_dict(solute_atoms_dict, solvents, **kwargs):
@@ -227,7 +225,7 @@ class Solute(AnalysisBase):
             a dictionary of solute names to rename the solutes. Keys are the
             solute index given by from_atoms_dict, and values are the new names.
             For example, from_atoms might return a solute with solute_name
-            "solute_0", but you want to rename it to "functiona_group_X".
+            "solute_0", but you want to rename it to "functional_group_X".
             In this case, rename_solutes={0: "functional_group_X"}.
         kwargs : dict
             kwargs passed to the Solute constructor.
@@ -264,12 +262,11 @@ class Solute(AnalysisBase):
             internal_call=False,
     ):
         if not internal_call:
-            raise RuntimeError("Please use the from_atoms, from_atoms_dict, or from_solute_list "
-                               "classmethods instead of the constructor.")
-        # TODO: logic to figure out what structure the solute is and execute based on that
+            raise RuntimeError("Please use Solute.from_atoms, Solute.from_atoms_dict, or "
+                               "Solute.from_solute_list instead of the default constructor.")
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
 
-        self.solute = solute # change to solute_atom_group or solute_atoms
+        self.solute = solute  # TODO: change to solute_atom_group or solute_atoms
         self.atom_solutes = atom_solutes
         if self.atom_solutes is None or len(atom_solutes) <= 1:
             self.atom_solutes = {solute_name: self}
@@ -283,8 +280,7 @@ class Solute(AnalysisBase):
         self.u = solute.universe
         self.n_solutes = solute.n_residues
         self.solute_res_ix = pd.Series(solute.atoms.resindices, solute.atoms.ix)
-        self.solute_name = solute_name  # need this?
-
+        self.solute_name = solute_name
         self.solvents = solvents
 
         # instantiate the res_name_map
@@ -293,7 +289,7 @@ class Solute(AnalysisBase):
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
 
-        # logic for instantiating analysis classes.
+        # instantiate analysis classes.
         if analysis_classes is None:
             self.analysis_classes = ["pairing", "coordination", "speciation"]
         else:
@@ -335,7 +331,8 @@ class Solute(AnalysisBase):
 
         self.rdf_data = rdf_data
         self.solvation_data = pd.concat(solvation_datas).sort_index()
-        self.solvation_data_duplicates = pd.concat(solvation_data_dups)
+        duplicates = pd.concat(solvation_data_dups)
+        self.solvation_data_duplicates = duplicates.set_index([FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX])
         self.has_run = True
 
         # like conclude
@@ -356,8 +353,6 @@ class Solute(AnalysisBase):
         """
         This function identifies the solvation radii and saves the associated RDF data.
         """
-        # TODO: determine how the multi-run logic should work
-        # assert self.has_run is False, "Solute.run() can only be called once."
         self.rdf_data = defaultdict(dict)
         self.solvation_data = None
         self.solvation_data_duplicates = None
@@ -477,7 +472,8 @@ class Solute(AnalysisBase):
         solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM_IX, SOLVENT_IX])
         solvation_data = solvation_data_df[~solvation_data_duplicates]
         self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX])
-        self.solvation_data_duplicates = solvation_data_df[solvation_data_duplicates]
+        duplicates = solvation_data_df[solvation_data_duplicates]
+        self.solvation_data_duplicates = duplicates.set_index([FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX])
         # instantiate analysis classes
         self.has_run = True
         analysis_classes = {
