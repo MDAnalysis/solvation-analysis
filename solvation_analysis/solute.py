@@ -154,6 +154,7 @@ class Solute(AnalysisBase):
     @staticmethod
     def from_atoms_dict(solute_atoms_dict, solvents, **kwargs):
         # all solute AtomGroups in one AtomGroup + verification
+        assert isinstance(solute_atoms_dict, dict), ("Solute_atoms_dict must be a dict.")
         solute_atom_group = verify_solute_atoms_dict(solute_atoms_dict)
 
         # create the solutes for each atom
@@ -331,8 +332,7 @@ class Solute(AnalysisBase):
 
         self.rdf_data = rdf_data
         self.solvation_data = pd.concat(solvation_datas).sort_index()
-        duplicates = pd.concat(solvation_data_dups)
-        self.solvation_data_duplicates = duplicates.set_index([FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX])
+        self.solvation_data_duplicates = pd.concat(solvation_data_dups)
         self.has_run = True
 
         # like conclude

@@ -321,7 +321,7 @@ def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
         Solute.from_solute_list(bad_solute_list, iba_solvents)
 
 
-def test_multi_atom_all_analysis(iba_atom_groups, iba_solvents):
+def test_iba_all_analysis(iba_atom_groups, iba_solvents):
     solute_atoms = {
         'iba_ketone': iba_atom_groups['iba_ketone'],
         'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
@@ -339,4 +339,4 @@ def test_multi_atom_all_analysis(iba_atom_groups, iba_solvents):
             'speciation'
         ]
     )
-    solute.run()
+    solute.run(step=4)
