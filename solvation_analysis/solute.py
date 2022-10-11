@@ -19,7 +19,7 @@ depth analysis of specific aspects of solvation.
 Solute also provides several functions to select a particular solute and its solvation
 shell, returning an AtomGroup for visualization or further analysis.
 """
-
+from collections import defaultdict
 from functools import reduce
 
 import matplotlib.pyplot as plt
@@ -254,7 +254,7 @@ class Solute(AnalysisBase):
             kernel_kwargs=None,
             rdf_init_kwargs=None,
             rdf_run_kwargs=None,
-            solute_name="solute",
+            solute_name="solute_0",
             analysis_classes=None,
             networking_solvents=None,
             verbose=False,
@@ -266,7 +266,7 @@ class Solute(AnalysisBase):
         # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
 
-        self.solute = solute  # TODO: this shit!
+        self.solute = solute
         self.atom_solutes = atom_solutes
         if self.atom_solutes is None or len(atom_solutes) <= 1:
             self.atom_solutes = {solute_name: self}
@@ -312,7 +312,6 @@ class Solute(AnalysisBase):
         self.start, self.stop, self.step = start, stop, step
         self.n_frames = len(range(start, stop, step))
 
-        # TODO: fix this method to work on atom_solutes
         # like run
         for solute in self.atom_solutes.values():
             if not solute.has_run:
@@ -356,7 +355,7 @@ class Solute(AnalysisBase):
         """
         # TODO: determine how the multi-run logic should work
         # assert self.has_run is False, "Solute.run() can only be called once."
-        self.rdf_data = {}
+        self.rdf_data = defaultdict(dict)
         self.solvation_data = None
         self.solvation_data_duplicates = None
         self._solvation_frames = []
@@ -384,7 +383,7 @@ class Solute(AnalysisBase):
                 rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)
                 rdf.run(**self.rdf_run_kwargs)
                 bins, data = rdf.results.bins, rdf.results.rdf
-            self.rdf_data[name] = (bins, data) # TODO: deal with this
+            self.rdf_data[self.solute_name][name] = (bins, data)
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)

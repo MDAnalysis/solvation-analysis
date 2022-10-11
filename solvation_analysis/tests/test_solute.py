@@ -18,47 +18,6 @@ def test_instantiate_solute_from_atoms(pre_solute):
     assert pre_solute.solvents['bn'].n_residues == 363
 
 
-def test_from_atoms(iba_atom_groups, iba_solvents):
-    solute_atoms = (
-            iba_atom_groups['iba_ketone'] +
-            iba_atom_groups['iba_alcohol_O'] +
-            iba_atom_groups['iba_alcohol_H']
-    )
-    solute = Solute.from_atoms(solute_atoms, iba_solvents)
-    solute.run()
-    assert set(solute.atom_solutes.keys()) == {'solute_0', 'solute_1', 'solute_2'}
-
-
-    # TODO: add some more rigorous verification
-
-
-def test_from_atoms_dict(iba_atom_groups, iba_solvents):
-    solute_atoms = {
-        'iba_ketone': iba_atom_groups['iba_ketone'],
-        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
-        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
-    }
-    solute = Solute.from_atoms_dict(solute_atoms, iba_solvents)
-    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
-    solute.run()
-
-
-def test_from_solute_list(iba_solutes, iba_solvents):
-    solute_list = [
-            iba_solutes['iba_ketone'],
-            iba_solutes['iba_alcohol_O'],
-            iba_solutes['iba_alcohol_H']
-    ]
-    solute = Solute.from_solute_list(solute_list, iba_solvents)
-    solute.run()
-    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
-
-    # TODO: duplicate dataframe loses index
-    # TODO: check that there aren't too many duplicates
-
-# TODO: write a ton of tests with garbage input
-
-
 def test_networking_instantiation_error(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
@@ -257,3 +216,44 @@ def test_draw_molecule_residue(iba_solutes):
 def test_iba_solutes(iba_solutes):
     for solute in iba_solutes.values():
         assert isinstance(solute, Solute)
+
+
+def test_from_atoms(iba_atom_groups, iba_solvents):
+    solute_atoms = (
+            iba_atom_groups['iba_ketone'] +
+            iba_atom_groups['iba_alcohol_O'] +
+            iba_atom_groups['iba_alcohol_H']
+    )
+    solute = Solute.from_atoms(solute_atoms, iba_solvents)
+    solute.run()
+    assert set(solute.atom_solutes.keys()) == {'solute_0', 'solute_1', 'solute_2'}
+
+
+    # TODO: add some more rigorous verification
+
+
+def test_from_atoms_dict(iba_atom_groups, iba_solvents):
+    solute_atoms = {
+        'iba_ketone': iba_atom_groups['iba_ketone'],
+        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
+        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
+    }
+    solute = Solute.from_atoms_dict(solute_atoms, iba_solvents)
+    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
+    solute.run()
+
+
+def test_from_solute_list(iba_solutes, iba_solvents):
+    solute_list = [
+            iba_solutes['iba_ketone'],
+            iba_solutes['iba_alcohol_O'],
+            iba_solutes['iba_alcohol_H']
+    ]
+    solute = Solute.from_solute_list(solute_list, iba_solvents)
+    solute.run()
+    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
+
+    # TODO: duplicate dataframe loses index
+    # TODO: check that there aren't too many duplicates
+
+# TODO: write a ton of tests with garbage input
