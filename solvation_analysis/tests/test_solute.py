@@ -18,6 +18,11 @@ def test_instantiate_solute_from_atoms(pre_solute):
     assert pre_solute.solvents['bn'].n_residues == 363
 
 
+def test_init_fail(atom_groups):
+    with pytest.raises(RuntimeError):
+        Solute(atom_groups['li'], {'pf6': atom_groups['pf6']})
+
+
 def test_networking_instantiation_error(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
