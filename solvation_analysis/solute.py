@@ -19,8 +19,8 @@ depth analysis of specific aspects of solvation.
 Solute also provides several functions to select a particular solute and its solvation
 shell, returning an AtomGroup for visualization or further analysis.
 """
+
 from functools import reduce
-from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -32,7 +32,7 @@ from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
 import numpy as np
 
-from solvation_analysis._utils import verify_solute_atoms
+from solvation_analysis._utils import verify_solute_atoms, verify_solute_atoms_dict
 from solvation_analysis.rdf_parser import identify_cutoff_poly, identify_cutoff_scipy
 from solvation_analysis.coordination import Coordination
 from solvation_analysis.networking import Networking
@@ -153,37 +153,17 @@ class Solute(AnalysisBase):
     """
 
     @staticmethod
-    def from_atoms_dict(solutes_dict, solvents, **kwargs):
-        # first we verify the input format
-        atom_group_lengths = []
-        for solute_name, solute_atom_group in solutes_dict.items():
-            assert isinstance(solute_name, str), (
-                "The keys of solutes_dict must be strings."
-            )
-            assert isinstance(solute_atom_group, mda.AtomGroup), (
-                f"The values of solutes_dict must be MDAnalysis.AtomGroups. But the value"
-                f"for {solute_name} is a {type(solute_atom_group)}."
-            )
-            assert len(solute_atom_group) == len(solute_atom_group.residues), (
-                "The solute_atom_group must have a single atom on each residue."
-            )
-            atom_group_lengths.append(len(solute_atom_group))
-        assert np.all(np.array(atom_group_lengths) == atom_group_lengths[0]), (
-            "AtomGroups in solutes_dict must have the same length because there should be"
-            "one atom per solute molecule."
-        )
-        # transform to solutes
-        if len(solutes_dict) == 1:
-            return  # do something special
+    def from_atoms_dict(solute_atoms_dict, solvents, **kwargs):
 
-        solute_atom_group = reduce(lambda x, y: x | y, [atoms for atoms in solutes_dict.values()])
-        assert solute_atom_group.n_atoms == sum([atoms.n_atoms for atoms in solutes_dict.values()])
+        solute_atom_group = verify_solute_atoms_dict(solute_atoms_dict)
 
+        # create the solutes for each atom
         atom_solutes = {
             solute_name: Solute(atoms, solvents, internal_call=True, **kwargs)
-            for solute_name, atoms in solutes_dict.items()
+            for solute_name, atoms in solute_atoms_dict.items()
         }
 
+        #
         solute = Solute(
             solute_atom_group,
             solvents,
