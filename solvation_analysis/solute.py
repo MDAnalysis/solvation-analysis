@@ -26,7 +26,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 
-import MDAnalysis as mda
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
@@ -154,7 +153,7 @@ class Solute(AnalysisBase):
 
     @staticmethod
     def from_atoms_dict(solute_atoms_dict, solvents, **kwargs):
-
+        # all solute AtomGroups in one AtomGroup + verification
         solute_atom_group = verify_solute_atoms_dict(solute_atoms_dict)
 
         # create the solutes for each atom
@@ -235,12 +234,13 @@ class Solute(AnalysisBase):
             a solute_atoms object
         """
         rename_solutes = rename_solutes or {}
-        res_atom_ix_array = verify_solute_atoms(solute_atom_group)
+        # a dict with keys as integers and values as AtomGroups
+        solute_atom_group_dict = verify_solute_atoms(solute_atom_group)
         atom_solutes = {}
-        for i in range(0, res_atom_ix_array.shape[1]):
+        for i, atom_group in solute_atom_group_dict.items():
             solute_name = rename_solutes.get(i) or f"solute_{i}"
             atom_solute = Solute(
-                solute_atom_group.universe.atoms[res_atom_ix_array[:, i]],
+                atom_group,
                 solvents,
                 internal_call=True,
                 **{**kwargs, "solute_name": solute_name},
