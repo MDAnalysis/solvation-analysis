@@ -215,7 +215,7 @@ class Solute(AnalysisBase):
         return solute
 
     @staticmethod
-    def from_atoms(solute_atom_group, solvents, **kwargs):
+    def from_atoms(solute_atom_group, solvents, rename_solutes=None, **kwargs):
         """
 
         Parameters
@@ -224,6 +224,12 @@ class Solute(AnalysisBase):
             an AtomGroup or ResidueGroup containing one atom per residue.
         solvents : str, optional
             the name of the solute, used for labeling.
+        rename_solutes : dict, optional
+            a dictionary of solute names to rename the solutes. Keys are the
+            solute index given by from_atoms_dict, and values are the new names.
+            For example, from_atoms might return a solute with solute_name
+            "solute_0", but you want to rename it to "functiona_group_X".
+            In this case, rename_solutes={0: "functional_group_X"}.
         kwargs : dict
             kwargs passed to the Solute constructor.
 
@@ -232,16 +238,18 @@ class Solute(AnalysisBase):
         solute_atoms : Solute
             a solute_atoms object
         """
+        rename_solutes = rename_solutes or {}
         res_atom_ix_array = verify_solute_atoms(solute_atom_group)
         atom_solutes = {}
         for i in range(0, res_atom_ix_array.shape[1]):
+            solute_name = rename_solutes.get(i) or f"solute_{i}"
             atom_solute = Solute(
                 solute_atom_group.universe.atoms[res_atom_ix_array[:, i]],
                 solvents,
                 internal_call=True,
-                **{**kwargs, "solute_name": f"solute_{i}"},
+                **{**kwargs, "solute_name": solute_name},
             )
-            atom_solutes[atom_solute.solute_name] = atom_solute
+            atom_solutes[solute_name] = atom_solute
 
         solute = Solute(
             solute_atom_group,

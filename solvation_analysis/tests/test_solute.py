@@ -233,6 +233,9 @@ def test_from_atoms(iba_atom_groups, iba_solvents):
     )
     solute = Solute.from_atoms(solute_atoms, iba_solvents)
     solute.run()
+    assert set(solute.atom_solutes.keys()) == {'solute_0', 'solute_1', 'solute_2'}
+
+
     # TODO: add some more rigorous verification
 
 
@@ -243,6 +246,7 @@ def test_from_atoms_dict(iba_atom_groups, iba_solvents):
         'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
     }
     solute = Solute.from_atoms_dict(solute_atoms, iba_solvents)
+    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
     solute.run()
 
 
@@ -254,6 +258,8 @@ def test_from_solute_list(iba_solutes, iba_solvents):
     ]
     solute = Solute.from_solute_list(solute_list, iba_solvents)
     solute.run()
+    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
+
     # TODO: duplicate dataframe loses index
     # TODO: check that there aren't too many duplicates
 
