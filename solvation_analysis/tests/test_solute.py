@@ -38,7 +38,7 @@ def test_plot_solvation_distance(rdf_bins_and_data_easy):
 def test_radii_finding(run_solute):
     # checks that the solvation radii are plotted
     assert len(run_solute.radii) == 3
-    assert len(run_solute.rdf_data) == 3
+    assert len(run_solute.rdf_data["solute_0"]) == 3
     # checks that the identified solvation radii are approximately correct
     assert 2 < run_solute.radii['pf6'] < 3
     assert 2 < run_solute.radii['fec'] < 3
@@ -229,6 +229,20 @@ def test_from_atoms(iba_atom_groups, iba_solvents):
     assert set(solute.atom_solutes.keys()) == {'solute_0', 'solute_1', 'solute_2'}
 
 
+def test_from_atoms_errors(iba_atom_groups, H2O_atom_groups, iba_solvents):
+    solute_atoms = (
+            iba_atom_groups['iba_ketone'] +
+            iba_atom_groups['iba_alcohol_O'] +
+            iba_atom_groups['iba_alcohol_H']
+    )
+    with pytest.raises(AssertionError):
+        bad_atoms = solute_atoms[:-2]
+        Solute.from_atoms(bad_atoms, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_atoms = solute_atoms + H2O_atom_groups['H2O_O']
+        Solute.from_atoms(bad_atoms, iba_solvents)
+
 
 def test_from_atoms_dict(iba_atom_groups, iba_solvents):
     solute_atoms = {
@@ -277,8 +291,3 @@ def test_from_solute_list(iba_solutes, iba_solvents):
     solute = Solute.from_solute_list(solute_list, iba_solvents)
     solute.run()
     assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
-
-    # TODO: duplicate dataframe loses index
-    # TODO: check that there aren't too many duplicates
-
-# TODO: write a ton of tests with garbage input

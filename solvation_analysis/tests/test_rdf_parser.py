@@ -169,7 +169,7 @@ def test_plot_scripy_find_peaks_troughs(rdf_tag, rdf_bins_and_data_hard):
 
 
 def test_identify_cutoff_scipy_pf6(run_solute):
-    pf6_bins, pf6_data = run_solute.rdf_data["pf6"]
+    pf6_bins, pf6_data = run_solute.rdf_data["solute_0"]["pf6"]
     radius = identify_cutoff_scipy(pf6_bins, pf6_data, failure_behavior="warn"),
     np.testing.assert_allclose(radius, 2.8, atol=0.2)
 

@@ -267,7 +267,7 @@ class Solute(AnalysisBase):
         # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
 
-        self.solute = solute
+        self.solute = solute # change to solute_atom_group or solute_atoms
         self.atom_solutes = atom_solutes
         if self.atom_solutes is None or len(atom_solutes) <= 1:
             self.atom_solutes = {solute_name: self}
