@@ -58,6 +58,9 @@ def verify_solute_atoms_dict(solute_atoms_dict):
 
     # verify that the solute_atom_groups have no overlap
     solute_atom_group = reduce(lambda x, y: x | y, [atoms for atoms in solute_atoms_dict.values()])
-    assert solute_atom_group.n_atoms == sum([atoms.n_atoms for atoms in solute_atoms_dict.values()])
+    assert solute_atom_group.n_atoms == sum([atoms.n_atoms for atoms in solute_atoms_dict.values()]), (
+        "The solute_atom_groups must not overlap."
+    )
+    verify_solute_atoms(solute_atom_group)
 
     return solute_atom_group

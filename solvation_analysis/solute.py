@@ -237,6 +237,7 @@ class Solute(AnalysisBase):
         """
         rename_solutes = rename_solutes or {}
         # a dict with keys as integers and values as AtomGroups
+        # this will get called gain later on with the same input, but for now, it's fine
         solute_atom_group_dict = verify_solute_atoms(solute_atom_group)
         solute_atom_group_dict_renamed = {
             rename_solutes.get(i) or f"solute_{i}": atom_group

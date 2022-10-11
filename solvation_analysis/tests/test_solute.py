@@ -229,8 +229,6 @@ def test_from_atoms(iba_atom_groups, iba_solvents):
     assert set(solute.atom_solutes.keys()) == {'solute_0', 'solute_1', 'solute_2'}
 
 
-    # TODO: add some more rigorous verification
-
 
 def test_from_atoms_dict(iba_atom_groups, iba_solvents):
     solute_atoms = {
@@ -241,6 +239,33 @@ def test_from_atoms_dict(iba_atom_groups, iba_solvents):
     solute = Solute.from_atoms_dict(solute_atoms, iba_solvents)
     assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
     solute.run()
+
+
+def test_from_atoms_dict_errors(iba_atom_groups, H2O_atom_groups, iba_solvents):
+    solute_atoms = {
+        'iba_ketone': iba_atom_groups['iba_ketone'],
+        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
+        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
+    }
+    with pytest.raises(AssertionError):
+        bad_atoms = {**solute_atoms}
+        bad_atoms['iba_ketone'] = bad_atoms['iba_ketone'][:-2]
+        Solute.from_atoms_dict(bad_atoms, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_atoms = {**solute_atoms}
+        bad_atoms['iba_ketone'] = bad_atoms['iba_ketone'] + bad_atoms['iba_alcohol_O']
+        Solute.from_atoms_dict(bad_atoms, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_atoms = {**solute_atoms}
+        bad_atoms['iba_ketone'] = bad_atoms['iba_alcohol_O']
+        Solute.from_atoms_dict(bad_atoms, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_atoms = {**solute_atoms}
+        bad_atoms['H2O_O'] = H2O_atom_groups['H2O_O']
+        Solute.from_atoms_dict(bad_atoms, iba_solvents)
 
 
 def test_from_solute_list(iba_solutes, iba_solvents):
