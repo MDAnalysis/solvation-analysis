@@ -29,7 +29,7 @@ def test_networking_instantiation_error(atom_groups):
     bn = atom_groups['bn']
     fec = atom_groups['fec']
     with pytest.raises(Exception):
-        solute = Solute.from_atoms(
+        Solute.from_atoms(
             li, {'pf6': pf6, 'bn': bn, 'fec': fec}, analysis_classes=['networking']
         )
 
