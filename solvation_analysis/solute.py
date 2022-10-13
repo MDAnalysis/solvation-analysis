@@ -133,26 +133,23 @@ class Solute(AnalysisBase):
     """
     Analyze the solvation structure of a solute.
 
-    Solute finds the coordination between the solute and each solvent
-    and collects that information in a pandas.DataFrame (solvation_data)
-    for convenient analysis. The names provided in the solvents dictionary
-    are used throughout the class.
+    Solute determines the coordination between the solute and solvents,
+    collecting that data in a pandas.DataFrame (solvation_data) for further
+    analysis. The solvation data DataFrame is a labeled adjacency matrix of
+    the first-shell solvation network.
 
-    First, Solute calculates the RDF between the solute and each solvent and
-    uses it to identify the radius of the first solvation shell. Radii can
-    instead be supplied with the radii parameter. After Solute.run() is
-    called, these radii can be queried with the plot_solvation_radius method.
+    By default, Solute will determine the coordination cutoff
+    radii from the Solute-solvent RDF. Radii can also be supplied
+    with the radii parameter. The RDF's of each solute-solvent
+    pari can be visualize with the plot_solvation_radius method.
 
-    Second, Solute finds all atoms in the first solvation shell, using
-    the cutoff radii for each solvent. For each coordinating atom the id,
-    residue id, and distance from the solute are saved in solvation_data.
-    This analysis is repeated for each solute at every frame in the
-    analysis and the data is compiled into a pandas.DataFrame and indexed
-    by frame, solute number, and atom id.
+    Solute instantiates Speciation, Coordination, and Pairing
+    objects from the solvation_data, providing a convenient interface for
+    further analysis. Networking and Residence can be added by modifying
+    the ``analysis_classes`` parameter.
 
-    Finally, Solute instantiates Speciation, Coordination, and Pairing
-    objects from the solvation_data, providing a convenient interface to
-    further analysis.
+    The parameters below are the ``kwargs`` supplied to the ``from_*``
+    constructors.
 
     Parameters
     ----------
