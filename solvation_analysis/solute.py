@@ -236,11 +236,15 @@ class Solute(AnalysisBase):
         Parameters
         ----------
         solute_atoms_dict
-        solvents
-        kwargs
+        solvents: dict of {str: MDAnalysis.AtomGroup}
+            a dictionary of solvent names and associated MDAnalysis.AtomGroups.
+            e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}        kwargs
+        kwargs: dict
+            All kwargs listed in the Parameters section of the Solute class.
 
         Returns
         -------
+        Solute
 
         """
         # all solute AtomGroups in one AtomGroup + verification
@@ -323,21 +327,24 @@ class Solute(AnalysisBase):
         ----------
         solute_atoms : AtomGroup
             an AtomGroup or ResidueGroup containing one atom per residue.
-        solvents : str, optional
-            the name of the solute, used for labeling.
+        solvents: dict of {str: MDAnalysis.AtomGroup}
+            a dictionary of solvent names and associated MDAnalysis.AtomGroups.
+            e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}        kwargs
         rename_solutes : dict, optional
             a dictionary of solute names to rename the solutes. Keys are the
             solute index given by from_atoms_dict, and values are the new names.
             For example, from_atoms might return a solute with solute_name
             "solute_0", but you want to rename it to "functional_group_X".
-            In this case, rename_solutes={0: "functional_group_X"}.
-        kwargs : dict
-            kwargs passed to the Solute constructor.
+            In this case, rename_solutes={0: "functional_group_X"}. If None,
+            solutes will be numbered in the order their atoms appear on
+            the residue.
+        kwargs: dict
+            All kwargs listed in the Parameters section of the Solute class.
 
         Returns
         -------
-        solute_atoms : Solute
-            a solute_atoms object
+        Solute
+
         """
         rename_solutes = rename_solutes or {}
         # a dict with keys as integers and values as AtomGroups
