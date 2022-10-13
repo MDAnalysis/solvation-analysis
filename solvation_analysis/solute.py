@@ -93,7 +93,9 @@ specify radii for each ``solute_atom``.
 
 Once the ``Solute`` is instantiated, it must be run by calling ``Solute.run()``.
 This will calculate the solvation data and instantiate the analysis classes. At
-this point, the ``Solute`` is ready to be analyzed.
+this point, the ``Solute`` is ready to be analyzed. Solute inherits from
+MDAnalysis.analysis.base.AnalysisBase, so ``run`` supports all arguments
+from the base class.
 
 By default, ``Coordination``, ``Pairing``, and ``Speciation`` are instantiated
 as attributes of the ``Solute``. ``Networking`` and ``Residence`` can also be
@@ -186,6 +188,8 @@ class Solute(AnalysisBase):
     ----------
     u : Universe
         An MDAnalysis.Universe object
+    atom_solutes : dict of {str: Solute}
+        a dictionary of solute names and their associated Solute objects.
     n_solutes : int
         number of solute atoms
     radii : dict
@@ -204,22 +208,24 @@ class Solute(AnalysisBase):
         a numpy array of the residue indices of every solute.
     solute_atom_ix : np.array
         a numpy array of the atom indices of every solute.
-    res_name_map : pd.Series
+    solvent_counts : dict of {str: int}
+        a dictionary of the number of residues for each solvent.
+    res_name_map : pandas.Series
         a map from residue indices in the Universe to solvent and solute names from
         the solute. For example, if the first residue in the universe was in
         ``self.solvent['res_one']``, then ``res_name_map[0] == 'res_one'``.
-    pairing : analysis_library.Pairing (optional)
+    pairing : pairing.Pairing (optional)
         pairing analyzes the fraction solutes and solvents that are coordinated.
-    coordination : analysis_library.Coordination (optional)
+    coordination : coordination.Coordination (optional)
         coordination analyses the coordination numbers of solvents and which
         solvent atoms are coordinated.
-    speciation : analysis_library.Speciation (optional)
+    speciation : speciation.Speciation (optional)
         speciation provides an interface for finding and selecting the solvation shells
         surrounding each solute.
-    residence : analysis_library.Residence (optional)
+    residence : residence.Residence (optional)
         residence calculates the residence times of each solvent on the solute. Only
         instantiated if 'residence' is included in the analysis_classes kwarg.
-    networking : analysis_library.Networking (optional)
+    networking : networking.Networking (optional)
         networking analyses the connectivity of solute-solvent networks. Only instantiated
         if 'networking' is included in the analysis_classes kwarg. the networking_solvents
         kwarg must be specified.
@@ -358,7 +364,7 @@ class Solute(AnalysisBase):
         """
         rename_solutes = rename_solutes or {}
         # a dict with keys as integers and values as AtomGroups
-        # this will get called gain later on with the same input, but for now, it's fine
+        # this will get called again later on with the same input, but for now, it's fine
         solute_atom_group_dict = verify_solute_atoms(solute_atoms)
         solute_atom_group_dict_renamed = {
             rename_solutes.get(i) or f"solute_{i}": atom_group
