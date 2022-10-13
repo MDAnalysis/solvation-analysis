@@ -8,7 +8,7 @@ from MDAnalysis import Universe
 from solvation_analysis.tests.conftest import u_eax_series, u_eax_atom_groups
 
 
-def test_instantiate_solute(pre_solute):
+def test_instantiate_solute_from_atoms(pre_solute):
     # these check basic properties of the instantiation
     assert len(pre_solute.radii) == 3
     assert callable(pre_solute.kernel)
@@ -18,13 +18,18 @@ def test_instantiate_solute(pre_solute):
     assert pre_solute.solvents['bn'].n_residues == 363
 
 
+def test_init_fail(atom_groups):
+    with pytest.raises(RuntimeError):
+        Solute(atom_groups['li'], {'pf6': atom_groups['pf6']})
+
+
 def test_networking_instantiation_error(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
     with pytest.raises(Exception):
-        solute = Solute(
+        Solute.from_atoms(
             li, {'pf6': pf6, 'bn': bn, 'fec': fec}, analysis_classes=['networking']
         )
 
@@ -38,7 +43,7 @@ def test_plot_solvation_distance(rdf_bins_and_data_easy):
 def test_radii_finding(run_solute):
     # checks that the solvation radii are plotted
     assert len(run_solute.radii) == 3
-    assert len(run_solute.rdf_data) == 3
+    assert len(run_solute.rdf_data["solute_0"]) == 3
     # checks that the identified solvation radii are approximately correct
     assert 2 < run_solute.radii['pf6'] < 3
     assert 2 < run_solute.radii['fec'] < 3
@@ -57,8 +62,8 @@ def test_run_warning(pre_solute_mutable):
 def test_run(pre_solute_mutable):
     # checks that run is run correctly
     pre_solute_mutable.run(step=1)
-    assert len(pre_solute_mutable.solvation_frames) == 10
-    assert len(pre_solute_mutable.solvation_frames[0]) == 228
+    assert len(pre_solute_mutable._solvation_frames) == 10
+    assert len(pre_solute_mutable._solvation_frames[0]) == 228
     assert len(pre_solute_mutable.solvation_data) == 2312
 
 
@@ -69,8 +74,8 @@ def test_run_w_all(pre_solute_mutable):
     ]
     pre_solute_mutable.networking_solvents = 'pf6'
     pre_solute_mutable.run(step=1)
-    assert len(pre_solute_mutable.solvation_frames) == 10
-    assert len(pre_solute_mutable.solvation_frames[0]) == 228
+    assert len(pre_solute_mutable._solvation_frames) == 10
+    assert len(pre_solute_mutable._solvation_frames[0]) == 228
     assert len(pre_solute_mutable.solvation_data) == 2312
 
 
@@ -172,17 +177,17 @@ def test_coordination_numbers(name, cn, run_solute):
 
 
 @pytest.mark.parametrize(
-    "name, percent",
+    "name, fraction",
     [
         ("fec", 0.21),
         ("bn", 1.0),
         ("pf6", 0.14),
     ],
 )
-def test_pairing(name, percent, run_solute):
+def test_pairing(name, fraction, run_solute):
     # duplicated to test in solute
     pairing_dict = run_solute.pairing.pairing_dict
-    np.testing.assert_allclose([percent], pairing_dict[name], atol=0.05)
+    np.testing.assert_allclose([fraction], pairing_dict[name], atol=0.05)
 
 
 @pytest.mark.parametrize("name", ['ea', 'eaf', 'fea', 'feaf'])
@@ -202,14 +207,167 @@ def test_instantiate_eax_solutes(name, eax_solutes):
     assert isinstance(eax_solutes[name], Solute)
 
 
-def test_iba_atom_groups(iba_atom_groups):
-    n_atoms = len(iba_atom_groups['iba'].universe.atoms)
-    group_names = [
-        'h2o_O', 'h2o_H', 'iba_alcohol_O', 'iba_alcohol_H', 'iba_ketone', 'iba_C', 'iba_C_H'
+def test_plot_solvation_radius(run_solute, iba_small_solute):
+    run_solute.plot_solvation_radius('fec', 'solute_0')
+    iba_small_solute.plot_solvation_radius('iba', 'iba_ketone')
+
+
+@pytest.mark.parametrize("residue", ['iba_ketone', 'solute', 'H2O', 'iba'])
+def test_draw_molecule_string(iba_solutes, residue):
+    iba_solutes['iba_ketone'].draw_molecule(residue)
+
+
+def test_draw_molecule_residue(iba_solutes):
+    solute = iba_solutes['iba_ketone']
+    residue = solute.u.atoms.residues[0]
+    solute.draw_molecule(residue)
+
+
+def test_iba_solutes(iba_solutes):
+    for solute in iba_solutes.values():
+        assert isinstance(solute, Solute)
+
+
+def test_from_atoms(iba_atom_groups, iba_solvents):
+    solute_atoms = (
+            iba_atom_groups['iba_ketone'] +
+            iba_atom_groups['iba_alcohol_O'] +
+            iba_atom_groups['iba_alcohol_H']
+    )
+    solute = Solute.from_atoms(solute_atoms, iba_solvents)
+    solute.run()
+    assert set(solute.atom_solutes.keys()) == {'solute_0', 'solute_1', 'solute_2'}
+
+
+def test_from_atoms_errors(iba_atom_groups, H2O_atom_groups, iba_solvents):
+    solute_atoms = (
+            iba_atom_groups['iba_ketone'] +
+            iba_atom_groups['iba_alcohol_O'] +
+            iba_atom_groups['iba_alcohol_H']
+    )
+    with pytest.raises(AssertionError):
+        bad_atoms = solute_atoms[:-2]
+        Solute.from_atoms(bad_atoms, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_atoms = solute_atoms + H2O_atom_groups['H2O_O']
+        Solute.from_atoms(bad_atoms, iba_solvents)
+
+
+def test_from_atoms_dict(iba_atom_groups, iba_solvents):
+    solute_atoms = {
+        'iba_ketone': iba_atom_groups['iba_ketone'],
+        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
+        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
+    }
+    solute = Solute.from_atoms_dict(solute_atoms, iba_solvents)
+    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
+    solute.run()
+
+
+def test_from_atoms_dict_errors(iba_atom_groups, H2O_atom_groups, iba_solvents):
+    solute_atoms = {
+        'iba_ketone': iba_atom_groups['iba_ketone'],
+        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
+        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
+    }
+    with pytest.raises(AssertionError):
+        bad_atoms = {**solute_atoms}
+        bad_atoms['iba_ketone'] = bad_atoms['iba_ketone'][:-2]
+        Solute.from_atoms_dict(bad_atoms, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_atoms = {**solute_atoms}
+        bad_atoms['iba_ketone'] = bad_atoms['iba_ketone'] + bad_atoms['iba_alcohol_O']
+        Solute.from_atoms_dict(bad_atoms, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_atoms = {**solute_atoms}
+        bad_atoms['iba_ketone'] = bad_atoms['iba_alcohol_O']
+        Solute.from_atoms_dict(bad_atoms, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_atoms = {**solute_atoms}
+        bad_atoms['H2O_O'] = H2O_atom_groups['H2O_O']
+        Solute.from_atoms_dict(bad_atoms, iba_solvents)
+
+
+def test_from_solute_list(iba_solutes, iba_solvents):
+    solute_list = [
+            iba_solutes['iba_ketone'],
+            iba_solutes['iba_alcohol_O'],
+            iba_solutes['iba_alcohol_H']
     ]
-    group_lengths = [len(iba_atom_groups[name]) for name in group_names]
-    assert sum(group_lengths) == n_atoms
+    solute = Solute.from_solute_list(solute_list, iba_solvents)
+    solute.run()
+    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
+
+def test_from_solute_list_restepped(iba_solutes, iba_atom_groups, iba_solvents):
+    new_solvent = {"H2O": iba_solvents["H2O"]}
+    new_ketone = Solute.from_atoms(
+        iba_atom_groups['iba_ketone'],
+        new_solvent,
+        solute_name='iba_ketone'
+    )
+    new_ketone.run(step=2)
+    solute_list = [iba_solutes['iba_alcohol_O'], new_ketone]
+    solute = Solute.from_solute_list(solute_list, iba_solvents)
+    with pytest.warns(UserWarning, match='re-run') as record:
+        solute.run(step=2)
+        user_warnings = 0
+        for warning in record:
+            if warning.category == UserWarning:
+                user_warnings += 1
+        assert user_warnings == 2
+    assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O'}
 
 
-def test_iba_solutes(iba_solute):
-    assert isinstance(iba_solute, Solute)
+
+def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
+    solute_list = [
+        iba_solutes['iba_ketone'],
+        iba_solutes['iba_alcohol_O'],
+        iba_solutes['iba_alcohol_H']
+    ]
+
+    H2O_solute = Solute.from_atoms(H2O_atom_groups['H2O_O'], iba_solvents)
+    with pytest.raises(AssertionError):
+        bad_solute_list = [*solute_list]
+        bad_solute_list.append(H2O_solute)
+        Solute.from_solute_list(bad_solute_list, iba_solvents)
+
+    iba_ketone_renamed = Solute.from_atoms(
+        iba_solutes['iba_ketone'].solute,
+        iba_solvents,
+        solute_name='iba_alcohol_O'
+    )
+    with pytest.raises(AssertionError):
+        bad_solute_list = [*solute_list]
+        bad_solute_list[0] = iba_ketone_renamed
+        Solute.from_solute_list(bad_solute_list, iba_solvents)
+
+    with pytest.raises(AssertionError):
+        bad_solute_list = [1, 2, 3]
+        Solute.from_solute_list(bad_solute_list, iba_solvents)
+
+
+def test_iba_all_analysis(iba_atom_groups, iba_solvents):
+    solute_atoms = {
+        'iba_ketone': iba_atom_groups['iba_ketone'],
+        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
+        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
+    }
+    solute = Solute.from_atoms_dict(
+        solute_atoms,
+        iba_solvents,
+        networking_solvents=['iba'],
+        analysis_classes=[
+            'coordination',
+            'networking',
+            'pairing',
+            'residence',
+            'speciation'
+        ]
+    )
+    solute.run(step=4)
+    return

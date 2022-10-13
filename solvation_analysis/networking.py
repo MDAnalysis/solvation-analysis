@@ -45,8 +45,8 @@ class Networking:
     solvents : str or list[str]
         the solvents to include in the solute-solvent network.
     solvation_data : pandas.DataFrame
-        a dataframe of solvation data with columns "frame", SOLVATED_ATOM, "atom_ix",
-        "dist", resname, and "res_ix".
+        a dataframe of solvation data with columns "frame", "solute_atom", "solvent_atom",
+        "distance", "solvent_name", and "solvent".
     solute_res_ix : np.ndarray
         the residue indices of the solutes in solvation_data
     res_name_map : pd.Series
@@ -56,7 +56,7 @@ class Networking:
     ----------
     network_df : pd.DataFrame
         the dataframe containing all networking data. the indices are the frame and
-        network index, respectively. the columns are the res_name and res_ix.
+        network index, respectively. the columns are the solvent_name and res_ix.
     network_sizes : pd.DataFrame
         a dataframe of network sizes. the index is the frame. the column headers
         are network sizes, or the number of solutes + solvents in the network, so
@@ -88,7 +88,7 @@ class Networking:
     def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
         self.solvents = solvents
         self.solvation_data = solvation_data
-        solvent_present = np.isin(self.solvents, self.solvation_data[RESNAME].unique())
+        solvent_present = np.isin(self.solvents, self.solvation_data[SOLVENT].unique())
         if not solvent_present.all():
             raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
         self.solute_res_ix = solute_res_ix
@@ -127,7 +127,7 @@ class Networking:
     @staticmethod
     def _unwrap_adjacency_dataframe(df):
         # this class will transform the biadjacency matrix into a proper adjacency matrix
-        connections = df.reset_index(level=0).drop(columns=FRAME)
+        connections = df.reset_index(FRAME).drop(columns=FRAME)
         idx = connections.columns.append(connections.index)
         directed = connections.reindex(index=idx, columns=idx, fill_value=0)
         undirected = directed.values + directed.values.T
@@ -141,24 +141,19 @@ class Networking:
 
         1. transform the solvation_data DataFrame into an adjacency matrix
         2. determine the connected subgraphs in the adjacency matrix
-        3. tabulate the res_ix involved in each network and store in a DataFrame
+        3. tabulate the solvent involved in each network and store in a DataFrame
         """
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
-        solvation_subset = self.solvation_data[np.isin(self.solvation_data[RESNAME], solvents)]
-        # reindex solvated_atom to residue indexes
-        reindexed_subset = solvation_subset.reset_index(level=1)
-        reindexed_subset.solvated_atom = self.solute_res_ix[reindexed_subset.solvated_atom].values
-        dropped_reindexed = reindexed_subset.set_index([SOLVATED_ATOM], append=True)
-        reindexed_subset = dropped_reindexed.reorder_levels([FRAME, SOLVATED_ATOM, ATOM_IX])
-        # create adjacency matrix from reindexed df
-        graph = Residence.calculate_adjacency_dataframe(reindexed_subset)
+        solvation_subset = self.solvation_data[np.isin(self.solvation_data[SOLVENT], solvents)]
+        # create adjacency matrix from solvation_subset
+        graph = Residence.calculate_adjacency_dataframe(solvation_subset)
         network_arrays = []
         # loop through each time step / frame
         for frame, df in graph.groupby(FRAME):
             # drop empty columns
             df = df.loc[:, (df != 0).any(axis=0)]
             # save map from local index to residue index
-            solute_map = df.index.get_level_values(1).values
+            solute_map = df.index.get_level_values(SOLUTE_IX).values
             solvent_map = df.columns.values
             ix_to_res_ix = np.concatenate([solvent_map, solute_map])
             adjacency_df = Networking._unwrap_adjacency_dataframe(df)
@@ -177,7 +172,7 @@ class Networking:
         # create and return network dataframe
         all_clusters = np.concatenate(network_arrays)
         cluster_df = (
-            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, RESNAME, RES_IX])
+            pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, SOLVENT, SOLVENT_IX])
                 .set_index([FRAME, NETWORK])
                 .sort_values([FRAME, NETWORK])
         )
@@ -187,13 +182,13 @@ class Networking:
         # This utility calculates the network sizes and returns a convenient dataframe.
         cluster_df = self.network_df
         cluster_sizes = cluster_df.groupby([FRAME, NETWORK]).count()
-        size_counts = cluster_sizes.groupby([FRAME, RESNAME]).count().unstack(fill_value=0)
-        size_counts.columns = size_counts.columns.droplevel()
+        size_counts = cluster_sizes.groupby([FRAME, SOLVENT]).count().unstack(fill_value=0)
+        size_counts.columns = size_counts.columns.droplevel(None)  # the column value is None
         return size_counts
 
     def _calculate_solute_status(self):
         """
-        This utility calculates the percentage of each solute with a given "status".
+        This utility calculates the fraction of each solute with a given "status".
         Namely, whether the solvent is "alone", "paired" (with a single solvent), or
         "networked" of > 2 species.
         """
@@ -236,5 +231,5 @@ class Networking:
             <AtomGroup with 126 Atoms>
 
         """
-        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], RES_IX].values
+        res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], SOLVENT_IX].values
         return res_ix.astype(int)

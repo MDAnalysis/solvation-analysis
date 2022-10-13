@@ -53,7 +53,7 @@ class Coordination:
     cn_by_frame : pd.DataFrame
         a DataFrame of the mean coordination number of in each frame of the trajectory.
     coordinating_atoms : pd.DataFrame
-        percent of each atom_type participating in solvation, calculated for each solvent.
+        fraction of each atom_type participating in solvation, calculated for each solvent.
 
     Examples
     --------
@@ -93,17 +93,17 @@ class Coordination:
         return Coordination(
             solute.solvation_data,
             solute.n_frames,
-            solute.n_solute,
+            solute.n_solutes,
             solute.u.atoms,
         )
 
     def _mean_cn(self):
-        counts = self.solvation_data.groupby([FRAME, SOLVATED_ATOM, RESNAME]).count()[RES_IX]
-        cn_series = counts.groupby([RESNAME, FRAME]).sum() / (
+        counts = self.solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT]).count()[SOLVENT_IX]
+        cn_series = counts.groupby([SOLVENT, FRAME]).sum() / (
                 self.n_solutes * self.n_frames
         )
         cn_by_frame = cn_series.unstack()
-        cn_dict = cn_series.groupby([RESNAME]).sum().to_dict()
+        cn_dict = cn_series.groupby([SOLVENT]).sum().to_dict()
         return cn_dict, cn_by_frame
 
     def _calculate_coordinating_atoms(self, tol=0.005):
@@ -112,20 +112,23 @@ class Coordination:
         return the types of those atoms
         """
         # lookup atom types
-        atom_types = self.solvation_data.reset_index([ATOM_IX])
-        atom_types[ATOM_TYPE] = self.atom_group[atom_types[ATOM_IX]].types
+        atom_types = self.solvation_data.reset_index([SOLVENT_ATOM_IX])
+        atom_types[ATOM_TYPE] = self.atom_group[atom_types[SOLVENT_ATOM_IX].values].types
         # count atom types
-        atoms_by_type = atom_types[[ATOM_TYPE, RESNAME, ATOM_IX]]
-        type_counts = atoms_by_type.groupby([RESNAME, ATOM_TYPE]).count()
-        solvent_counts = type_counts.groupby([RESNAME]).sum()[ATOM_IX]
-        # calculate percent of each
-        solvent_counts_list = [solvent_counts[solvent] for solvent in type_counts.index.get_level_values(0)]
-        type_percents = type_counts[ATOM_IX] / solvent_counts_list
-        type_percents.name = PERCENT
+        atoms_by_type = atom_types[[ATOM_TYPE, SOLVENT, SOLVENT_ATOM_IX]]
+        type_counts = atoms_by_type.groupby([SOLVENT, ATOM_TYPE]).count()
+        solvent_counts = type_counts.groupby([SOLVENT]).sum()[SOLVENT_ATOM_IX]
+        # calculate fraction of each
+        solvent_counts_list = [
+            solvent_counts[solvent] for solvent in
+            type_counts.index.get_level_values(SOLVENT)
+        ]
+        type_fractions = type_counts[SOLVENT_ATOM_IX] / solvent_counts_list
+        type_fractions.name = FRACTION
         # change index type
-        type_percents = (type_percents
-                         .reset_index(level=1)
+        type_fractions = (type_fractions
+                         .reset_index(ATOM_TYPE)
                          .astype({ATOM_TYPE: str})
                          .set_index(ATOM_TYPE, append=True)
                          )
-        return type_percents[type_percents.percent > tol]
+        return type_fractions[type_fractions[FRACTION] > tol]

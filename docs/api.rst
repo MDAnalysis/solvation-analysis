@@ -6,10 +6,10 @@ API Documentation
 
 .. toctree::
 
-    api/solution
-    api/selection
+    api/solute
     api/coordination
     api/networking
     api/pairing
     api/residence
     api/speciation
+    api/selection

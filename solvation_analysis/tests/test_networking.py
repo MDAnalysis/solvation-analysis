@@ -17,15 +17,15 @@ def networking(run_solute):
 
 
 @pytest.mark.parametrize(
-    "status, percent",
+    "status, fraction",
     [
         (ALONE, 0.876),
         (PAIRED, 0.112),
         (NETWORKED, 0.012),
     ],
 )
-def test_get_cluster_res_ix(status, percent, networking):
-    np.testing.assert_almost_equal(networking.solute_status[status], percent, 3)
+def test_get_cluster_res_ix(status, fraction, networking):
+    np.testing.assert_almost_equal(networking.solute_status[status], fraction, 3)
 
 
 @pytest.mark.parametrize(

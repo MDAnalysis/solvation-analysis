@@ -25,18 +25,18 @@ def test_coordination(name, cn, solvation_data, run_solute):
 
 
 @pytest.mark.parametrize(
-    "name, atom_type, percent",
+    "name, atom_type, fraction",
     [
         ("fec", '19', 0.008),
         ("bn", '5', 0.9976),
         ("pf6", '21', 1.000),
     ],
 )
-def test_coordinating_atoms(name, atom_type, percent, solvation_data, run_solute):
+def test_coordinating_atoms(name, atom_type, fraction, solvation_data, run_solute):
     atoms = run_solute.u.atoms
     coordination = Coordination(solvation_data, 10, 49, atoms)
-    calculated_percent = coordination.coordinating_atoms.loc[(name, atom_type)]
-    np.testing.assert_allclose(percent, calculated_percent, atol=0.05)
+    calculated_fraction = coordination.coordinating_atoms.loc[(name, atom_type)]
+    np.testing.assert_allclose(fraction, calculated_fraction, atol=0.05)
 
 
 
