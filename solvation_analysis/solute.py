@@ -11,50 +11,97 @@ solute and solvent, Solute can calculate the coordination, networking,
 pairing, speciation, and residence information for every solute in
 the system.
 
-If you are just getting started with solvation_analysis, the tutorials
-are the best place to start. If you are looking to learn more, this page
-will provide a full API overview of the Solute class and go into more
-detail on it's inner working.
+If you are just getting started with solvation_analysis, the
+tutorials are the best place to start. If you are looking to learn
+more, this page will provide a full API overview of the Solute class
+and go into more detail on it's inner working. There are three core
+concepts to understand in the Solute class: solute_atoms vs solvents,
+solvation data DataFrame, and the ``atom_solutes`` dictionary.
 
-A Solute can be instatiated in with the ``from_atoms`` method
+**solute vs solvents**
+
+To instantiate a Solute, one must first use ``MDAnalysis`` to select
+the solute_atoms and solvents. The solute_atoms can be organized
+in different ways (described below) but the solvents are always
+a dictionary of solvent names (strings) and solvent AtomGroups. In
+some cases, specifying the solvent and solutes is the hardest part.
+Note that one species might be both the solute and a solvent. Such
+as if you are interested in hydrogen bond networks in water.
+
+**the solvation data DataFrame**
+
+The solvation data DataFrame is the core of the Solute class. It contains
+the full solvation shell of every solute in the system at every timestep.
+It is a labeled adjacency matrix of the solvation network. From this, all
+other solvation information is derived: coordination numbers, residence
+times, solute-solvent pairing, etc. The DataFrame does not need to be
+accessed by the user, but it is at the core of how solvation_analysis works.
+
+**the atom_solutes dictionary**
+
+Solvation can be considered on two scales, the scale of the solute molecule
+or the scale of atoms in the solute. For example, one might be interested in
+the solvation shell around a whole solute molecule, or around just a specific
+functional group. The ``Solute`` allows both scales to be analyzed simultaneously.
+It first constructs a ``Solute`` for every unique atom in the `solute_atoms`
+AtomGroup and then combines them into a single ``Solute`` representing the whole
+molecule. The ``Solute`` for each atom is stored in the ``atom_solutes`` dictionary.
+The key's of the dictionary are the ``solute_name`` of each ``Solute``, and
+depending on on how the ``Solute`` was instantiated, these might be generic names
+(e.g. "solute_0", "solute_1", etc.) or user-specified.
 
 
-The `from_atoms` constructor takes an `AtomGroup`. This is the least flexible constructor and does the most work behind the scenes.
+A Solute can be instantiated with the ``from_atoms``, ``from_atoms_dict``, or
+``from_solutes_list`` methods. Below, the basic use of each constructor is
+demonstrated.
 
-```python
-water = u.select_atoms("resname water")
-water_O = water.select_atoms("element O")
-water_O_solute = Solute.from_atoms(water_O, {"water": water})
+``from_atoms`` takes an ``MDAnalysis.AtomGroup`` as input and
+automatically parses it into individual ``atom_solutes``. This is the
+least flexible constructor and does the most work behind the scenes.
 
-# OR
+.. code-block:: python
 
-water_solute = Solute.from_atoms(water, {"water": water})
-```
+    water = u.select_atoms("resname water")
+    water_O = water.select_atoms("element O")
+    water_O_solute = Solute.from_atoms(water_O, {"water": water})
+    # OR
+    water_solute = Solute.from_atoms(water, {"water": water})
 
-The `from_atoms_dict` constructor takes a dict of solute names (strings) and `AtomGroups`. Each `AtomGroup` needs to only have one atom per solute, which is enforced by assertions. this provides an intermediate level of flexibility because it allows you to name your atom solutes.
+The `from_atoms_dict` constructor takes a dict of solute names (strings)
+and `AtomGroups`. Each `AtomGroup` must have only have one atom per
+solute. This provides an intermediate level of flexibility because
+it allows you to name your atom solutes.
 
-```python
-water_solute = Solute.from_atoms_dict({"water_O": water_O, "water_H1": water_H1, "water_H2": water_H2}, {"water": water)
-```
+.. code-block:: python
 
-Finally, the `from_solutes_list` is the most flexible because it allows the user to create all the solutes individually with different settings. Different kwargs can be passed to each Solute when it is created (though I am not doing that here). Consistency of the start, step, stop, and solvents parameters is enforced.
+    water_solute = Solute.from_atoms_dict({"water_O": water_O, "water_H1": water_H1, "water_H2": water_H2}, {"water": water)
 
-```python
-water_H1 = u.select_atoms(...)
-water_H2 = u.select_atoms(...)
-solute_O = Solute(water_O, {"water": water})
-solute_H1 = Solute(water_H1, {"water": water})
-solute_H2 = Solute(water_H2, {"water": water})
+Finally, the `from_solutes_list` is the most flexible because
+it allows you to create all the solutes individually with
+different settings. It might be useful if you wanted to use
+specify radii for each ``solute_atom``.
 
-water_solute = Solute.from_solutes_list([solute_O, solute_H1, solute_H2])
-```
+.. code-block:: python
 
-Solute uses the solvation data to instantiate each of the analysis
-classes in the analysis_library as attributes. Creating a convenient
-interface for more in depth analysis of specific aspects of solvation.
+    water_H1 = u.select_atoms(...)
+    water_H2 = u.select_atoms(...)
+    solute_O = Solute(water_O, {"water": water})
+    solute_H1 = Solute(water_H1, {"water": water})
+    solute_H2 = Solute(water_H2, {"water": water})
+
+    water_solute = Solute.from_solutes_list([solute_O, solute_H1, solute_H2])
+
+Once the ``Solute`` is instantiated, it must be run by calling ``Solute.run()``.
+This will calculate the solvation data and instantiate the analysis classes. At
+this point, the ``Solute`` is ready to be analyzed.
+
+By default, ``Coordination``, ``Pairing``, and ``Speciation`` are instantiated
+as attributes of the ``Solute``. ``Networking`` and ``Residence`` can also be
+added. These are covered in greater detail in their respective API pages.
 
 Solute also provides several functions to select a particular solute and its
 solvation shell, returning an AtomGroup for visualization or further analysis.
+This is covered in the visualization tutorial.
 """
 from collections import defaultdict
 from functools import reduce
