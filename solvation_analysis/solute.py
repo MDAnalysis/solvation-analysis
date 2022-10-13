@@ -235,7 +235,10 @@ class Solute(AnalysisBase):
 
         Parameters
         ----------
-        solute_atoms_dict
+        solute_atoms_dict: dict of {str: MDAnalysis.AtomGroup}
+            a dictionary of solute atoms, e.g. {"name_1": solute_1, "name_2": solute_2}.
+            Each AtomGroup should contain one type of atom, and only one atom per
+            residue.
         solvents: dict of {str: MDAnalysis.AtomGroup}
             a dictionary of solvent names and associated MDAnalysis.AtomGroups.
             e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}        kwargs
@@ -275,16 +278,20 @@ class Solute(AnalysisBase):
     @staticmethod
     def from_solute_list(solutes, solvents, **kwargs):
         """
-        Create a Solute from a list of Solutes.
+        Create a Solute from a list of Solutes. All Solutes must have only a
+        single solute atom on each solute residue. Essentially, from_solute_list
+        allows you to preconstruct the ``atom_solutes`` dictionary. This is useful
+        if you want to individually specify initialization parameters for each
+        atom Solute, otherwise, a different constructor is recommended.
 
         Parameters
         ----------
         solutes: list of Solute
-            A list of Solutes. All Solutes must have only a single solute atom
+            A list of Solutes. All Solutes must have only a single solute atom.
         on each solute residue.
         solvents: dict of {str: MDAnalysis.AtomGroup}
             a dictionary of solvent names and associated MDAnalysis.AtomGroups.
-            e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}        kwargs
+            e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}
         kwargs: dict
             All kwargs listed in the Parameters section of the Solute class.
 
@@ -322,6 +329,12 @@ class Solute(AnalysisBase):
     @staticmethod
     def from_atoms(solute_atoms, solvents, rename_solutes=None, **kwargs):
         """
+        Create a Solute from a single AtomGroup. The solute_atoms AtomGroup must
+        should contain identical residues and identical atoms on each residue.
+        For example, if one wanted to look at the O and H atoms of an ethanol molecule,
+        solute_atoms should contain the O and H atoms of all ethanol molecules. It
+        could not contain C atoms from some ethanol or include residues
+        that were not ethanol.
 
         Parameters
         ----------
