@@ -154,6 +154,19 @@ class Solute(AnalysisBase):
 
     @staticmethod
     def from_atoms_dict(solute_atoms_dict, solvents, **kwargs):
+        """
+        Create a Solute object from a dictionary of solute atoms.
+
+        Parameters
+        ----------
+        solute_atoms_dict
+        solvents
+        kwargs
+
+        Returns
+        -------
+
+        """
         # all solute AtomGroups in one AtomGroup + verification
         assert isinstance(solute_atoms_dict, dict), ("Solute_atoms_dict must be a dict.")
         solute_atom_group = verify_solute_atoms_dict(solute_atoms_dict)
