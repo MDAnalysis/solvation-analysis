@@ -154,16 +154,8 @@ class Solute(AnalysisBase):
     objects from the solvation_data, providing a convenient interface to
     further analysis.
 
-    Note: Atom and Residue ids (1-based) are returned, not ix (0-based).
-    This aligns with the MDAnalysis selection language.
-
     Parameters
     ----------
-    solute : MDAnalysis.AtomGroup
-        the solute in the solutes
-    solvents: dict of {str: MDAnalysis.AtomGroup}
-        a dictionary of solvent names and associated MDAnalysis.AtomGroups.
-        e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}
     radii : dict of {str: float}, optional
         an optional dictionary of solvent names and associated solvation radii
         e.g. {"name_2": radius_2, "name_5": radius_5} Any radii not given will
@@ -283,16 +275,26 @@ class Solute(AnalysisBase):
 
         Parameters
         ----------
-        solutes
-        kwargs
+        solutes: list of Solute
+            A list of Solutes. All Solutes must have only a single solute atom
+        on each solute residue.
+        solvents: dict of {str: MDAnalysis.AtomGroup}
+            a dictionary of solvent names and associated MDAnalysis.AtomGroups.
+            e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}        kwargs
+        kwargs: dict
+            All kwargs listed in the Parameters section of the Solute class.
 
         Returns
         -------
+        Solute
 
         """
         # check types and name uniqueness
         for solute in solutes:
             assert type(solute) == Solute, "solutes must be a list of Solute objects."
+            assert len(solute.solute.atoms) == len(solute.solute.atoms.residues), (
+                "Each Solute in solutes must have only a single atom per residue."
+            )
         solute_names = [solute.solute_name for solute in solutes]
         assert len(np.unique(solute_names)) == len(solute_names), (
             "The solute_name for each solute must be unique."
@@ -314,12 +316,12 @@ class Solute(AnalysisBase):
         return solute
 
     @staticmethod
-    def from_atoms(solute_atom_group, solvents, rename_solutes=None, **kwargs):
+    def from_atoms(solute_atoms, solvents, rename_solutes=None, **kwargs):
         """
 
         Parameters
         ----------
-        solute_atom_group : AtomGroup
+        solute_atoms : AtomGroup
             an AtomGroup or ResidueGroup containing one atom per residue.
         solvents : str, optional
             the name of the solute, used for labeling.
@@ -340,7 +342,7 @@ class Solute(AnalysisBase):
         rename_solutes = rename_solutes or {}
         # a dict with keys as integers and values as AtomGroups
         # this will get called gain later on with the same input, but for now, it's fine
-        solute_atom_group_dict = verify_solute_atoms(solute_atom_group)
+        solute_atom_group_dict = verify_solute_atoms(solute_atoms)
         solute_atom_group_dict_renamed = {
             rename_solutes.get(i) or f"solute_{i}": atom_group
             for i, atom_group in solute_atom_group_dict.items()
@@ -349,7 +351,7 @@ class Solute(AnalysisBase):
 
     def __init__(
             self,
-            solute,
+            solute_atoms,
             solvents,
             atom_solutes=None,
             radii=None,
@@ -366,9 +368,9 @@ class Solute(AnalysisBase):
         if not internal_call:
             raise RuntimeError("Please use Solute.from_atoms, Solute.from_atoms_dict, or "
                                "Solute.from_solute_list instead of the default constructor.")
-        super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
+        super(Solute, self).__init__(solute_atoms.universe.trajectory, verbose=verbose)
 
-        self.solute = solute  # TODO: change to solute_atom_group or solute_atoms
+        self.solute = solute_atoms  # TODO: change to solute_atom_group or solute_atoms
         self.atom_solutes = atom_solutes
         if self.atom_solutes is None or len(atom_solutes) <= 1:
             self.atom_solutes = {solute_name: self}
@@ -379,15 +381,15 @@ class Solute(AnalysisBase):
         self.rdf_init_kwargs = rdf_init_kwargs or {}
         self.rdf_run_kwargs = rdf_run_kwargs or {}
         self.has_run = False
-        self.u = solute.universe
-        self.n_solutes = solute.n_residues
-        self.solute_res_ix = pd.Series(solute.atoms.resindices, solute.atoms.ix)
+        self.u = solute_atoms.universe
+        self.n_solutes = solute_atoms.n_residues
+        self.solute_res_ix = pd.Series(solute_atoms.atoms.resindices, solute_atoms.atoms.ix)
         self.solute_name = solute_name
         self.solvents = solvents
 
         # instantiate the res_name_map
         self.res_name_map = pd.Series(['none'] * len(self.u.residues))
-        self.res_name_map[solute.residues.ix] = self.solute_name
+        self.res_name_map[solute_atoms.residues.ix] = self.solute_name
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
 
