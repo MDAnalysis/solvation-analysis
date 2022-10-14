@@ -75,7 +75,7 @@ class Solute(AnalysisBase):
 
     Parameters
     ----------
-    solute : MDAnalysis.AtomGroup
+    solute_atoms : MDAnalysis.AtomGroup
         the solute in the solutes
     solvents: dict of {str: MDAnalysis.AtomGroup}
         a dictionary of solvent names and associated MDAnalysis.AtomGroups.
@@ -256,7 +256,7 @@ class Solute(AnalysisBase):
 
     def __init__(
             self,
-            solute,
+            solute_atoms,
             solvents,
             atom_solutes=None,
             radii=None,
@@ -274,9 +274,9 @@ class Solute(AnalysisBase):
             raise RuntimeError("Please use the from_atoms, from_atoms_dict, or from_solute_list "
                                "classmethods instead of the constructor.")
         # TODO: logic to figure out what structure the solute is and execute based on that
-        super(Solute, self).__init__(solute.universe.trajectory, verbose=verbose)
+        super(Solute, self).__init__(solute_atoms.universe.trajectory, verbose=verbose)
 
-        self.solute = solute  # TODO: this shit!
+        self.solute = solute_atoms  # TODO: this shit!
         self.atom_solutes = atom_solutes
         if self.atom_solutes is None or len(atom_solutes) <= 1:
             self.atom_solutes = {solute_name: self}
@@ -287,16 +287,16 @@ class Solute(AnalysisBase):
         self.rdf_init_kwargs = rdf_init_kwargs or {}
         self.rdf_run_kwargs = rdf_run_kwargs or {}
         self.has_run = False
-        self.u = solute.universe
-        self.n_solutes = solute.n_residues
-        self.solute_res_ix = pd.Series(solute.atoms.resindices, solute.atoms.ix)
+        self.u = solute_atoms.universe
+        self.n_solutes = solute_atoms.n_residues
+        self.solute_res_ix = pd.Series(solute_atoms.atoms.resindices, solute_atoms.atoms.ix)
         self.solute_name = solute_name  # need this?
 
         self.solvents = solvents
 
         # instantiate the res_name_map
         self.res_name_map = pd.Series(['none'] * len(self.u.residues))
-        self.res_name_map[solute.residues.ix] = self.solute_name
+        self.res_name_map[solute_atoms.residues.ix] = self.solute_name
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
 
