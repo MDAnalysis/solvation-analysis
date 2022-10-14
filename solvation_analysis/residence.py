@@ -105,7 +105,6 @@ class Residence:
             step
         )
 
-
     @staticmethod
     def from_solute(solute):
         """
@@ -240,8 +239,8 @@ class Residence:
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
         auto_covariances = []
-        for solute_ix, df in adjacency_matrix.groupby([SOLUTE_IX]):
-            non_zero_cols = df.loc[:, (df != 0).any(axis=0)]
+        for solute_ix, solute_df in adjacency_matrix.groupby([SOLUTE_IX, SOLUTE_ATOM_IX]):
+            non_zero_cols = solute_df.loc[:, (solute_df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
                 acovf,
                 axis=0,
