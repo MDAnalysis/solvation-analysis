@@ -12,7 +12,7 @@ def test_instantiate_solute_from_atoms(pre_solute):
     # these check basic properties of the instantiation
     assert len(pre_solute.radii) == 3
     assert callable(pre_solute.kernel)
-    assert pre_solute.solute.n_residues == 49
+    assert pre_solute.solute_atoms.n_residues == 49
     assert pre_solute.solvents['pf6'].n_residues == 49
     assert pre_solute.solvents['fec'].n_residues == 237
     assert pre_solute.solvents['bn'].n_residues == 363

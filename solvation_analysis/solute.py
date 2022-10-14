@@ -200,7 +200,7 @@ class Solute(AnalysisBase):
         assert len(np.unique(solute_names)) == len(solute_names), (
             "The solute_name for each solute must be unique."
         )
-        solute_atom_group = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
+        solute_atom_group = reduce(lambda x, y: x | y, [solute.solute_atoms for solute in solutes])
         # TODO: check length
         atom_solutes = {solute.solute_name: solute for solute in solutes}
         solute = Solute(
@@ -276,7 +276,7 @@ class Solute(AnalysisBase):
         # TODO: logic to figure out what structure the solute is and execute based on that
         super(Solute, self).__init__(solute_atoms.universe.trajectory, verbose=verbose)
 
-        self.solute = solute_atoms  # TODO: this shit!
+        self.solute_atoms = solute_atoms  # TODO: this shit!
         self.atom_solutes = atom_solutes
         if self.atom_solutes is None or len(atom_solutes) <= 1:
             self.atom_solutes = {solute_name: self}
@@ -378,17 +378,17 @@ class Solute(AnalysisBase):
             self.rdf_run_kwargs["step"] = self.rdf_run_kwargs.get("step") or self.step
             self.rdf_run_kwargs["start"] = self.rdf_run_kwargs.get("start") or self.start
             # generate and save RDFs
-            if self.solute.intersection(solvent).n_atoms == 0:
+            if self.solute_atoms.intersection(solvent).n_atoms == 0:
                 # the solute IS NOT in a solvent, the usual case
-                rdf = InterRDF(self.solute, solvent, **self.rdf_init_kwargs)
+                rdf = InterRDF(self.solute_atoms, solvent, **self.rdf_init_kwargs)
                 rdf.run(**self.rdf_run_kwargs)
                 bins, data = rdf.results.bins, rdf.results.rdf
             else:
                 # the solute IS in a solvent
                 # we divide the solute and solvent into two groups, so that the rdfs
                 # are not contaminated by the solute-solvent pairs.
-                halfway_point = self.solute.n_residues // 2
-                solute_half = self.solute[halfway_point:]
+                halfway_point = self.solute_atoms.n_residues // 2
+                solute_half = self.solute_atoms[halfway_point:]
                 solvent_half = (solvent.residues - solute_half.residues).atoms
                 # this is hacky and will make our rdf noisier but it was easy to implement
                 rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)
@@ -419,17 +419,17 @@ class Solute(AnalysisBase):
         # loop to find solvated atoms of each type
         for name, solvent in self.solvents.items():
             pairs, dist = capped_distance(
-                self.solute.positions,
+                self.solute_atoms.positions,
                 solvent.positions,
                 self.radii[name],
                 box=self.u.dimensions,
             )
             # make sure pairs don't include intra-molecular interactions
-            filter = self.solute.resindices[pairs[:, 0]] == solvent.resindices[pairs[:, 1]]
+            filter = self.solute_atoms.resindices[pairs[:, 0]] == solvent.resindices[pairs[:, 1]]
             pairs = pairs[~filter]
             dist = dist[~filter]
             # replace local ids with absolute ids
-            pairs[:, 0] = self.solute.atoms.ix[[pairs[:, 0]]]
+            pairs[:, 0] = self.solute_atoms.atoms.ix[[pairs[:, 0]]]
             pairs[:, 1] = solvent.ix[[pairs[:, 1]]]
             # extend
             pairs_list.append(pairs)
@@ -574,7 +574,7 @@ class Solute(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        return get_radial_shell(self.solute[solute_index], radius)
+        return get_radial_shell(self.solute_atoms[solute_index], radius)
 
     def closest_n_mol(self, solute_index, n_mol, **kwargs):
         """
@@ -690,9 +690,9 @@ class Solute(AnalysisBase):
 
         if type(residue) == str:
             if residue in [self.solute_name, "solute"]:
-                mol = self.solute.residues[0].atoms.convert_to("RDKIT")
-                mol_mda_ix = self.solute.residues[0].atoms.ix
-                solute_atoms_ix0 = {solute.solute.atoms.ix[0]: solute_name
+                mol = self.solute_atoms.residues[0].atoms.convert_to("RDKIT")
+                mol_mda_ix = self.solute_atoms.residues[0].atoms.ix
+                solute_atoms_ix0 = {solute.solute_atoms.atoms.ix[0]: solute_name
                                     for solute_name, solute in self.atom_solutes.items()}
                 for i, atom in enumerate(mol.GetAtoms()):
                     atom_name = solute_atoms_ix0.get(mol_mda_ix[i])
