@@ -337,7 +337,7 @@ def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
         Solute.from_solute_list(bad_solute_list, iba_solvents)
 
     iba_ketone_renamed = Solute.from_atoms(
-        iba_solutes['iba_ketone'].solute,
+        iba_solutes['iba_ketone'].solute_atoms,
         iba_solvents,
         solute_name='iba_alcohol_O'
     )

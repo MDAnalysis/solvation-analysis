@@ -306,7 +306,7 @@ class Solute(AnalysisBase):
         # check types and name uniqueness
         for solute in solutes:
             assert type(solute) == Solute, "solutes must be a list of Solute objects."
-            assert len(solute.solute.atoms) == len(solute.solute.atoms.residues), (
+            assert len(solute.solute_atoms.atoms) == len(solute.solute_atoms.atoms.residues), (
                 "Each Solute in solutes must have only a single atom per residue."
             )
         solute_names = [solute.solute_name for solute in solutes]
@@ -314,7 +314,7 @@ class Solute(AnalysisBase):
             "The solute_name for each solute must be unique."
         )
 
-        solute_atom_group = reduce(lambda x, y: x | y, [solute.solute for solute in solutes])
+        solute_atom_group = reduce(lambda x, y: x | y, [solute.solute_atoms for solute in solutes])
         verify_solute_atoms(solute_atom_group)
 
         atom_solutes = {solute.solute_name: solute for solute in solutes}
