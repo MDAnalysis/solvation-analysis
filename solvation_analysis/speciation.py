@@ -116,7 +116,7 @@ class Speciation:
         means = speciation_frames.sum(axis=1) / (solute_number * frame_number)
         return means
 
-    def shell_fraction(self, shell_dict):
+    def calculate_shell_fraction(self, shell_dict):
         """
         Calculate the fraction of shells matching shell_dict.
 
@@ -147,7 +147,7 @@ class Speciation:
             # first define Li, BN, and FEC AtomGroups
             >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
             >>> solute.run()
-            >>> solute.speciation.shell_fraction({'BN': 4, 'PF6': 1})
+            >>> solute.speciation.calculate_shell_fraction({'BN': 4, 'PF6': 1})
             0.0898
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
@@ -155,7 +155,7 @@ class Speciation:
         query_counts = self.speciation_fraction.query(query)
         return query_counts[COUNT].sum()
 
-    def find_shells(self, shell_dict):
+    def get_shells(self, shell_dict):
         """
         Find all solvation shells that match shell_dict.
 

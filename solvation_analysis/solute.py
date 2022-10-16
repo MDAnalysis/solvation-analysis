@@ -693,7 +693,7 @@ class Solute(AnalysisBase):
         """
         return get_radial_shell(self.solute_atoms[solute_atom_ix], radius)
 
-    def closest_n_mol(
+    def get_closest_n_mol(
         self,
         solute_atom_ix,
         n_mol,
@@ -741,7 +741,7 @@ class Solute(AnalysisBase):
             return_radii,
         )
 
-    def solvation_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
+    def get_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
         """
         Select the solvation shell of the solute.
 
@@ -768,7 +768,7 @@ class Solute(AnalysisBase):
             It should be a dict of molnames and ints e.g. ``{'mol1': n, 'mol2', m}``.
             It will remove up to n of mol1 and up to m of mol2. So if the dict is
             ``{'mol1': 1, 'mol2', 1}`` and the shell has 4 mol1 and 0 mol2,
-            solvation_shell will return a shell with 3 mol1 and 0 mol2.
+            get_shell will return a shell with 3 mol1 and 0 mol2.
         closest_n_only : int, optional
             if given, only the closest n residues will be included
 
@@ -806,7 +806,7 @@ class Solute(AnalysisBase):
             return self._df_to_atom_group(shell, solute_index=solute_index)
 
     def draw_molecule(self, residue, filename=None):
-        """  # TODO: finish this function
+        """
         Returns
 
         Parameters

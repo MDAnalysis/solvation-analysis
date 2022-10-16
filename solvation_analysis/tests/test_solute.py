@@ -103,7 +103,7 @@ def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solute)
 )
 def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solute):
     run_solute.u.trajectory[frame]
-    shell = run_solute.closest_n_mol(solute_index, n_mol)
+    shell = run_solute.get_closest_n_mol(solute_index, n_mol)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -117,7 +117,7 @@ def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solute)
 )
 def test_solvation_shell(solute_index, step, expected_res_ids, run_solute):
     # TODO: something is broken in the tutorial here
-    shell = run_solute.solvation_shell(solute_index, step)
+    shell = run_solute.get_shell(solute_index, step)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -130,7 +130,7 @@ def test_solvation_shell(solute_index, step, expected_res_ids, run_solute):
     ],
 )
 def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_ids, run_solute):
-    shell = run_solute.solvation_shell(solute_index, step, remove_mols=remove)
+    shell = run_solute.get_shell(solute_index, step, remove_mols=remove)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -144,7 +144,7 @@ def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_id
     ],
 )
 def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids, run_solute):
-    shell = run_solute.solvation_shell(solute_index, step, closest_n_only=n)
+    shell = run_solute.get_shell(solute_index, step, closest_n_only=n)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -159,7 +159,7 @@ def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids,
 )
 def test_speciation_find_shells(shell, n_shells, run_solute):
     # duplicated to test in solute
-    df = run_solute.speciation.find_shells(shell)
+    df = run_solute.speciation.get_shells(shell)
     assert len(df) == n_shells
 
 
