@@ -693,23 +693,36 @@ class Solute(AnalysisBase):
         """
         return get_radial_shell(self.solute_atoms[solute_index], radius)
 
-    def closest_n_mol(self, solute_index, n_mol, **kwargs):
+    def closest_n_mol(
+        self,
+        solute_atom_ix,
+        n_mol,
+        guess_radius=3,
+        return_ordered_resix=False,
+        return_radii=False,
+    ):
         """
         Select the n closest mols to the solute.
 
         The solute is specified by it's index within solvation_data.
         n is specified with the n_mol argument. Optionally returns
         an array of their resids and an array of the distance of
-        the closest atom in each molecule. Thin wrapper around
-        solvation.get_closest_n_mol, see documentation for more detail.
+        the closest atom in each molecule.
 
         Parameters
         ----------
-        solute_index : int
+        solute_atom_ix : int
             The index of the solute of interest
         n_mol : int
             The number of molecules to return
-        kwargs : passed to solvation.get_closest_n_mol
+        guess_radius : float or int
+            an initial search radius to look for closest n mol
+        return_ordered_resix : bool, default False
+            whether to return the resix of the closest n
+            molecules, ordered by radius
+        return_radii : bool, default False
+            whether to return the distance of the closest atom of each
+            of the n molecules
 
         Returns
         -------
@@ -720,7 +733,13 @@ class Solute(AnalysisBase):
         radii : numpy.array of float, optional
             the distance of each atom from the center
         """
-        return get_closest_n_mol(self.u.atoms[solute_index], n_mol, **kwargs)
+        return get_closest_n_mol(
+            self.u.atoms[solute_atom_ix],
+            n_mol,
+            guess_radius,
+            return_ordered_resix,
+            return_radii,
+        )
 
     def solvation_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
         """
