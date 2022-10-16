@@ -116,6 +116,7 @@ def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solute)
     ],
 )
 def test_solvation_shell(solute_index, step, expected_res_ids, run_solute):
+    # TODO: something is broken in the tutorial here
     shell = run_solute.solvation_shell(solute_index, step)
     assert set(shell.resindices) == set(expected_res_ids)
 
