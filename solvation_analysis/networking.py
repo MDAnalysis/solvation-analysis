@@ -21,7 +21,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components
 
-from solvation_analysis.residence import Residence
+from solvation_analysis._utils import calculate_adjacency_dataframe
 from solvation_analysis._column_names import *
 
 
@@ -146,7 +146,7 @@ class Networking:
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
         solvation_subset = self.solvation_data[np.isin(self.solvation_data[SOLVENT], solvents)]
         # create adjacency matrix from solvation_subset
-        graph = Residence.calculate_adjacency_dataframe(solvation_subset)
+        graph = calculate_adjacency_dataframe(solvation_subset)
         network_arrays = []
         # loop through each time step / frame
         for frame, df in graph.groupby(FRAME):

@@ -4,6 +4,8 @@ from functools import reduce
 import MDAnalysis as mda
 from MDAnalysis.analysis import distances
 
+from solvation_analysis._column_names import *
+
 
 def verify_solute_atoms(solute_atom_group):
     # we presume that the solute_atoms has the same number of atoms on each residue
@@ -195,3 +197,27 @@ def get_radial_shell(central_species, radius):
     partial_shell = u.select_atoms(f"point {str_coords} {radius}")
     full_shell = partial_shell.residues.atoms
     return full_shell
+
+
+def calculate_adjacency_dataframe(solvation_data):
+    """
+    Calculate a frame-by-frame adjacency matrix from the solvation data.
+
+    This will calculate the adjacency matrix of the solute and all possible
+    solvents. It will maintain an index of ["frame", "solute_atom", "solvent"]
+    where each "frame" is a sparse adjacency matrix between solvated atom ix
+    and residue ix.
+
+    Parameters
+    ----------
+    solvation_data : pd.DataFrame
+        the solvation_data from a Solute.
+
+    Returns
+    -------
+    adjacency_df : pandas.DataFrame
+    """
+    # generate an adjacency matrix from the solvation data
+    adjacency_group = solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT_IX])
+    adjacency_df = adjacency_group[DISTANCE].count().unstack(fill_value=0)
+    return adjacency_df
