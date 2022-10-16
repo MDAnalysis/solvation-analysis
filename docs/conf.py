@@ -172,5 +172,6 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
 # -- Extension configuration -------------------------------------------------
+
+autodoc_class_signature = "separated"

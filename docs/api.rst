@@ -5,6 +5,8 @@ API Documentation
     :toctree: stubs
 
 .. toctree::
+    :maxdepth: 3
+    :caption: API Reference
 
     api/solute
     api/coordination
