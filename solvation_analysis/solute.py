@@ -761,7 +761,7 @@ class Solute(AnalysisBase):
                                       "of an analyzed frames in self.frames.")
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
-        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLUTE_ATOM_IX))
+        shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLUTE_IX))
         # remove mols
         for mol_name, n_remove in remove_mols.items():
             # first, filter for only mols of type mol_name
