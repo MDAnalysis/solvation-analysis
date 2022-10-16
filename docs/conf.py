@@ -175,3 +175,4 @@ texinfo_documents = [
 # -- Extension configuration -------------------------------------------------
 
 autodoc_class_signature = "separated"
+autodoc_member_order = 'bysource'
