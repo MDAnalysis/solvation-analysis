@@ -21,6 +21,7 @@ To get started, check out the Getting Started section of the documentation.
    :caption: Contents:
 
    getting_started
+   tutorials
    api
 
 
