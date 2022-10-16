@@ -644,7 +644,7 @@ class Solute(AnalysisBase):
         ax.legend()
         return fig, ax
 
-    def plot_solvation_radius(self, solvent_name, solute_name):
+    def plot_solvation_radius(self, solute_name, solvent_name):
         """
         Plot the RDF of a solvent molecule
 

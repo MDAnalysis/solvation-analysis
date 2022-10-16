@@ -209,8 +209,8 @@ def test_instantiate_eax_solutes(name, eax_solutes):
 
 
 def test_plot_solvation_radius(run_solute, iba_small_solute):
-    run_solute.plot_solvation_radius('fec', 'solute_0')
-    iba_small_solute.plot_solvation_radius('iba', 'iba_ketone')
+    run_solute.plot_solvation_radius('solute_0', 'fec')
+    iba_small_solute.plot_solvation_radius('iba_ketone', 'iba')
 
 
 @pytest.mark.parametrize("residue", ['iba_ketone', 'solute', 'H2O', 'iba'])
