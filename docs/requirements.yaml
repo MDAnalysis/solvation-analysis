@@ -10,6 +10,8 @@ dependencies:
   - pytest
   - mdanalysis
   - nglview
+  - nbsphinx
+  - ipython
 
 
     # Pip-only installs
