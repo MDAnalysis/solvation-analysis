@@ -110,9 +110,9 @@ def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solute)
 @pytest.mark.parametrize(
     "solute_index, step, expected_res_ids",
     [
-        (6741, 5, [46, 100, 171, 255, 650]),
-        (6749, 6, [13, 59, 177, 264, 314, 651]),
-        (7053, 0, [101, 126, 127, 360, 689])
+        (650, 5, [46, 100, 171, 255, 650]),
+        (651, 6, [13, 59, 177, 264, 314, 651]),
+        (689, 0, [101, 126, 127, 360, 689])
     ],
 )
 def test_solvation_shell(solute_index, step, expected_res_ids, run_solute):
@@ -124,9 +124,9 @@ def test_solvation_shell(solute_index, step, expected_res_ids, run_solute):
 @pytest.mark.parametrize(
     "solute_index, step, remove, expected_res_ids",
     [
-        (6741, 5, {'bn': 1}, [46, 171, 255, 650]),
-        (6749, 6, {'bn': 2, 'fec': 1}, [13, 177, 314, 651]),
-        (7053, 0, {'fec': 1}, [101, 126, 127, 360, 689])
+        (650, 5, {'bn': 1}, [46, 171, 255, 650]),
+        (651, 6, {'bn': 2, 'fec': 1}, [13, 177, 314, 651]),
+        (689, 0, {'fec': 1}, [101, 126, 127, 360, 689])
     ],
 )
 def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_ids, run_solute):
@@ -137,10 +137,10 @@ def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_id
 @pytest.mark.parametrize(
     "solute_index, step, n, expected_res_ids",
     [
-        (6741, 5, 3, [46, 171, 255, 650]),
-        (6749, 6, 3, [13, 177, 314, 651]),
-        (7053, 0, 4, [101, 126, 127, 360, 689]),
-        (7053, 0, 1, [101, 689])
+        (650, 5, 3, [46, 171, 255, 650]),
+        (651, 6, 3, [13, 177, 314, 651]),
+        (689, 0, 4, [101, 126, 127, 360, 689]),
+        (689, 0, 1, [101, 689])
     ],
 )
 def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids, run_solute):
