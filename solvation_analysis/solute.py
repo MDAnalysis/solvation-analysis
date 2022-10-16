@@ -386,6 +386,10 @@ class Solute(AnalysisBase):
             verbose=False,
             internal_call=False,
     ):
+        """
+        This method is not intended to be called directly. Instead, use
+        ``from_atoms``, ``from_atoms_dict`` or ``from_solute_list`` to create a Solute.
+        """
         if not internal_call:
             raise RuntimeError("Please use Solute.from_atoms, Solute.from_atoms_dict, or "
                                "Solute.from_solute_list instead of the default constructor.")
