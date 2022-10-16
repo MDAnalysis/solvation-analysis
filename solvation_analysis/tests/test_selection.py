@@ -8,11 +8,7 @@ import MDAnalysis as mda
 import numpy as np
 import pytest
 
-from solvation_analysis.selection import (
-    get_atom_group,
-    get_closest_n_mol,
-    get_radial_shell,
-)
+from solvation_analysis._utils import get_atom_group, get_closest_n_mol, get_radial_shell
 
 
 def test_get_atom_group(u_real_named):

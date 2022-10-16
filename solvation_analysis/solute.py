@@ -118,15 +118,13 @@ from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
 import numpy as np
 
-from solvation_analysis._utils import verify_solute_atoms, verify_solute_atoms_dict
+from solvation_analysis._utils import verify_solute_atoms, verify_solute_atoms_dict, get_closest_n_mol, get_radial_shell
 from solvation_analysis.rdf_parser import identify_cutoff_scipy
 from solvation_analysis.coordination import Coordination
 from solvation_analysis.networking import Networking
 from solvation_analysis.pairing import Pairing
 from solvation_analysis.residence import Residence
 from solvation_analysis.speciation import Speciation
-
-from solvation_analysis.selection import get_radial_shell, get_closest_n_mol
 
 from solvation_analysis._column_names import *
 
