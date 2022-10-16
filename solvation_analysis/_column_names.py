@@ -25,9 +25,9 @@ FRACTION = "fraction"
 
 # for networking
 NETWORK = "network"
-ALONE = "alone"
+ISOLATED = "isolated"
 PAIRED = "paired"
-NETWORKED = "in_network"
+NETWORKED = "networked"
 
 # for speciation
 COUNT = "count"

@@ -65,7 +65,7 @@ class Networking:
     solute_status : dict of {str: float}
         a dictionary where the keys are the "status" of the solute and the values
         are the fraction of solute with that status, averaged over all frames.
-        "alone" means that the solute not coordinated with any of the networking
+        "isolated" means that the solute not coordinated with any of the networking
         solvents, network size is 1.
         "paired" means the solute and is coordinated with a single networking
         solvent and that solvent is not coordinated to any other solutes, network
@@ -74,14 +74,14 @@ class Networking:
         or its solvent is coordinated to more than one solute, network size >= 3.
     solute_status_by_frame : pd.DataFrame
         as described above, except organized into a dataframe where each
-        row is a unique frame and the columns are "alone", "paired", and "networked".
+        row is a unique frame and the columns are "isolated", "paired", and "networked".
 
     Examples
     --------
      .. code-block:: python
 
         # first define Li, BN, and FEC AtomGroups
-        >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> solute = Solute.from_atoms(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
         >>> networking = Networking.from_solute(solute, 'PF6')
     """
 
@@ -189,13 +189,13 @@ class Networking:
     def _calculate_solute_status(self):
         """
         This utility calculates the fraction of each solute with a given "status".
-        Namely, whether the solvent is "alone", "paired" (with a single solvent), or
+        Namely, whether the solvent is "isolated", "paired" (with a single solvent), or
         "networked" of > 2 species.
         """
         status = self.network_sizes.rename(columns={2: PAIRED})
         status[NETWORKED] = status.iloc[:, 1:].sum(axis=1).astype(int)
-        status[ALONE] = self.n_solute - status.loc[:, [PAIRED, NETWORKED]].sum(axis=1)
-        status = status.loc[:, [ALONE, PAIRED, NETWORKED]]
+        status[ISOLATED] = self.n_solute - status.loc[:, [PAIRED, NETWORKED]].sum(axis=1)
+        status = status.loc[:, [ISOLATED, PAIRED, NETWORKED]]
         solute_status_by_frame = status / self.n_solute
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame

@@ -19,7 +19,7 @@ def networking(run_solute):
 @pytest.mark.parametrize(
     "status, fraction",
     [
-        (ALONE, 0.876),
+        (ISOLATED, 0.876),
         (PAIRED, 0.112),
         (NETWORKED, 0.012),
     ],
