@@ -672,7 +672,7 @@ class Solute(AnalysisBase):
         ax.set_title(f"{self.solute_name} solvation distance for {solvent_name}")
         return fig, ax
 
-    def radial_shell(self, solute_index, radius):
+    def radial_shell(self, solute_atom_ix, radius):
         """
         Select all residues with atoms within r of the solute.
 
@@ -682,7 +682,7 @@ class Solute(AnalysisBase):
 
         Parameters
         ----------
-        solute_index : int
+        solute_atom_ix : int
             the index of the solute of interest
         radius : float or int
             radius used for atom selection
@@ -691,7 +691,7 @@ class Solute(AnalysisBase):
         -------
         MDAnalysis.AtomGroup
         """
-        return get_radial_shell(self.solute_atoms[solute_index], radius)
+        return get_radial_shell(self.solute_atoms[solute_atom_ix], radius)
 
     def closest_n_mol(
         self,
