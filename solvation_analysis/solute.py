@@ -542,8 +542,8 @@ class Solute(AnalysisBase):
             pairs = pairs[~filter]
             dist = dist[~filter]
             # replace local ids with absolute ids
-            pairs[:, 0] = self.solute_atoms.atoms.ix[[tuple(pairs[:, 0])]]
-            pairs[:, 1] = solvent.ix[[tuple(pairs[:, 1])]]
+            pairs[:, 0] = self.solute_atoms.atoms.ix[tuple([pairs[:, 0]])]
+            pairs[:, 1] = solvent.ix[tuple([pairs[:, 1]])]
             # extend
             pairs_list.append(pairs)
             dist_list.append(dist)
