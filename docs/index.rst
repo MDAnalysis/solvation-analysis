@@ -20,7 +20,7 @@ To get started, check out the Getting Started section of the documentation.
    :maxdepth: 2
    :caption: Contents:
 
-   getting_started
+   getting_started.ipynb
    tutorials
    api
 
