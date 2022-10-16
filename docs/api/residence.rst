@@ -1,4 +1,4 @@
-residence
+Residence
 =========
 
  .. automodule:: solvation_analysis.residence
