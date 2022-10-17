@@ -714,8 +714,8 @@ class Solute(AnalysisBase):
             for i, atom in enumerate(mol.GetAtoms()):
                 atom.SetProp("atomNote", str(i))
         if filename:
-            rdCoordGen.AddCoords(mol)
             Draw.MolToFile(mol, filename=filename)
+        rdCoordGen.AddCoords(mol)
         return mol
 
     def get_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
