@@ -305,15 +305,15 @@ class Solute(AnalysisBase):
             an AtomGroup or ResidueGroup containing one atom per residue.
         solvents: dict of {str: MDAnalysis.AtomGroup}
             a dictionary of solvent names and associated MDAnalysis.AtomGroups.
-            e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}        kwargs
+            e.g. {"name_1": solvent_group_1,"name_2": solvent_group_2, ...}
         rename_solutes : dict, optional
             a dictionary of solute names to rename the solutes. Keys are the
-            solute index given by from_atoms_dict, and values are the new names.
+            default solute_name, and values are the new names.
             For example, from_atoms might return a solute with solute_name
             "solute_0", but you want to rename it to "functional_group_X".
-            In this case, rename_solutes={0: "functional_group_X"}. If None,
-            solutes will be numbered in the order their atoms appear on
-            the residue.
+            In this case, rename_solutes={"solute_0": "functional_group_X"}.
+            If None, solutes will be numbered in the order their atoms appear
+            on the residue.
         kwargs: dict
             All kwargs listed in the Parameters section of the Solute class.
 
@@ -327,7 +327,7 @@ class Solute(AnalysisBase):
         # this will get called again later on with the same input, but for now, it's fine
         solute_atom_group_dict = verify_solute_atoms(solute_atoms)
         solute_atom_group_dict_renamed = {
-            rename_solutes.get(i) or f"solute_{i}": atom_group
+            rename_solutes.get(f"solute_{i}") or f"solute_{i}": atom_group
             for i, atom_group in solute_atom_group_dict.items()
         }
         return Solute.from_atoms_dict(solute_atom_group_dict_renamed, solvents, **kwargs)
