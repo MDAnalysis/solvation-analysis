@@ -1,3 +1,5 @@
+from functools import reduce
+
 import matplotlib.pyplot as plt
 import warnings
 import pytest
@@ -303,6 +305,7 @@ def test_from_solute_list(iba_solutes, iba_solvents):
     solute.run()
     assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
 
+
 def test_from_solute_list_restepped(iba_solutes, iba_atom_groups, iba_solvents):
     new_solvent = {"H2O": iba_solvents["H2O"]}
     new_ketone = Solute.from_atoms(
@@ -321,7 +324,6 @@ def test_from_solute_list_restepped(iba_solutes, iba_atom_groups, iba_solvents):
                 user_warnings += 1
         assert user_warnings == 2
     assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O'}
-
 
 
 def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
@@ -353,22 +355,14 @@ def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
 
 
 def test_iba_all_analysis(iba_atom_groups, iba_solvents):
-    solute_atoms = {
-        'iba_ketone': iba_atom_groups['iba_ketone'],
-        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
-        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
-    }
-    solute = Solute.from_atoms_dict(
+    solute_atoms = reduce(lambda x, y: x | y, [solute for solute in iba_atom_groups.values()])
+    solute = Solute.from_atoms(
         solute_atoms,
         iba_solvents,
         networking_solvents=['iba'],
-        analysis_classes=[
-            'coordination',
-            'networking',
-            'pairing',
-            'residence',
-            'speciation'
-        ]
+        analysis_classes='all',
+        radii={'iba': 1.9, 'H2O': 1.9},
     )
+    # TODO: get this passing
     solute.run(step=4)
     return
