@@ -172,11 +172,12 @@ class Solute(AnalysisBase):
         stop will use any kwargs provided to ``solute.run(**kwargs)``.
     solute_name: str, optional
         the name of the solute, used for labeling.
-    analysis_classes : List[str], optional
+    analysis_classes : List[str] or str, optional
         a list of the analysis classes to be instantiated, current options are:
         "pairing", "coordination", "speciation", "residence", and "networking".
         By default, only "pairing", "coordination", and "residence" are instantiated.
         If networking is included, the networking_solvents kwarg must be specified.
+        Enter 'all' to include all analysis classes.
     networking_solvents : str, optional
         see the `solvents` parameter of the Networking class.
     verbose : bool, optional
@@ -280,6 +281,8 @@ class Solute(AnalysisBase):
         # instantiate analysis classes.
         if analysis_classes is None:
             self.analysis_classes = ["pairing", "coordination", "speciation"]
+        elif analysis_classes == 'all':
+            self.analysis_classes = ["pairing", "coordination", "speciation", "residence", "networking"]
         else:
             self.analysis_classes = [cls.lower() for cls in analysis_classes]
         if "networking" in self.analysis_classes and networking_solvents is None:
