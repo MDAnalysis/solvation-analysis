@@ -89,8 +89,9 @@ class Networking:
         self.solvents = solvents
         self.solvation_data = solvation_data
         solvent_present = np.isin(self.solvents, self.solvation_data[SOLVENT].unique())
-        if not solvent_present.all():
-            raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
+        # TODO: we need all analysis classes to run when there is no solvation_data
+        # if not solvent_present.all():
+        #     raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
         self.solute_res_ix = solute_res_ix
         self.res_name_map = res_name_map
         self.n_solute = len(solute_res_ix)
