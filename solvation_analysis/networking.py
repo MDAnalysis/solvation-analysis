@@ -171,7 +171,10 @@ class Networking:
             ]).T
             network_arrays.append(network_array)
         # create and return network dataframe
-        all_clusters = np.concatenate(network_arrays)
+        if len(network_arrays) == 0:
+            all_clusters = []
+        else:
+            all_clusters = np.concatenate(network_arrays)
         cluster_df = (
             pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, SOLVENT, SOLVENT_IX])
                 .set_index([FRAME, NETWORK])
@@ -193,8 +196,10 @@ class Networking:
         Namely, whether the solvent is "isolated", "paired" (with a single solvent), or
         "networked" of > 2 species.
         """
-        status = self.network_sizes.rename(columns={2: PAIRED})
-        status[NETWORKED] = status.iloc[:, 1:].sum(axis=1).astype(int)
+        # an empty df with the right index
+        status = self.network_sizes.iloc[:, 0:0]
+        status[PAIRED] = self.network_sizes.iloc[:, 0:1].sum(axis=1).astype(int)
+        status[NETWORKED] = self.network_sizes.iloc[:, 1:].sum(axis=1).astype(int)
         status[ISOLATED] = self.n_solute - status.loc[:, [PAIRED, NETWORKED]].sum(axis=1)
         status = status.loc[:, [ISOLATED, PAIRED, NETWORKED]]
         solute_status_by_frame = status / self.n_solute
