@@ -30,32 +30,39 @@ def test_catch_different_solvents(insert_solvent_here):
 
 def test_compare_pairing_1(eax_solutions):
     # keep_solvents on x axis, each bar is a solution
-    fig = compare_pairing(eax_solutions, ["fec", "pf6"])
-    fig = format_graph(fig, "Bar Graph of Solvent Pairing", "Species", "Pairing")
+    fig = compare_pairing(eax_solutions, "Species", "Pairing", "Bar Graph of Solvent Pairing", keep_solvents=["fec", "pf6"])
     fig.show()
     assert True
 
 def test_compare_pairing_2(eax_solutions):
     # solutions on x axis, each bar is an element of keep_solvents
-    fig = compare_pairing(eax_solutions, ["pf6", "fec"], x_axis="solution")
-    fig = format_graph(fig, "Bar Graph of Solvent Pairing", "Solution", "Pairing")
+    fig = compare_pairing(eax_solutions, "Solution", "Pairing", "Bar Graph of Solvent Pairing", keep_solvents=["pf6", "fec"], x_axis="solution")
     fig.show()
     assert True
 
 def test_compare_pairing_3(eax_solutions):
     # keep_solvents on x axis, each line is a solution
-    fig = compare_pairing(eax_solutions,["pf6", "fec"], series=True)
-    fig = format_graph(fig, "Line Graph of Solvent Pairing", "Solution", "Pairing")
+    fig = compare_pairing(eax_solutions, "Solution", "Pairing", "Line Graph of Solvent Pairing", keep_solvents=["pf6", "fec"], series=True)
     fig.show()
     assert True
 
 def test_compare_pairing_4(eax_solutions):
     # solutions on x axis, each line is an element of keep_solvents
-    fig = compare_pairing(eax_solutions, ["pf6", "fec"], x_axis="solution", series=True)
-    fig = format_graph(fig, "Line Graph of Solvent Pairing", "Solution", "Pairing")
+    fig = compare_pairing(eax_solutions, "Solution", "Pairing", "Line Graph of Solvent Pairing", keep_solvents=["pf6", "fec"], x_axis="solution", series=True)
     fig.show()
     assert True
 
+def test_compare_pairing_5(eax_solutions):
+    fig = compare_pairing(eax_solutions, coerce={"ea": "EAx", "fea": "EAx", "eaf": "EAx", "feaf": "EAx"},
+                          keep_solvents=["pf6", "fec", "EAx"])
+    fig.show()
+    assert True
+
+def test_compare_pairing_6(eax_solutions):
+    fig = compare_pairing(eax_solutions, coerce={"ea": "EAx", "fea": "EAx", "eaf": "EAx", "feaf": "EAx"},
+                          keep_solvents=["pf6", "fec", "ea", "fea", "eaf", "feaf"])
+    fig.show()
+    assert True
 # it would be nice if we had a list of solutions, all of the same composition,
 # and tested compare_pairing to see if the default behavior of keep_solvents works as expected
 # def test_compare_pairing_5(solutions):
