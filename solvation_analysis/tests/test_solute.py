@@ -1,3 +1,5 @@
+from functools import reduce
+
 import matplotlib.pyplot as plt
 import warnings
 import pytest
@@ -12,7 +14,7 @@ def test_instantiate_solute_from_atoms(pre_solute):
     # these check basic properties of the instantiation
     assert len(pre_solute.radii) == 3
     assert callable(pre_solute.kernel)
-    assert pre_solute.solute.n_residues == 49
+    assert pre_solute.solute_atoms.n_residues == 49
     assert pre_solute.solvents['pf6'].n_residues == 49
     assert pre_solute.solvents['fec'].n_residues == 237
     assert pre_solute.solvents['bn'].n_residues == 363
@@ -103,47 +105,48 @@ def test_radial_shell(solute_index, radius, frame, expected_res_ids, run_solute)
 )
 def test_closest_n_mol(solute_index, n_mol, frame, expected_res_ids, run_solute):
     run_solute.u.trajectory[frame]
-    shell = run_solute.closest_n_mol(solute_index, n_mol)
+    shell = run_solute.get_closest_n_mol(solute_index, n_mol)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
 @pytest.mark.parametrize(
     "solute_index, step, expected_res_ids",
     [
-        (6741, 5, [46, 100, 171, 255, 650]),
-        (6749, 6, [13, 59, 177, 264, 314, 651]),
-        (7053, 0, [101, 126, 127, 360, 689])
+        (650, 5, [46, 100, 171, 255, 650]),
+        (651, 6, [13, 59, 177, 264, 314, 651]),
+        (689, 0, [101, 126, 127, 360, 689])
     ],
 )
 def test_solvation_shell(solute_index, step, expected_res_ids, run_solute):
-    shell = run_solute.solvation_shell(solute_index, step)
+    # TODO: something is broken in the tutorial here
+    shell = run_solute.get_shell(solute_index, step)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
 @pytest.mark.parametrize(
     "solute_index, step, remove, expected_res_ids",
     [
-        (6741, 5, {'bn': 1}, [46, 171, 255, 650]),
-        (6749, 6, {'bn': 2, 'fec': 1}, [13, 177, 314, 651]),
-        (7053, 0, {'fec': 1}, [101, 126, 127, 360, 689])
+        (650, 5, {'bn': 1}, [46, 171, 255, 650]),
+        (651, 6, {'bn': 2, 'fec': 1}, [13, 177, 314, 651]),
+        (689, 0, {'fec': 1}, [101, 126, 127, 360, 689])
     ],
 )
 def test_solvation_shell_remove_mols(solute_index, step, remove, expected_res_ids, run_solute):
-    shell = run_solute.solvation_shell(solute_index, step, remove_mols=remove)
+    shell = run_solute.get_shell(solute_index, step, remove_mols=remove)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
 @pytest.mark.parametrize(
     "solute_index, step, n, expected_res_ids",
     [
-        (6741, 5, 3, [46, 171, 255, 650]),
-        (6749, 6, 3, [13, 177, 314, 651]),
-        (7053, 0, 4, [101, 126, 127, 360, 689]),
-        (7053, 0, 1, [101, 689])
+        (650, 5, 3, [46, 171, 255, 650]),
+        (651, 6, 3, [13, 177, 314, 651]),
+        (689, 0, 4, [101, 126, 127, 360, 689]),
+        (689, 0, 1, [101, 689])
     ],
 )
 def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids, run_solute):
-    shell = run_solute.solvation_shell(solute_index, step, closest_n_only=n)
+    shell = run_solute.get_shell(solute_index, step, closest_n_only=n)
     assert set(shell.resindices) == set(expected_res_ids)
 
 
@@ -158,7 +161,7 @@ def test_solvation_shell_remove_closest(solute_index, step, n, expected_res_ids,
 )
 def test_speciation_find_shells(shell, n_shells, run_solute):
     # duplicated to test in solute
-    df = run_solute.speciation.find_shells(shell)
+    df = run_solute.speciation.get_shells(shell)
     assert len(df) == n_shells
 
 
@@ -208,8 +211,8 @@ def test_instantiate_eax_solutes(name, eax_solutes):
 
 
 def test_plot_solvation_radius(run_solute, iba_small_solute):
-    run_solute.plot_solvation_radius('fec', 'solute_0')
-    iba_small_solute.plot_solvation_radius('iba', 'iba_ketone')
+    run_solute.plot_solvation_radius('solute_0', 'fec')
+    iba_small_solute.plot_solvation_radius('iba_ketone', 'iba')
 
 
 @pytest.mark.parametrize("residue", ['iba_ketone', 'solute', 'H2O', 'iba'])
@@ -302,6 +305,7 @@ def test_from_solute_list(iba_solutes, iba_solvents):
     solute.run()
     assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O', 'iba_alcohol_H'}
 
+
 def test_from_solute_list_restepped(iba_solutes, iba_atom_groups, iba_solvents):
     new_solvent = {"H2O": iba_solvents["H2O"]}
     new_ketone = Solute.from_atoms(
@@ -322,7 +326,6 @@ def test_from_solute_list_restepped(iba_solutes, iba_atom_groups, iba_solvents):
     assert set(solute.atom_solutes.keys()) == {'iba_ketone', 'iba_alcohol_O'}
 
 
-
 def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
     solute_list = [
         iba_solutes['iba_ketone'],
@@ -337,7 +340,7 @@ def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
         Solute.from_solute_list(bad_solute_list, iba_solvents)
 
     iba_ketone_renamed = Solute.from_atoms(
-        iba_solutes['iba_ketone'].solute,
+        iba_solutes['iba_ketone'].solute_atoms,
         iba_solvents,
         solute_name='iba_alcohol_O'
     )
@@ -352,22 +355,14 @@ def test_from_solute_list_errors(iba_solutes, H2O_atom_groups, iba_solvents):
 
 
 def test_iba_all_analysis(iba_atom_groups, iba_solvents):
-    solute_atoms = {
-        'iba_ketone': iba_atom_groups['iba_ketone'],
-        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
-        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
-    }
-    solute = Solute.from_atoms_dict(
+    solute_atoms = reduce(lambda x, y: x | y, [solute for solute in iba_atom_groups.values()])
+    solute = Solute.from_atoms(
         solute_atoms,
         iba_solvents,
         networking_solvents=['iba'],
-        analysis_classes=[
-            'coordination',
-            'networking',
-            'pairing',
-            'residence',
-            'speciation'
-        ]
+        analysis_classes='all',
+        radii={'iba': 1.9, 'H2O': 1.9},
     )
+    # TODO: get this passing
     solute.run(step=4)
     return

@@ -3,9 +3,6 @@ SolvationAnalysis
 An MDAnalysis rmodule for solvation analysis.
 """
 
-# Add imports here
-from .selection import *
-
 # Handle versioneer
 from ._version import get_versions
 versions = get_versions()

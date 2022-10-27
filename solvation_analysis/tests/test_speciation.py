@@ -20,7 +20,7 @@ def test_speciation_from_solute(run_solute):
 )
 def test_speciation_shell_fraction(shell, fraction, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    fraction = speciation.shell_fraction(shell)
+    fraction = speciation.calculate_shell_fraction(shell)
     np.testing.assert_allclose(fraction, fraction, atol=0.05)
 
 
@@ -35,7 +35,7 @@ def test_speciation_shell_fraction(shell, fraction, solvation_data):
 )
 def test_speciation_find_shells(shell, n_shells, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    df = speciation.find_shells(shell)
+    df = speciation.get_shells(shell)
     assert len(df) == n_shells
 
 

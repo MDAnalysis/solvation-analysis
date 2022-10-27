@@ -1,4 +1,4 @@
-networking
+Networking
 ==========
 
  .. automodule:: solvation_analysis.networking

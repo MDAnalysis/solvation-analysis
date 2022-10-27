@@ -1,4 +1,4 @@
-pairing
+Pairing
 =======
 
  .. automodule:: solvation_analysis.pairing

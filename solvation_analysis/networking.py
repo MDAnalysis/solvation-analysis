@@ -21,7 +21,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components
 
-from solvation_analysis.residence import Residence
+from solvation_analysis._utils import calculate_adjacency_dataframe
 from solvation_analysis._column_names import *
 
 
@@ -65,7 +65,7 @@ class Networking:
     solute_status : dict of {str: float}
         a dictionary where the keys are the "status" of the solute and the values
         are the fraction of solute with that status, averaged over all frames.
-        "alone" means that the solute not coordinated with any of the networking
+        "isolated" means that the solute not coordinated with any of the networking
         solvents, network size is 1.
         "paired" means the solute and is coordinated with a single networking
         solvent and that solvent is not coordinated to any other solutes, network
@@ -74,14 +74,14 @@ class Networking:
         or its solvent is coordinated to more than one solute, network size >= 3.
     solute_status_by_frame : pd.DataFrame
         as described above, except organized into a dataframe where each
-        row is a unique frame and the columns are "alone", "paired", and "networked".
+        row is a unique frame and the columns are "isolated", "paired", and "networked".
 
     Examples
     --------
      .. code-block:: python
 
         # first define Li, BN, and FEC AtomGroups
-        >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
+        >>> solute = Solute.from_atoms(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
         >>> networking = Networking.from_solute(solute, 'PF6')
     """
 
@@ -89,8 +89,9 @@ class Networking:
         self.solvents = solvents
         self.solvation_data = solvation_data
         solvent_present = np.isin(self.solvents, self.solvation_data[SOLVENT].unique())
-        if not solvent_present.all():
-            raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
+        # TODO: we need all analysis classes to run when there is no solvation_data
+        # if not solvent_present.all():
+        #     raise Exception(f"Solvent(s) {np.array(self.solvents)[~solvent_present]} not found in solvation data.")
         self.solute_res_ix = solute_res_ix
         self.res_name_map = res_name_map
         self.n_solute = len(solute_res_ix)
@@ -146,7 +147,7 @@ class Networking:
         solvents = [self.solvents] if isinstance(self.solvents, str) else self.solvents
         solvation_subset = self.solvation_data[np.isin(self.solvation_data[SOLVENT], solvents)]
         # create adjacency matrix from solvation_subset
-        graph = Residence.calculate_adjacency_dataframe(solvation_subset)
+        graph = calculate_adjacency_dataframe(solvation_subset)
         network_arrays = []
         # loop through each time step / frame
         for frame, df in graph.groupby(FRAME):
@@ -170,7 +171,10 @@ class Networking:
             ]).T
             network_arrays.append(network_array)
         # create and return network dataframe
-        all_clusters = np.concatenate(network_arrays)
+        if len(network_arrays) == 0:
+            all_clusters = []
+        else:
+            all_clusters = np.concatenate(network_arrays)
         cluster_df = (
             pd.DataFrame(all_clusters, columns=[FRAME, NETWORK, SOLVENT, SOLVENT_IX])
                 .set_index([FRAME, NETWORK])
@@ -189,13 +193,15 @@ class Networking:
     def _calculate_solute_status(self):
         """
         This utility calculates the fraction of each solute with a given "status".
-        Namely, whether the solvent is "alone", "paired" (with a single solvent), or
+        Namely, whether the solvent is "isolated", "paired" (with a single solvent), or
         "networked" of > 2 species.
         """
-        status = self.network_sizes.rename(columns={2: PAIRED})
-        status[NETWORKED] = status.iloc[:, 1:].sum(axis=1).astype(int)
-        status[ALONE] = self.n_solute - status.loc[:, [PAIRED, NETWORKED]].sum(axis=1)
-        status = status.loc[:, [ALONE, PAIRED, NETWORKED]]
+        # an empty df with the right index
+        status = self.network_sizes.iloc[:, 0:0]
+        status[PAIRED] = self.network_sizes.iloc[:, 0:1].sum(axis=1).astype(int)
+        status[NETWORKED] = self.network_sizes.iloc[:, 1:].sum(axis=1).astype(int)
+        status[ISOLATED] = self.n_solute - status.loc[:, [PAIRED, NETWORKED]].sum(axis=1)
+        status = status.loc[:, [ISOLATED, PAIRED, NETWORKED]]
         solute_status_by_frame = status / self.n_solute
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame

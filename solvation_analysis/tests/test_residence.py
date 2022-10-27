@@ -6,7 +6,7 @@ from solvation_analysis.residence import Residence
 
 def test_residence_from_solute(run_solute):
     residence = Residence.from_solute(run_solute)
-    assert len(residence.residence_times) == 3
+    assert len(residence.residence_times_cutoff) == 3
     assert len(residence.residence_times_fit) == 3
 
 
@@ -24,7 +24,7 @@ def residence(solvation_data_sparse):
     ],
 )
 def test_residence_times(name, res_time, residence):
-    np.testing.assert_almost_equal(residence.residence_times[name], res_time, 3)
+    np.testing.assert_almost_equal(residence.residence_times_cutoff[name], res_time, 3)
 
 
 @pytest.mark.parametrize("name", ['fec', 'bn', 'pf6'])

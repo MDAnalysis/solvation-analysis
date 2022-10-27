@@ -25,6 +25,7 @@ from statsmodels.tsa.stattools import acovf
 from scipy.optimize import curve_fit
 
 from solvation_analysis._column_names import *
+from solvation_analysis._utils import calculate_adjacency_dataframe
 
 
 class Residence:
@@ -72,7 +73,7 @@ class Residence:
 
     Attributes
     ----------
-    residence_times : dict of {str: float}
+    residence_times_cutoff : dict of {str: float}
         a dictionary where keys are residue names and values are the
         residence times of the that residue on the solute, calculated
         with the 1/e cutoff method.
@@ -92,14 +93,14 @@ class Residence:
         # first define Li, BN, and FEC AtomGroups
         >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
         >>> residence = Residence.from_solute(solute)
-        >>> residence.residence_times
+        >>> residence.residence_times_cutoff
         {'BN': 4.02, 'FEC': 3.79, 'PF6': 1.15}
     """
 
     def __init__(self, solvation_data, step):
         self.solvation_data = solvation_data
         self.auto_covariances = self._calculate_auto_covariance_dict()
-        self.residence_times = self._calculate_residence_times_with_cutoff(self.auto_covariances, step)
+        self.residence_times_cutoff = self._calculate_residence_times_with_cutoff(self.auto_covariances, step)
         self.residence_times_fit, self.fit_parameters = self._calculate_residence_times_with_fit(
             self.auto_covariances,
             step
@@ -130,7 +131,7 @@ class Residence:
         frame_solute_index = pd.MultiIndex.from_tuples(unique_indices, names=partial_index.names)
         auto_covariance_dict = {}
         for res_name, res_solvation_data in self.solvation_data.groupby([SOLVENT]):
-            adjacency_mini = Residence.calculate_adjacency_dataframe(res_solvation_data)
+            adjacency_mini = calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
             # normalize
@@ -164,7 +165,7 @@ class Residence:
         fit_parameters = {}
         for res_name, auto_covariance in auto_covariances.items():
             res_time, params = Residence._fit_exponential(auto_covariance, res_name)
-            residence_times[res_name], fit_parameters[res_name] = res_time * step, params
+            residence_times[res_name], fit_parameters[res_name] = round(res_time * step, 2), params
         return residence_times, fit_parameters
 
     def plot_auto_covariance(self, res_name):
@@ -252,28 +253,4 @@ class Residence:
             auto_covariances.append(auto_covariance_df.values)
         auto_covariance = np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
         return auto_covariance
-
-    @staticmethod
-    def calculate_adjacency_dataframe(solvation_data):
-        """
-        Calculate a frame-by-frame adjacency matrix from the solvation data.
-
-        This will calculate the adjacency matrix of the solute and all possible
-        solvents. It will maintain an index of ["frame", "solute_atom", "solvent"]
-        where each "frame" is a sparse adjacency matrix between solvated atom ix
-        and residue ix.
-
-        Parameters
-        ----------
-        solvation_data : pd.DataFrame
-            the solvation_data from a Solute.
-
-        Returns
-        -------
-        adjacency_df : pandas.DataFrame
-        """
-        # generate an adjacency matrix from the solvation data
-        adjacency_group = solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT_IX])
-        adjacency_df = adjacency_group[DISTANCE].count().unstack(fill_value=0)
-        return adjacency_df
 

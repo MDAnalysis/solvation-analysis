@@ -50,6 +50,8 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks',
+    'nbsphinx',
+    'IPython.sphinxext.ipython_directive',
 ]
 
 autosummary_generate = True
@@ -170,5 +172,7 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
 # -- Extension configuration -------------------------------------------------
+
+autodoc_class_signature = "separated"
+autodoc_member_order = 'bysource'

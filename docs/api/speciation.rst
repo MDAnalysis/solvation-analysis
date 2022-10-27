@@ -1,4 +1,4 @@
-speciation
+Speciation
 ==========
 
  .. automodule:: solvation_analysis.speciation
