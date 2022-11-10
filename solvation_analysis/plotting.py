@@ -1,3 +1,15 @@
+"""
+========
+Plotting
+========
+:Authors: Orion Cohen and Lauren Lee
+:Year: 2022
+:Copyright: GNU Public License v3
+
+The plotting functions are a convenient way to visualize data by taking solutions
+as their input and generating a Plotly.Figure object.
+"""
+
 
 import plotly
 import plotly.graph_objects as go
@@ -13,25 +25,22 @@ def plot_histogram(solution):
     # histogram of what?
     return
 
-def format_graph(fig, title, x_axis, y_axis):
-    # a formatting/styling function for each graph that deals with titles/labels
-    # make a legend
+def format_graph():
+    # a formatting/styling decorator
     """
 
     Parameters
     ----------
-    fig :
-    title :
-    x_axis :
-    y_axis :
+
 
     Returns
     -------
     fig : Plotly.Figure
 
     """
-    fig.update_layout(xaxis_title_text=x_axis.title(), yaxis_title_text=y_axis.title(), title=title.title())
-    return fig
+
+    return
+
 
 def plot_network_size_histogram(networking):
     """
@@ -111,21 +120,17 @@ def plot_coordinating_atoms(solution):
 
 
 # multiple solutions
-def compare_solvent_dicts(properties, coerce, keep_solvents, x_label, y_label, title,
-                          legend_label, x_axis="species", series=False):
+def compare_solvent_dicts(properties, coerce_solvent_names, keep_solvents, legend_label, x_axis="species", series=False):
     # generalist plotter, this can plot either bar or line charts of the same data
     """
 
     Parameters
     ----------
     properties : dictionary of the solvent property to be compared
-    coerce : a dictionary where the keys are strings of solvent names and the values are
+    coerce_solvent_names : a dictionary where the keys are strings of solvent names and the values are
         strings of a more generic name for the solvent (i.e. {"EAf" : "EAx", "fEAf" : "EAx"})
     keep_solvents : a list of strings of solvent names that are common to all systems in question,
-        graphed in the order specified by the user
-    x_label : name of x axis as a string
-    y_label : name of y axis as a string
-    title : title of figure as a string
+        graphed in the order that is passed into the function
     legend_label : title of legend as a string
     x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
     series : Boolean (False for a bar graph; True for a line graph)
@@ -136,9 +141,9 @@ def compare_solvent_dicts(properties, coerce, keep_solvents, x_label, y_label, t
 
     """
     # coerce solutions to a common name
-    for solution in coerce:
+    for solution in coerce_solvent_names:
         if solution in properties:
-            properties[solution][coerce[solution]] = properties[solution].pop(solution)
+            properties[solution][coerce_solvent_names[solution]] = properties[solution].pop(solution)
 
     # filter out components of solution to only include those in keep_solvents
     if keep_solvents:
@@ -172,8 +177,6 @@ def compare_solvent_dicts(properties, coerce, keep_solvents, x_label, y_label, t
     elif not series and x_axis == "solution":
         # each species is a bar
         fig = px.bar(df, x=df.index, y=df.columns, barmode="group", labels={"variable": legend_label})
-
-    fig = format_graph(fig, title, x_label, y_label)
     return fig
 
 
@@ -184,7 +187,7 @@ def compare_free_solvents(solutions):
     return
 
 
-def compare_pairing(solutions, coerce=None, keep_solvents=None, x_label="Solvent", y_label="Pairing", title="Graph of Pairing Data", legend_label="Legend", **kwargs):
+def compare_pairing(solutions, coerce_solvent_names=None, keep_solvents=None, x_label="Solvent", y_label="Pairing", title="Graph of Pairing Data", legend_label="Legend", **kwargs):
     # this should be a grouped vertical bar chart or a line chart
     # 1.0 should be marked and annotated with a dotted line
     """
@@ -192,12 +195,12 @@ def compare_pairing(solutions, coerce=None, keep_solvents=None, x_label="Solvent
     Parameters
     ----------
     solutions : a dictionary of Solution objects
-    coerce : a dictionary where the keys are strings of solvent names and the values are
+    coerce_solvent_names : a dictionary where the keys are strings of solvent names and the values are
         strings of a more generic name for the solvent (i.e. {"EAf" : "EAx", "fEAf" : "EAx"})
     keep_solvents : a list of strings of solvent names that are common to all systems in question,
-        graphed in the order specified by the user
-    x_label : name of x axis as a string
-    y_label : name of y axis as a string
+        graphed in the order that is passed into the function
+    x_label : name of the x-axis as a string
+    y_label : name of the y-axis as a string
     title : title of figure as a string
     legend_label : title of legend as a string
     kwargs : consists of the x_axis and series parameters
@@ -209,27 +212,28 @@ def compare_pairing(solutions, coerce=None, keep_solvents=None, x_label="Solvent
     fig : Plotly.Figure
 
     """
-    coerce = coerce or {}
+    coerce_solvent_names = coerce_solvent_names or {}
     pairing = {solution : solutions[solution].pairing.pairing_dict for solution in solutions}
-    return compare_solvent_dicts(pairing, coerce, keep_solvents, x_label, y_label, title, legend_label, **kwargs)
+    fig = compare_solvent_dicts(pairing, coerce_solvent_names, keep_solvents, legend_label, **kwargs)
+    fig.update_layout(xaxis_title_text=x_label.title(), yaxis_title_text=y_label.title(), title=title.title())
+    return fig
 
 
-def compare_coordination_numbers(solutions, x_label, y_label, title, legend_label="Legend", coerce={}, keep_solvents=None, **kwargs):
-    # this should be a stacked bar chart, horizontal?
-    # TODO: complete docstring
+def compare_coordination_numbers(solutions, coerce_solvent_names=None, keep_solvents=None, x_label="Solvent", y_label="Coordination", title="Graph of Coordination Data", legend_label="Legend", **kwargs):
     """
     Compares the coordination numbers of multiple solutions.
 
     Parameters
     ----------
     solutions : a dictionary of Solution objects
-    x_label :
-    y_label :
-    title :
-    legend_label :
-    coerce : a dictionary where the keys are strings of solvent names and the values are
+    coerce_solvent_names : a dictionary where the keys are strings of solvent names and the values are
         strings of a more generic name for the solvent (i.e. {"EAf" : "EAx", "fEAf" : "EAx"})
-    keep_solvents : a list of strings of solvent names that are common to all systems in question
+    keep_solvents : a list of strings of solvent names that are common to all systems in question,
+        graphed in the order that is passed into the function
+    x_label : name of the x-axis as a string
+    y_label : name of the y-axis as a string
+    title : title of figure as a string
+    legend_label : title of legend as a string
     kwargs : consists of the x_axis and series parameters
         x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
         series : Boolean (False for a bar graph; True for a line graph)
@@ -239,8 +243,11 @@ def compare_coordination_numbers(solutions, x_label, y_label, title, legend_labe
     fig : Plotly.Figure
 
     """
+    coerce_solvent_names = coerce_solvent_names or {}
     coordination = {solution: solutions[solution].coordination.cn_dict for solution in solutions}
-    return compare_solvent_dicts(coordination, coerce, keep_solvents, x_label, y_label, title, legend_label, **kwargs)
+    fig = compare_solvent_dicts(coordination, coerce_solvent_names, keep_solvents, legend_label, **kwargs)
+    fig.update_layout(xaxis_title_text=x_label.title(), yaxis_title_text=y_label.title(), title=title.title())
+    return fig
 
 
 def compare_coordination_to_random(solutions):
@@ -249,27 +256,38 @@ def compare_coordination_to_random(solutions):
     return
 
 
-def compare_residence_times(solutions, series=False, ignore=None):
+def compare_residence_times(solutions, coerce_solvent_names=None, keep_solvents=None, x_label="Solvent", y_label="Residence Time", title="Graph of Residence Time Data", legend_label="Legend", **kwargs):
     # not in this branch yet
     # this should be a grouped vertical bar chart or a line chart
+    # TODO: do we want to use residence_times or residence_times_fit?
     """
-    Compares the coordination numbers of multiple solutions.
+    Compares the residence times of multiple solutions.
 
     Parameters
     ----------
-    solutions : a list of Solution objects
-    series : Boolean
-    ignore : list of strings of solvent names to be ignored
+    solutions : a dictionary of Solution objects
+    coerce_solvent_names : a dictionary where the keys are strings of solvent names and the values are
+        strings of a more generic name for the solvent (i.e. {"EAf" : "EAx", "fEAf" : "EAx"})
+    keep_solvents : a list of strings of solvent names that are common to all systems in question,
+        graphed in the order that is passed into the function
+    x_label : name of the x-axis as a string
+    y_label : name of the y-axis as a string
+    title : title of figure as a string
+    legend_label : title of legend as a string
+    kwargs : consists of the x_axis and series parameters
+        x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
+        series : Boolean (False for a bar graph; True for a line graph)
 
     Returns
     -------
     fig : Plotly.Figure
 
     """
-    # catch_different_solvents(solutions)
-    residence = [solution.residence.residence_times for solution in solutions]
-    residence = set(residence) - set(ignore)
-    return compare_solvent_dicts(residence, series)
+    coerce_solvent_names = coerce_solvent_names or {}
+    res_time = {solution: solutions[solution].residence.residence_times for solution in solutions}
+    fig = compare_solvent_dicts(res_time, coerce_solvent_names, keep_solvents, legend_label, **kwargs)
+    fig.update_layout(xaxis_title_text=x_label.title(), yaxis_title_text=y_label.title(), title=title.title())
+    return fig
 
 
 def compare_solute_status(solutions):
@@ -278,6 +296,8 @@ def compare_solute_status(solutions):
     fig = compare_solvent_dicts()
     return
 
+
+# TODO: another easy compare function to fill out
 def compare_speciation(solutions, series=True):
     # stacked bars, grouped or stacked
     # or square areas?

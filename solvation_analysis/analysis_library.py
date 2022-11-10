@@ -525,7 +525,7 @@ class Residence:
         with the 1/e cutoff method.
     residence_times_fit : dict of {str: float}
         a dictionary where keys are residue names and values are the
-        residence times of the that residue on the solute, calculated
+        residence times of the residue on the solute, calculated
         with the exponential fit method.
     fit_parameters : pd.DataFrame
         a dictionary where keys are residue names and values are the
