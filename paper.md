@@ -1,0 +1,78 @@
+title: 'SolvationToolkit: A Python package for understanding liquid solvation structure in classical molecular dynamics simulations![img.png](img.png)'
+tags:
+ - Python
+ - chemistry
+ - molecular dynamics
+ - solvation structure
+authors:
+ - name: Orion Archer Cohen
+   orcid: 0000-0003-3940-2456
+   affiliation: 1
+ - name: Hugo Macdermott-Opeskin
+   orcid: 0000-0002-7393-7457
+   affiliation: 2
+ - name: Lauren Lee
+   orcid:
+   affiliation: 1
+ - name: Kara Fong
+   orcid: 0000-0002-0711-097X
+   affiliation: 1
+ - name: Tingzheng Hou
+   orcid: 0000-0002-7163-2561
+   affiliation: 1
+ - name: Ryan Kingsbury
+   orcid: 0000-0002-7168-3967
+   affiliation: 1
+ - name: Jingyang Wang
+   orcid:
+   affiliation: 1
+ - name: Kristin Persson
+   orcid: 0000-0003-2495-5509
+   affiliation: "2,3"
+affiliations:
+ - Materials Science Division, Lawrence Berkeley National Laboratory, USA
+   index: 1
+ - Australian National University, Australia
+   index: 2
+ - Department of Materials Science, University of California, USA
+   index: 2
+ - Molecular Foundry, Lawrence Berkeley National Laboratory, USA
+   index: 3
+date: 10 January 2023
+bibliography: paper.bib
+
+# Summary
+
+\autoref{fig:summary}
+
+# Figures
+
+![A summary of SolvationAnalysis capabilities. \label{fig:summary}](docs/assets/summary_figure.jpg)
+
+# Statement of need
+
+Molecular dynamics studies of liquid solvation structures often replicate
+established analyses on novel systems. In electrolyte systems, it is common
+to calculate coordination numbers, radial distribution functions, solute
+dissociation, cluster speciation, etc. In principle, these analyses are highly
+similar across a diversity of systems. In practice, many specialized bespoke
+tools have sprung up to address the same underlying problem. Enter Solvation
+Analysis, an easy-to-use Python package with an interactive interface for
+computing a wide variety of solvation properties. Building on MDAnalysis and
+Pandas, it efficiently processes output from a wide variety of Molecular
+Dynamics applications. Paired with high-throughput infrastructure, Solvation
+Analysis becomes a powerful tool for understanding solvation at scale.
+
+# Acknowledgements
+
+Oliver Beckstein, Richard Gowers, Irfan Alibay, Lily Wang.
+
+Funding from Google Summer of Code, NSF GRFP Fellowship, US Department of Energy.
+
+
+# References
+
+still need references for:
+- residence time
+- networking (jingyangs work?)
+- data (to tingzhengs and my publications)
