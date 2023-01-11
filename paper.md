@@ -65,9 +65,10 @@ Analysis becomes a powerful tool for understanding solvation at scale.
 
 # Acknowledgements
 
-Oliver Beckstein, Richard Gowers, Irfan Alibay, Lily Wang.
-
-Funding from Google Summer of Code, NSF GRFP Fellowship, US Department of Energy.
+Thank you to Oliver Beckstein, Richard Gowers, Irfan Alibay, and Lily Wang for
+technical advice about MDAnalysis and Python development. Thank you to Google 
+Summer of Code, the NSF GRFP Fellowship, and the US Department of Energy for 
+funding.
 
 
 # References
