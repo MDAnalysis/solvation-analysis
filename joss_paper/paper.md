@@ -78,7 +78,7 @@ like coordination numbers, solute-solvent pairing, and solute
 speciation, SolvationAnalysis uses tools from the SciPy ecosystem
 [@numpy:2020][@scipy:2020] to implement analyses of network formation
 [@Wang:2022] and residence times [@Self:2019], all summarized in
-\autoref{fig:summary}. Since researchers will inevitably plot these
+\autoref{fig:summary_figure}. Since researchers will inevitably plot these
 properties the package includes a robust set of visualization tools built
 on top of `Matplotlib` and `Plotly` [@matplotlib:2007][@plotly:2015].
 A full set of tutorials based on state-of-the-art electrolyte systems
