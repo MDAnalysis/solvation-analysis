@@ -1,5 +1,5 @@
 ---
-title: 'SolvationToolkit: A Python package for understanding liquid solvation structure in classical molecular dynamics simulations'
+title: 'SolvationAnalysis: A Python toolkit for understanding liquid solvation structure in classical molecular dynamics simulations'
 tags:
  - Python
  - chemistry
