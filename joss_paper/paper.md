@@ -46,13 +46,14 @@ bibliography: paper.bib
 
 # Summary
 
-The macroscopic behavior of matter is determined by the microscopic arrangement
-of its atoms. Understanding and predicting how matter behaves requires knowledge
-of it's microscopic properties. Since this is often difficult or impossible to
-observe experimentally, researchers use simulation techniques like molecular dynamics 
-to probe the microscopic structure and dynamics of everything from proteins to
-battery electrolytes. SolvationAnalysis makes it easy to study the structure of
-liquids in molecular dynamics simulations. It calculates the properties researchers
+The macroscopic behavior of matter is determined by the microscopic
+arrangement of atoms. Understanding and predicting how matter behaves
+requires knowledge of this microscopic structure, but it is often
+difficult or impossible to observe experimentally. Instead, researchers use
+simulation techniques like molecular dynamics to probe the microscopic
+structure and dynamics of everything from proteins to battery electrolytes.
+SolvationAnalysis makes it easy to study the structure of liquids in
+molecular dynamics simulations. It calculates the properties researchers
 are usually interested in and provides a means of interactive exploration.
 
 # Statement of need
