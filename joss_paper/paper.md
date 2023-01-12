@@ -16,12 +16,12 @@ authors:
  - name: Lauren Lee
    orcid:
    affiliation: 1
- - name: Kara Fong
-   orcid: 0000-0002-0711-097X
-   affiliation: 1
  - name: Tingzheng Hou
    orcid: 0000-0002-7163-2561
-   affiliation: 1
+   affiliation: 3
+ - name: Kara Fong
+   orcid: 0000-0002-0711-097X
+   affiliation: 4
  - name: Ryan Kingsbury
    orcid: 0000-0002-7168-3967
    affiliation: 1
@@ -30,16 +30,20 @@ authors:
    affiliation: 1
  - name: Kristin Persson
    orcid: 0000-0003-2495-5509
-   affiliation: "2,3"
+   affiliation: "1,6"
 affiliations:
  - name: Materials Science Division, Lawrence Berkeley National Laboratory, USA
    index: 1
  - name: Australian National University, Australia
    index: 2
- - name: Department of Materials Science, University of California, USA
-   index: 2
- - name: Molecular Foundry, Lawrence Berkeley National Laboratory, USA
+ - name: Tsinghua Shenzhen International Graduate School, China
    index: 3
+ - name: Trinity College, University of Cambridge, UK
+   index: 4
+ - name: Department of Materials Science, University of California, USA
+   index: 5
+ - name: Molecular Foundry, Lawrence Berkeley National Laboratory, USA
+   index: 6
 date: 10 January 2023
 bibliography: paper.bib
 ---
@@ -74,7 +78,7 @@ implementing common calculations. In addition to routine properties
 like coordination numbers, solute-solvent pairing, and solute
 speciation, SolvationAnalysis uses tools from the SciPy ecosystem
 [@numpy:2020][@scipy:2020] to implement analyses of network formation
-[@jingyang] and residence times [@residence], all summarized in
+[@Wang:2022] and residence times [@Self:2019], all summarized in
 \autoref{fig:example}. Since researchers will inevitably plot these
 properties the package includes a robust set of visualization tools built
 on top of `Matplotlib` and `Plotly` [@matplotlib:2007][@plotly:2015].
@@ -93,7 +97,5 @@ Thank you to Oliver Beckstein, Richard Gowers, Irfan Alibay, and Lily Wang for
 technical advice about MDAnalysis and Python development. Thank you to Google 
 Summer of Code, the NSF GRFP Fellowship, and the US Department of Energy for 
 funding.
-
-still need references for residence time & networking from jingyang
 
 # References
