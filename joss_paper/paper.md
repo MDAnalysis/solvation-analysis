@@ -40,7 +40,7 @@ affiliations:
  - Molecular Foundry, Lawrence Berkeley National Laboratory, USA
    index: 3
 date: 10 January 2023
-bibliography: paper.bib
+bibliography: joss_paper/paper.bib
 ---
 
 # Summary
