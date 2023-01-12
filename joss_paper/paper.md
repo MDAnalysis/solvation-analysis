@@ -28,7 +28,7 @@ authors:
  - name: Jingyang Wang
    orcid:
    affiliation: 1
- - name: Kristin Persson
+ - name: Kristin A. Persson
    orcid: 0000-0003-2495-5509
    affiliation: "1,6"
 affiliations:
@@ -44,7 +44,7 @@ affiliations:
    index: 5
  - name: Molecular Foundry, Lawrence Berkeley National Laboratory, USA
    index: 6
-date: 10 January 2023
+date: 12 January 2023
 bibliography: paper.bib
 ---
 
