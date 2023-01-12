@@ -51,21 +51,20 @@ bibliography: paper.bib
 # Summary
 
 The macroscopic behavior of matter is determined by the microscopic
-arrangement of atoms. Understanding and predicting how matter behaves
-requires knowledge of this microscopic structure, but it is often
+arrangement of atoms, but this structure is often
 difficult or impossible to observe experimentally. Instead, researchers use
 simulation techniques like molecular dynamics to probe the microscopic
 structure and dynamics of everything from proteins to battery electrolytes.
-SolvationAnalysis makes it easy to study the structure of liquids in
-molecular dynamics simulations. It calculates the properties researchers
-are usually interested in and provides a means of interactive exploration.
+SolvationAnalysis extracts solvation information from completed
+molecular dynamics simulations, this lets research access key solvation
+structure statistics with minimal effort, accelerating scientific research.
 
 # Statement of need
 
 Molecular dynamics studies of liquid solvation structures often replicate
 established analyses on novel systems. In electrolyte systems, it is common
 to calculate coordination numbers, radial distribution functions, solute
-dissociation, cluster speciation, etc. In principle, these analyses are highly
+dissociation, cluster speciation, etc.[Hou:2019] In principle, these analyses are highly
 similar across a diversity of systems. In practice, many specialized bespoke
 tools have sprung up to address the same underlying problem. Enter `SolvationAnalysis`, 
 an easy-to-use Python package with an interactive interface for
