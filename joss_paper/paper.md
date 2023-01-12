@@ -64,7 +64,7 @@ structure statistics with minimal effort, accelerating scientific research.
 Molecular dynamics studies of liquid solvation structures often replicate
 established analyses on novel systems. In electrolyte systems, it is common
 to calculate coordination numbers, radial distribution functions, solute
-dissociation, cluster speciation, etc.[Hou:2019] In principle, these analyses are highly
+dissociation, cluster speciation, etc.[@Hou:2019] In principle, these analyses are highly
 similar across a diversity of systems. In practice, many specialized bespoke
 tools have sprung up to address the same underlying problem. Enter `SolvationAnalysis`, 
 an easy-to-use Python package with an interactive interface for
