@@ -50,20 +50,20 @@ bibliography: paper.bib
 # Summary
 
 The macroscopic behavior of matter is determined by the microscopic
-arrangement of atoms, but this structure is often
+arrangement of atoms, but this arrangement is often
 difficult or impossible to observe experimentally. Instead, researchers use
 simulation techniques like molecular dynamics to probe the microscopic
 structure and dynamics of everything from proteins to battery electrolytes.
 SolvationAnalysis extracts solvation information from completed
-molecular dynamics simulations, this lets research access key solvation
-structure statistics with minimal effort, accelerating scientific research.
+molecular dynamics simulations, letting researchers access key solvation
+structure statistics with minimal effort and accelerating scientific research.
 
 # Statement of need
 
 Molecular dynamics studies of liquid solvation structures often replicate
 established analyses on novel systems. In electrolyte systems, it is common
 to calculate coordination numbers, radial distribution functions, solute
-dissociation, cluster speciation, etc.[@Hou:2019] In principle, these analyses are highly
+dissociation, and cluster speciation [@Hou:2019]. In principle, these analyses are highly
 similar across a diversity of systems. In practice, many specialized bespoke
 tools have sprung up to address the same underlying problem. Enter `SolvationAnalysis`, 
 an easy-to-use Python package with an interactive interface for
@@ -76,12 +76,12 @@ implementing common calculations. In addition to routine properties like
 coordination numbers, solute-solvent pairing, and solute speciation,
 SolvationAnalysis uses tools from the SciPy ecosystem [@numpy:2020] [@scipy:2020]
 to implement analyses of network formation [@Wang:2022] and residence
-times [@Self:2019], all summarized in \autoref{fig:summary}. Since researchers will inevitably plot these
-properties the package includes a robust set of visualization tools built
+times [@Self:2019], summarized in \autoref{fig:summary}. To make visualization fast, 
+the package includes a robust set of plotting tools built
 on top of `Matplotlib` and `Plotly` [@matplotlib:2007] [@plotly:2015].
 A full set of tutorials based on state-of-the-art electrolyte systems 
 [@Hou:2019] [@Dong-Joo:2022] are also included to familiarize new researchers
-with analyzing solvation structures. Together, these features allow for
+with solvation structure analysis. Together, these features allow for
 rapid interactive or programmatic calculation of solvation properties.
 
 # Figures
