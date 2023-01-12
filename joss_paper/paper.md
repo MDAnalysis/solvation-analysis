@@ -39,7 +39,7 @@ affiliations:
  - Molecular Foundry, Lawrence Berkeley National Laboratory, USA
    index: 3
 date: 10 January 2023
-bibliography: paper.bib
+bibliography: joss_paper/paper.bib
 
 # Summary
 
@@ -75,7 +75,7 @@ implementing common calculations. In addition to routine properties like
 coordination numbers, solute-solvent pairing, and solute speciation,
 SolvationAnalysis uses tools from the SciPy ecosystem [numpy:2020][scipy:2020]
 to implement analyses of network formation [@jingyang] and residence
-times[@kara]. Since researchers will inevitably plot these properties
+times[@residence]. Since researchers will inevitably plot these properties
 the package includes a robust set of visualization tools built on
 top of Matplotlib and Plotly [@matplotlib:2007][plotly:2015]. A
 full set of tutorials based on state-of-the-art electrolyte systems
