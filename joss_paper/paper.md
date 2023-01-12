@@ -66,13 +66,13 @@ established analyses on novel systems. In electrolyte systems, it is common
 to calculate coordination numbers, radial distribution functions, solute
 dissociation, cluster speciation, etc. In principle, these analyses are highly
 similar across a diversity of systems. In practice, many specialized bespoke
-tools have sprung up to address the same underlying problem. Enter Solvation
-Analysis, an easy-to-use Python package with an interactive interface for
+tools have sprung up to address the same underlying problem. Enter `SolvationAnalysis`, 
+an easy-to-use Python package with an interactive interface for
 computing a wide variety of solvation properties. Building on MDAnalysis and
 pandas [@Michaud-Agrawal:2014] [@Gowers:2016] [@pandas:2020], it efficiently
 processes output from a wide variety of Molecular Dynamics applications.
 
-SolvationAnalysis was designed to free researchers from laboriously
+`SolvationAnalysis` was designed to free researchers from laboriously
 implementing common calculations. In addition to routine properties like
 coordination numbers, solute-solvent pairing, and solute speciation,
 SolvationAnalysis uses tools from the SciPy ecosystem [@numpy:2020] [@scipy:2020]
