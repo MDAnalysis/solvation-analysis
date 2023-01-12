@@ -83,7 +83,7 @@ rapid interactive or programmatic calculation of solvation properties.
 
 # Figures
 
-![A summary of SolvationAnalysis capabilities.](joss_paper/summary_figure.jpg)
+![A summary of SolvationAnalysis capabilities.](summary_figure.jpg)
 
 # Acknowledgements
 
