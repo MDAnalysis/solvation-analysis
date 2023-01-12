@@ -7,6 +7,7 @@ tags:
  - solvation structure
 authors:
  - name: Orion Archer Cohen
+   corresponding: true
    orcid: 0000-0003-3940-2456
    affiliation: 1
  - name: Hugo Macdermott-Opeskin
@@ -31,13 +32,13 @@ authors:
    orcid: 0000-0003-2495-5509
    affiliation: "2,3"
 affiliations:
- - Materials Science Division, Lawrence Berkeley National Laboratory, USA
+ - name: Materials Science Division, Lawrence Berkeley National Laboratory, USA
    index: 1
- - Australian National University, Australia
+ - name: Australian National University, Australia
    index: 2
- - Department of Materials Science, University of California, USA
+ - name: Department of Materials Science, University of California, USA
    index: 2
- - Molecular Foundry, Lawrence Berkeley National Laboratory, USA
+ - name: Molecular Foundry, Lawrence Berkeley National Laboratory, USA
    index: 3
 date: 10 January 2023
 bibliography: joss_paper/paper.bib
@@ -72,7 +73,7 @@ implementing common calculations. In addition to routine properties like
 coordination numbers, solute-solvent pairing, and solute speciation,
 SolvationAnalysis uses tools from the SciPy ecosystem [@numpy:2020] [@scipy:2020]
 to implement analyses of network formation [@jingyang] and residence
-times[@residence]. Since researchers will inevitably plot these properties
+times [@residence]. Since researchers will inevitably plot these properties
 the package includes a robust set of visualization tools built on
 top of `Matplotlib` and `Plotly` [@matplotlib:2007] [@plotly:2015]. A
 full set of tutorials based on state-of-the-art electrolyte systems
@@ -82,7 +83,7 @@ rapid interactive or programmatic calculation of solvation properties.
 
 # Figures
 
-![A summary of SolvationAnalysis capabilities. \label{fig:summary}](docs/assets/summary_figure.jpg)
+![A summary of SolvationAnalysis capabilities.](joss_paper/summary_figure.jpg)
 
 # Acknowledgements
 
