@@ -30,7 +30,7 @@ authors:
    affiliation: 1
  - name: Kristin A. Persson
    orcid: 0000-0003-2495-5509
-   affiliation: "1,6"
+   affiliation: "5,6"
 affiliations:
  - name: Materials Science Division, Lawrence Berkeley National Laboratory, USA
    index: 1
