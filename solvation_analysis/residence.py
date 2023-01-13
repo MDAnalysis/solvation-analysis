@@ -244,9 +244,8 @@ class Residence:
 
         for solute_ix, solute_df in adjacency_matrix.groupby([SOLUTE_IX, SOLUTE_ATOM_IX]):
             # this is needed to make sure auto-covariances can be concatenated later
-            if solute_df.index.levshape[0] != adjacency_matrix.index.levshape[0]:
-                solute_df = solute_df.droplevel([SOLUTE_IX, SOLUTE_ATOM_IX]).reindex(timesteps, fill_value=0)
-            non_zero_cols = solute_df.loc[:, (solute_df != 0).any(axis=0)]
+            new_solute_df = solute_df.droplevel([SOLUTE_IX, SOLUTE_ATOM_IX]).reindex(timesteps, fill_value=0)
+            non_zero_cols = new_solute_df.loc[:, (solute_df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
                 acovf,
                 axis=0,
