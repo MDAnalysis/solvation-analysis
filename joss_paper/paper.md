@@ -81,7 +81,7 @@ on top of `Matplotlib` and `Plotly` [@matplotlib:2007] [@plotly:2015].
 A full set of tutorials based on state-of-the-art electrolyte systems 
 [@Hou:2019] [@Dong-Joo:2022] are also included to familiarize new researchers
 with solvation structure analysis. Together, these features allow for
-rapid interactive or programmatic calculation of solvation properties. 
+rapid interactive or programmatic calculation of solvation properties.
 
 # Figures
 
