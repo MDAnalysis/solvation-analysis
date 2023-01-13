@@ -1,8 +1,9 @@
 ---
 title: 'SolvationAnalysis: A Python toolkit for understanding liquid solvation structure in classical molecular dynamics simulations'
 tags:
- - Python
+ - python
  - chemistry
+ - electrolytes
  - molecular dynamics
  - solvation structure
 authors:
@@ -20,7 +21,7 @@ authors:
    affiliation: 3
  - name: Kara Fong
    orcid: 0000-0002-0711-097X
-   affiliation: 4
+   affiliation: 1
  - name: Ryan Kingsbury
    orcid: 0000-0002-7168-3967
    affiliation: 1
@@ -29,7 +30,7 @@ authors:
    affiliation: 1
  - name: Kristin A. Persson
    orcid: 0000-0003-2495-5509
-   affiliation: "5,6"
+   affiliation: "4,5"
 affiliations:
  - name: Materials Science Division, Lawrence Berkeley National Laboratory, USA
    index: 1
@@ -37,12 +38,10 @@ affiliations:
    index: 2
  - name: Tsinghua Shenzhen International Graduate School, China
    index: 3
- - name: Trinity College, University of Cambridge, UK
-   index: 4
  - name: Department of Materials Science, University of California, USA
-   index: 5
+   index: 4
  - name: Molecular Foundry, Lawrence Berkeley National Laboratory, USA
-   index: 6
+   index: 5
 date: 12 January 2023
 bibliography: paper.bib
 ---
@@ -69,10 +68,10 @@ tools have sprung up to address the same underlying problem. Enter `SolvationAna
 an easy-to-use Python package with an interactive interface for
 computing a wide variety of solvation properties. Building on `MDAnalysis` and
 `pandas` [@Michaud-Agrawal:2014] [@Gowers:2016] [@pandas:2020], it efficiently
-processes output from a wide variety of Molecular Dynamics applications.
+processes output from a wide variety of Molecular Dynamics simulation packages.
 
 `SolvationAnalysis` was designed to free researchers from laboriously
-implementing common calculations. In addition to routine properties like
+implementing and validating common analyses. In addition to routine properties like
 coordination numbers, solute-solvent pairing, and solute speciation,
 SolvationAnalysis uses tools from the SciPy ecosystem [@numpy:2020] [@scipy:2020]
 to implement analyses of network formation [@Wang:2022] and residence
@@ -82,7 +81,7 @@ on top of `Matplotlib` and `Plotly` [@matplotlib:2007] [@plotly:2015].
 A full set of tutorials based on state-of-the-art electrolyte systems 
 [@Hou:2019] [@Dong-Joo:2022] are also included to familiarize new researchers
 with solvation structure analysis. Together, these features allow for
-rapid interactive or programmatic calculation of solvation properties.
+rapid interactive or programmatic calculation of solvation properties. 
 
 # Figures
 
