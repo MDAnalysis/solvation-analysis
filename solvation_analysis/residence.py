@@ -240,17 +240,22 @@ class Residence:
     @staticmethod
     def _calculate_auto_covariance(adjacency_matrix):
         auto_covariances = []
+        timesteps = adjacency_matrix.index.levels[0]
+
         for solute_ix, solute_df in adjacency_matrix.groupby([SOLUTE_IX, SOLUTE_ATOM_IX]):
-            non_zero_cols = solute_df.loc[:, (solute_df != 0).any(axis=0)]
+            # this is needed to make sure auto-covariances can be concatenated later
+            new_solute_df = solute_df.droplevel([SOLUTE_IX, SOLUTE_ATOM_IX]).reindex(timesteps, fill_value=0)
+            non_zero_cols = new_solute_df.loc[:, (solute_df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
                 acovf,
                 axis=0,
                 result_type='expand',
                 demean=False,
-                unbiased=True,
+                adjusted=True,
                 fft=True
             )
+            # timesteps with no binding are getting skipped, we need to make sure to include all timesteps
             auto_covariances.append(auto_covariance_df.values)
+
         auto_covariance = np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
         return auto_covariance
-
