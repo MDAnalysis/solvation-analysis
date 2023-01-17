@@ -256,16 +256,14 @@ def compare_coordination_to_random(solutions):
     return
 
 
-def compare_residence_times(solutions, coerce_solvent_names=None, keep_solvents=None, x_label="Solvent", y_label="Residence Time", title="Graph of Residence Time Data", legend_label="Legend", **kwargs):
-    # not in this branch yet
-    # this should be a grouped vertical bar chart or a line chart
-    # TODO: do we want to use residence_times or residence_times_fit?
+def compare_residence_times(solutions, res_type="residence_times_fit", coerce_solvent_names=None, keep_solvents=None, x_label="Solvent", y_label="Residence Time", title="Graph of Residence Time Data", legend_label="Legend", **kwargs):
     """
     Compares the residence times of multiple solutions.
 
     Parameters
     ----------
     solutions : a dictionary of Solution objects
+    res_type : a string that is either "residence_times" or residence_times_fit"
     coerce_solvent_names : a dictionary where the keys are strings of solvent names and the values are
         strings of a more generic name for the solvent (i.e. {"EAf" : "EAx", "fEAf" : "EAx"})
     keep_solvents : a list of strings of solvent names that are common to all systems in question,
@@ -283,8 +281,14 @@ def compare_residence_times(solutions, coerce_solvent_names=None, keep_solvents=
     fig : Plotly.Figure
 
     """
+    if res_type == "residence_times":
+        res_time = {solution: solutions[solution].residence.residence_times for solution in solutions}
+    elif res_type == "residence_times_fit":
+        res_time = {solution: solutions[solution].residence.residence_times_fit for solution in solutions}
+    else:
+        raise ValueError("res_type must be either \"residence_times\" or \"residence_times_fit\"")
+
     coerce_solvent_names = coerce_solvent_names or {}
-    res_time = {solution: solutions[solution].residence.residence_times for solution in solutions}
     fig = compare_solvent_dicts(res_time, coerce_solvent_names, keep_solvents, legend_label, **kwargs)
     fig.update_layout(xaxis_title_text=x_label.title(), yaxis_title_text=y_label.title(), title=title.title())
     return fig
@@ -297,14 +301,15 @@ def compare_solute_status(solutions):
     return
 
 
-# TODO: another easy compare function to fill out
-def compare_speciation(solutions, series=True):
-    # stacked bars, grouped or stacked
-    # or square areas?
+def compare_speciation(solutions, coerce_solvent_names=None, keep_solvents=None, x_label="Solvent", y_label="Speciation", title="Graph of Speciation Data", legend_label="Legend", **kwargs):
+    coerce_solvent_names = coerce_solvent_names or {}
+    speciation = {solution: solutions[solution].speciation.speciation_percent for solution in solutions}
+    fig = compare_solvent_dicts(speciation, coerce_solvent_names, keep_solvents, legend_label, **kwargs)
+    fig.update_layout(xaxis_title_text=x_label.title(), yaxis_title_text=y_label.title(), title=title.title())
+    return fig
 
-    return
 
-
+# TODO: work on rdfs; make them tiled
 def compare_rdfs(solutions, atoms):
     # can atom groups be matched to solutions / universes behind the scenes?
     # yes we can use atom.u is universe

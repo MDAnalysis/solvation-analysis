@@ -62,8 +62,8 @@ class Speciation:
         of solvent in the shell.
     speciation_percent : pandas.DataFrame
         the percentage of shells of each type. Columns are the solvent
-        molecules and and values are the number of solvent in the shell.
-        The final column is the percentage of total shell of that
+        molecules and values are the number of solvents in the shell.
+        The final column is the percentage of total shells of that
         particular composition.
     co_occurrence : pandas.DataFrame
         The actual co-occurrence of solvents divided by the expected co-occurrence.
