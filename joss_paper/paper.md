@@ -14,7 +14,6 @@ authors:
    orcid: 0000-0002-7393-7457
    affiliation: 2
  - name: Lauren Lee
-   orcid:
    affiliation: 1
  - name: Tingzheng Hou
    orcid: 0000-0002-7163-2561
@@ -26,7 +25,7 @@ authors:
    orcid: 0000-0002-7168-3967
    affiliation: 4
  - name: Jingyang Wang
-   orcid:
+   orcid: 0000-0003-3307-5132
    affiliation: 1
  - name: Kristin A. Persson
    orcid: 0000-0003-2495-5509
@@ -76,7 +75,7 @@ processes output from a wide variety of Molecular Dynamics simulation packages.
 implementing and validating common analyses. In addition to routine properties like
 coordination numbers, solute-solvent pairing, and solute speciation,
 SolvationAnalysis uses tools from the SciPy ecosystem [@numpy:2020] [@scipy:2020]
-to implement analyses of network formation [@Wang:2022] and residence
+to implement analyses of network formation [@Xie:2023] and residence
 times [@Self:2019], summarized in \autoref{fig:summary}. To make visualization fast, 
 the package includes a robust set of plotting tools built
 on top of `Matplotlib` and `Plotly` [@matplotlib:2007] [@plotly:2015].
