@@ -19,29 +19,31 @@ authors:
  - name: Tingzheng Hou
    orcid: 0000-0002-7163-2561
    affiliation: 3
- - name: Kara Fong
+ - name: Kara D. Fong
    orcid: 0000-0002-0711-097X
    affiliation: 1
  - name: Ryan Kingsbury
    orcid: 0000-0002-7168-3967
-   affiliation: 1
+   affiliation: 4
  - name: Jingyang Wang
    orcid:
    affiliation: 1
  - name: Kristin A. Persson
    orcid: 0000-0003-2495-5509
-   affiliation: "4,5"
+   affiliation: "5,6"
 affiliations:
  - name: Materials Science Division, Lawrence Berkeley National Laboratory, USA
    index: 1
  - name: Australian National University, Australia
    index: 2
- - name: Tsinghua Shenzhen International Graduate School, China
+ - name: Institute of Materials Research, Shenzhen International Graduate School, Tsinghua University, China
    index: 3
- - name: Department of Materials Science, University of California, USA
+ - name: Energy Storage & Distributed Resources Division, Lawrence Berkeley National Laboratory, USA
    index: 4
- - name: Molecular Foundry, Lawrence Berkeley National Laboratory, USA
+ - name: Department of Materials Science, University of California, USA
    index: 5
+ - name: Molecular Foundry, Lawrence Berkeley National Laboratory, USA
+   index: 6
 date: 12 January 2023
 bibliography: paper.bib
 ---
@@ -78,7 +80,7 @@ to implement analyses of network formation [@Wang:2022] and residence
 times [@Self:2019], summarized in \autoref{fig:summary}. To make visualization fast, 
 the package includes a robust set of plotting tools built
 on top of `Matplotlib` and `Plotly` [@matplotlib:2007] [@plotly:2015].
-A full set of tutorials based on state-of-the-art electrolyte systems 
+A full set of tutorials based on state-of-the-art battery electrolytes 
 [@Hou:2019] [@Dong-Joo:2022] are also included to familiarize new researchers
 with solvation structure analysis. Together, these features allow for
 rapid interactive or programmatic calculation of solvation properties.
