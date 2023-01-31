@@ -8,9 +8,7 @@ from solvation_analysis.plotting import (
     compare_pairing,
     compare_coordination_numbers,
     compare_residence_times,
-    compare_speciation,
     compare_solvent_dicts,
-    format_graph,
 )
 
 
@@ -177,7 +175,7 @@ def test_compare_residence_times_default(run_solution):
 def test_compare_residence_times_default_eax(eax_solutions):
     # call compare_residence_times with only one required argument
     # also tests how the code handles eax systems
-    fig = compare_pairing(eax_solutions)
+    fig = compare_residence_times(eax_solutions)
     assert len(fig.data) == 4
     fig.show()
 
@@ -236,7 +234,7 @@ def test_compare_residence_times_res_type(eax_solutions):
     fig.show()
 
 
-def test_compare_residence_times_exception(eax_solutions):
+def test_compare_residence_times_res_type_exception(eax_solutions):
     # this test should handle an exception relating to the acceptable arguments for res_type
     with pytest.raises(Exception):
         fig = compare_residence_times(eax_solutions, res_type="residence time", keep_solvents=["fec", "pf6"],
@@ -245,62 +243,13 @@ def test_compare_residence_times_exception(eax_solutions):
                                       title="Bar Graph of Residence Times")
 
 
-# compare_speciation tests
-# TODO: complete this test
-def test_compare_speciation_default(eax_solutions):
-    fig = compare_speciation(eax_solutions)
-    fig.show()
-    assert True
+def test_compare_residence_times_instantiation_exception(eax_solutions):
+    # this test should handle an exception relating to whether the Residence analysis class is instantiated
+    with pytest.raises(Exception):
+        fig = compare_residence_times(eax_solutions, res_type="residence_times", keep_solvents=["fec", "pf6"],
+                                      x_label="Species",
+                                      y_label="Residence Times",
+                                      title="Bar Graph of Residence Times")
 
 
-def test_compare_speciation_default_eax(eax_solutions):
-    # call compare_speciation with only one required argument
-    # also tests how the code handles eax systems
-    fig = compare_speciation(eax_solutions)
-    assert len(fig.data) == 4
-    fig.show()
-
-
-def test_compare_speciation_case1(eax_solutions):
-    # keep_solvents on x axis, each bar is a solution
-    fig = compare_speciation(eax_solutions, keep_solvents=["fec", "pf6"], x_label="Species",
-                                       y_label="Speciation",
-                                       title="Bar Graph of Speciation")
-    assert len(fig.data) == 4
-    for bar in fig.data:
-        assert set(bar.x) == {"fec", "pf6"}
-    fig.show()
-
-
-def test_compare_speciation_case2(eax_solutions):
-    # solutions on x axis, each bar is an element of keep_solvents
-    fig = compare_speciation(eax_solutions, keep_solvents=["pf6", "fec"], x_label="Solution",
-                                       y_label="Speciation",
-                                       title="Bar Graph of Speciation", x_axis="solution")
-    assert len(fig.data) == 2
-    for bar in fig.data:
-        assert set(bar.x) == {"feaf", "eaf", "fea", "ea"}
-    fig.show()
-
-
-def test_compare_speciation_case3(eax_solutions):
-    # keep_solvents on x axis, each line is a solution
-    fig = compare_speciation(eax_solutions, keep_solvents=["pf6", "fec"], x_label="Solution",
-                                       y_label="Speciation",
-                                       title="Line Graph of Speciation", series=True)
-    assert len(fig.data) == 4
-    for line in fig.data:
-        assert set(line.x) == {"fec", "pf6"}
-    fig.show()
-
-
-def test_compare_speciation_case4(eax_solutions):
-    # solutions on x axis, each line is an element of keep_solvents
-    fig = compare_coordination_numbers(eax_solutions, keep_solvents=["pf6", "fec"], x_label="Solution",
-                                       y_label="Speciation",
-                                       title="Line Graph of Speciation", x_axis="solution", series=True)
-    assert len(fig.data) == 2
-    for line in fig.data:
-        assert set(line.x) == {"feaf", "eaf", "fea", "ea"}
-    fig.show()
 

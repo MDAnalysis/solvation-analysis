@@ -3,45 +3,24 @@
 Plotting
 ========
 :Authors: Orion Cohen and Lauren Lee
-:Year: 2022
+:Year: 2023
 :Copyright: GNU Public License v3
 
 The plotting functions are a convenient way to visualize data by taking solutions
 as their input and generating a Plotly.Figure object.
 """
 
-
 import plotly
 import plotly.graph_objects as go
 import plotly.express as px
 import matplotlib
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
 
+
 # single solution
-
-def plot_histogram(solution):
-    # histogram of what?
-    return
-
-def format_graph():
-    # a formatting/styling decorator
-    """
-
-    Parameters
-    ----------
-
-
-    Returns
-    -------
-    fig : Plotly.Figure
-
-    """
-
-    return
-
-
 def plot_network_size_histogram(networking):
     """
     Returns a histogram of network sizes.
@@ -59,7 +38,7 @@ def plot_network_size_histogram(networking):
     sums = network_sizes.sum(axis=0)
     total_networks = sums.sum()
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=sums.index, y=sums.values/total_networks))
+    fig.add_trace(go.Bar(x=sums.index, y=sums.values / total_networks))
     fig.update_layout(xaxis_title_text="Network Size", yaxis_title_text="Fraction of All Networks",
                       title="Histogram of Network Sizes")
     fig.update_xaxes(type="category")
@@ -79,48 +58,22 @@ def plot_shell_size_histogram(solution):
     fig : Plotly.Figure
 
     """
-    # TODO: orion suggests maybe consider having the option to replace the solvent names with
-    # custom solvent names, perhaps via an input dictionary
-    # ideally this same API could be reused throughout the plotting API
-
     speciation_data = solution.speciation.speciation_data
     speciation_data["total"] = speciation_data.sum(axis=1)
     sums = speciation_data.groupby("total").sum()
     fig = go.Figure()
     totals = sums.T.sum()
     for column in sums.columns:
-        fig.add_trace(go.Bar(x=sums.index.values, y=sums[column].values/totals, name=column))
+        fig.add_trace(go.Bar(x=sums.index.values, y=sums[column].values / totals, name=column))
     fig.update_layout(xaxis_title_text="Shell Size", yaxis_title_text="Fraction of Total Molecules",
                       title="Fraction of Solvents in Shells of Different Sizes")
     fig.update_xaxes(type="category")
     return fig
 
 
-def plot_speciation(solution):
-    # square area
-    # should be doable with plotly.express.imshow and go.add_annotations
-    return
-
-
-def plot_co_occurrence(solution):
-    return
-
-
-def plot_clustering(solution):
-    # not in this branch yet
-    return
-
-
-def plot_coordinating_atoms(solution):
-    # for each solvent
-    # by atom type? could allow by element or other features?
-    # bar chart with one bar for each solvent
-    # normalized
-    return
-
-
 # multiple solutions
-def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, legend_label, x_axis="species", series=False):
+def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, legend_label, x_axis="species",
+                          series=False):
     # generalist plotter, this can plot either bar or line charts of the same data
     """
 
@@ -145,6 +98,7 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
     fig : Plotly.Figure (generic plot)
 
     """
+    property_dict = deepcopy(property_dict)
     # coerce solutions to a common name
     for solution_name in rename_solvent_dict:
         if solution_name in property_dict:
@@ -155,14 +109,22 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
 
     # filter out components of solution to only include those in solvents_to_plot
     if solvents_to_plot:
-        for solution_name in property_dict:
-            try:
-                property_dict[solution_name] = {keep: property_dict[solution_name][keep] for keep in solvents_to_plot}
-            except KeyError:
-                # if argument for solvents_to_plot is invalid
-                raise Exception("Invalid value of solvents_to_plot. \n solvents_to_plot: " +
-                                str(solvents_to_plot) + "\n Valid options for solvents_to_plot: " +
-                                str(list(property_dict[solution_name].keys()))) from None
+        for solution_name, solution_dict in property_dict.items():
+            new_property_dict = {}
+            for solvent_name in solvents_to_plot():
+                solvent_dict = property_dict[solution_name].get(solvent_name)
+                if solvent_dict is None:
+                    raise Exception("Invalid value of solvents_to_plot. \n solvents_to_plot: " +
+                                    str(solvents_to_plot) + "\n Valid options for solvents_to_plot: " +
+                                    str(list(property_dict[solution_name].keys()))) from None
+                new_property_dict[solvent_name] = solvent_dict
+            property_dict[solution_name] = new_property_dict
+            #     property_dict[solution_name] = {keep: property_dict[solution_name][keep] for keep in solvents_to_plot}
+            # except KeyError:
+            #     # if argument for solvents_to_plot is invalid
+            #     raise Exception("Invalid value of solvents_to_plot. \n solvents_to_plot: " +
+            #                     str(solvents_to_plot) + "\n Valid options for solvents_to_plot: " +
+            #                     str(list(property_dict[solution_name].keys()))) from None
 
     # generate figure and make a DataFrame of the data
     fig = go.Figure()
@@ -195,7 +157,8 @@ def compare_free_solvents(solutions):
     return
 
 
-def compare_pairing(solutions, rename_solvent_dict=None, solvents_to_plot=None, x_label="Solvent", y_label="Pairing", title="Graph of Pairing Data", legend_label="Legend", **kwargs):
+def compare_pairing(solutions, rename_solvent_dict=None, solvents_to_plot=None, x_label="Solvent", y_label="Pairing",
+                    title="Graph of Pairing Data", legend_label="Legend", **kwargs):
     # this should be a grouped vertical bar chart or a line chart
     # 1.0 should be marked and annotated with a dotted line
     """
@@ -225,13 +188,15 @@ def compare_pairing(solutions, rename_solvent_dict=None, solvents_to_plot=None, 
 
     """
     rename_solvent_dict = rename_solvent_dict or {}
-    pairing = {solution_name : solutions[solution_name].pairing.pairing_dict for solution_name in solutions}
+    pairing = {solution_name: solutions[solution_name].pairing.pairing_dict for solution_name in solutions}
     fig = compare_solvent_dicts(pairing, rename_solvent_dict, solvents_to_plot, legend_label, **kwargs)
     fig.update_layout(xaxis_title_text=x_label.title(), yaxis_title_text=y_label.title(), title=title.title())
     return fig
 
 
-def compare_coordination_numbers(solutions, rename_solvent_dict=None, solvents_to_plot=None, x_label="Solvent", y_label="Coordination", title="Graph of Coordination Data", legend_label="Legend", **kwargs):
+def compare_coordination_numbers(solutions, rename_solvent_dict=None, solvents_to_plot=None, x_label="Solvent",
+                                 y_label="Coordination", title="Graph of Coordination Data", legend_label="Legend",
+                                 **kwargs):
     """
     Compares the coordination numbers of multiple solutions.
 
@@ -266,13 +231,9 @@ def compare_coordination_numbers(solutions, rename_solvent_dict=None, solvents_t
     return fig
 
 
-def compare_coordination_to_random(solutions):
-    # this should compare the actual coordination numbers relative to a
-    # statistically determined "random" distribution, ignoring sterics
-    return
-
-
-def compare_residence_times(solutions, res_type="residence_times_fit", rename_solvent_dict=None, solvents_to_plot=None, x_label="Solvent", y_label="Residence Time", title="Graph of Residence Time Data", legend_label="Legend", **kwargs):
+def compare_residence_times(solutions, res_type="residence_times_fit", rename_solvent_dict=None, solvents_to_plot=None,
+                            x_label="Solvent", y_label="Residence Time", title="Graph of Residence Time Data",
+                            legend_label="Legend", **kwargs):
     """
     Compares the residence times of multiple solutions.
 
@@ -301,32 +262,18 @@ def compare_residence_times(solutions, res_type="residence_times_fit", rename_so
     fig : Plotly.Figure
 
     """
-    # if solutions[]
-
-    if res_type == "residence_times":
-        res_time = {solution_name: solutions[solution_name].residence.residence_times for solution_name in solutions}
-    elif res_type == "residence_times_fit":
-        res_time = {solution_name: solutions[solution_name].residence.residence_times_fit for solution_name in solutions}
-    else:
+    #
+    if res_type not in ["residence_times", "residence_times_fit"]:
         raise ValueError("res_type must be either \"residence_times\" or \"residence_times_fit\"")
+
+    res_time = {}
+    for solution_name, solution in solutions.items():
+        if not hasattr(solution, "residence"):
+            raise ValueError("Solution's Residence analysis class is not instantiated.")
+        res_time[solution_name] = getattr(solution.residence, res_type)
 
     rename_solvent_dict = rename_solvent_dict or {}
     fig = compare_solvent_dicts(res_time, rename_solvent_dict, solvents_to_plot, legend_label, **kwargs)
-    fig.update_layout(xaxis_title_text=x_label.title(), yaxis_title_text=y_label.title(), title=title.title())
-    return fig
-
-
-def compare_solute_status(solutions):
-    # not in this branch yet
-    # this should be a grouped vertical bar chart or a line chart
-    fig = compare_solvent_dicts()
-    return
-
-
-def compare_speciation(solutions, rename_solvent_dict=None, solvents_to_plot=None, x_label="Solvent", y_label="Speciation", title="Graph of Speciation Data", legend_label="Legend", **kwargs):
-    rename_solvent_dict = rename_solvent_dict or {}
-    speciation = {solution_name: solutions[solution_name].speciation.speciation_percent for solution_name in solutions}
-    fig = compare_solvent_dicts(speciation, rename_solvent_dict, solvents_to_plot, legend_label, **kwargs)
     fig.update_layout(xaxis_title_text=x_label.title(), yaxis_title_text=y_label.title(), title=title.title())
     return fig
 
@@ -338,6 +285,3 @@ def compare_rdfs(solutions, atoms):
     # can atom groups be matched to solutions / universes behind the scenes?
     # yes we can use atom.u is universe
     return
-
-
-
