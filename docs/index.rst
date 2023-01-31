@@ -6,8 +6,7 @@
 Welcome to SolvationAnalysis's documentation!
 =========================================================
 
-Solvation analysis implements a `robust, cohesive, and fast set of methods
-<https://summerofcode.withgoogle.com/projects/#6227159028334592>`_ for
+Solvation analysis implements a robust, cohesive, and fast set of methods for
 analyzing the solvation structure of a liquid. It seamlessly integrates with
 `MDAnalysis <https://www.mdanalysis.org/>`_, making use of the core AtomGroup
 and Universe data structures to parse solvation information. If you are interested
@@ -20,7 +19,8 @@ To get started, check out the Getting Started section of the documentation.
    :maxdepth: 2
    :caption: Contents:
 
-   getting_started
+   getting_started.ipynb
+   tutorials
    api
 
 

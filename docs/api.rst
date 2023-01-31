@@ -5,7 +5,12 @@ API Documentation
     :toctree: stubs
 
 .. toctree::
+    :maxdepth: 3
+    :caption: API Reference
 
-    api/solution
-    api/selection
-    api/analysis_library
+    api/solute
+    api/coordination
+    api/networking
+    api/pairing
+    api/residence
+    api/speciation

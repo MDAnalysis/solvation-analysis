@@ -10,7 +10,7 @@ dependencies:
     # Pip-only installs
   - pip:
       # new MDAnalysis
-      - MDAnalysis==2.0.0b0
+      - MDAnalysis==2.3.0
       # base sci-python libraries
       - scipy
       - numpy
@@ -21,3 +21,4 @@ dependencies:
       - pytest
       - pytest-cov
       - codecov
+      - rdkit

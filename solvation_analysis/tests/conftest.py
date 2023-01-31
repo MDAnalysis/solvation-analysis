@@ -14,6 +14,8 @@ from solvation_analysis.tests.datafiles import (
     bn_fec_dcd_unwrap,
     bn_fec_atom_types,
     eax_data,
+    iba_data,
+    iba_dcd,
 )
 from solvation_analysis.tests.datafiles import (
     easy_rdf_bins,
@@ -24,7 +26,7 @@ from solvation_analysis.tests.datafiles import (
     non_solv_rdf_data,
     bn_fec_solv_df_large,
 )
-from solvation_analysis.solution import Solution
+from solvation_analysis.solute import Solute
 import pathlib
 
 
@@ -139,38 +141,38 @@ def rdf_bins_and_data_non_solv():
 
 
 @pytest.fixture(scope='module')
-def pre_solution(atom_groups):
+def pre_solute(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solution(
+    return Solute.from_atoms(
         li,
         {'pf6': pf6, 'bn': bn, 'fec': fec},
-        radii={'pf6': 2.8},
+        radii={'pf6': 2.8, 'bn': 2.61468, 'fec': 2.43158},
         rdf_init_kwargs={"range": (0, 8.0)},
-        rdf_kernel=identify_cutoff_poly,
     )
 
 
 @pytest.fixture(scope='function')
-def pre_solution_mutable(atom_groups):
+def pre_solute_mutable(atom_groups):
     li = atom_groups['li']
     pf6 = atom_groups['pf6']
     bn = atom_groups['bn']
     fec = atom_groups['fec']
-    return Solution(
+    return Solute.from_atoms(
         li,
         {'pf6': pf6, 'bn': bn, 'fec': fec},
+        radii={'pf6': 2.8, 'bn': 2.61468, 'fec': 2.43158},
         rdf_init_kwargs={"range": (0, 8.0)},
         rdf_kernel=identify_cutoff_poly,
     )
 
 
 @pytest.fixture(scope='module')
-def run_solution(pre_solution):
-    pre_solution.run(step=1)
-    return pre_solution
+def run_solute(pre_solute):
+    pre_solute.run(step=1)
+    return pre_solute
 
 
 @pytest.fixture(scope='module')
@@ -211,36 +213,101 @@ def u_eax_atom_groups(u_eax_series):
 
 
 @pytest.fixture(scope='module')
-def eax_solutions(u_eax_atom_groups):
-    solutions = {}
+def eax_solutes(u_eax_atom_groups):
+    solutes = {}
     for name, atom_groups in u_eax_atom_groups.items():
-        solution = Solution(
+        solute = Solute.from_atoms(
             atom_groups['li'],
             {'pf6': atom_groups['pf6'], name: atom_groups[name], 'fec': atom_groups['fec']},
         )
-        solution.run()
-        solutions[name] = solution
-    return solutions
+        solute.run()
+        solutes[name] = solute
+    return solutes
+
+@pytest.fixture(scope='module')
+def iba_u():
+    return mda.Universe(iba_data, iba_dcd)
+
+@pytest.fixture(scope='module')
+def iba_solvents(iba_u):
+    iba = iba_u.select_atoms("byres element C")
+    H2O = iba_u.atoms - iba
+    return {'iba': iba, 'H2O': H2O}
+
+@pytest.fixture(scope='module')
+def iba_atom_groups(iba_solvents):
+    iba = iba_solvents['iba']
+    return {
+        'iba_alcohol_O': iba[5::12],
+        'iba_alcohol_H': iba[11::12],
+        'iba_ketone': iba[4::12],
+        'iba_C0': iba[0::12],
+        'iba_C1': iba[1::12],
+        'iba_C2': iba[2::12],
+        'iba_C3': iba[3::12],
+        'iba_H6': iba[6::12],
+        'iba_H7': iba[7::12],
+        'iba_H8': iba[8::12],
+        'iba_H9': iba[9::12],
+        'iba_H10': iba[10::12],
+    }
+
+
+@pytest.fixture(scope='module')
+def H2O_atom_groups(iba_solvents):
+    H2O = iba_solvents['H2O']
+    return {
+        'H2O_O': H2O[0::3],
+        'H2O_H1': H2O[1::3],
+        'H2O_H2': H2O[2::3],
+    }
+
+
+@pytest.fixture(scope='module')
+def iba_solutes(iba_atom_groups, iba_solvents):
+    solutes = {}
+    for name, atom_group in iba_atom_groups.items():
+        radii = {'iba': 1.9, 'H2O': 1.9} if ('iba_H' in name or 'iba_C' in name) else None
+        solute = Solute.from_atoms(
+            atom_group,
+            iba_solvents,
+            solute_name=name,
+            radii=radii,
+        )
+        solute.run()
+        solutes[name] = solute
+    return solutes
+
+
+@pytest.fixture(scope='module')
+def iba_small_solute(iba_atom_groups, iba_solvents):
+    solute_atoms = {
+        'iba_ketone': iba_atom_groups['iba_ketone'],
+        'iba_alcohol_O': iba_atom_groups['iba_alcohol_O'],
+        'iba_alcohol_H': iba_atom_groups['iba_alcohol_H']
+    }
+    solute = Solute.from_atoms_dict(
+        solute_atoms,
+        iba_solvents,
+        solute_name='iba',
+    )
+    solute.run()
+    return solute
 
 
 @pytest.fixture
-def solvation_results(run_solution):
-    return run_solution.solvation_frames
+def solvation_results(run_solute):
+    return run_solute._solvation_frames
 
 
 @pytest.fixture
-def solvation_data(run_solution):
-    return run_solution.solvation_data
-
-
-@pytest.fixture
-def solvation_data_dup(run_solution):
-    return run_solution.solvation_data_dup
+def solvation_data(run_solute):
+    return run_solute.solvation_data
 
 
 @pytest.fixture(scope='module')
 def solvation_data_large():
-    return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2])
+    return pd.read_csv(bn_fec_solv_df_large, index_col=[0, 1, 2, 3])
 
 
 @pytest.fixture(scope='module')
