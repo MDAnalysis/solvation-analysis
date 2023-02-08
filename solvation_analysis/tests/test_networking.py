@@ -11,11 +11,6 @@ def test_networking_from_solute(run_solute):
     assert len(networking.network_df) == 128
 
 
-@pytest.fixture(scope='module')
-def networking(run_solute):
-    return Networking.from_solute(run_solute, 'pf6')
-
-
 @pytest.mark.parametrize(
     "status, fraction",
     [

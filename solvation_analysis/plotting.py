@@ -111,7 +111,7 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
     if solvents_to_plot:
         for solution_name, solution_dict in property_dict.items():
             new_property_dict = {}
-            for solvent_name in solvents_to_plot():
+            for solvent_name in solvents_to_plot:
                 solvent_dict = property_dict[solution_name].get(solvent_name)
                 if solvent_dict is None:
                     raise Exception("Invalid value of solvents_to_plot. \n solvents_to_plot: " +
@@ -119,12 +119,6 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
                                     str(list(property_dict[solution_name].keys()))) from None
                 new_property_dict[solvent_name] = solvent_dict
             property_dict[solution_name] = new_property_dict
-            #     property_dict[solution_name] = {keep: property_dict[solution_name][keep] for keep in solvents_to_plot}
-            # except KeyError:
-            #     # if argument for solvents_to_plot is invalid
-            #     raise Exception("Invalid value of solvents_to_plot. \n solvents_to_plot: " +
-            #                     str(solvents_to_plot) + "\n Valid options for solvents_to_plot: " +
-            #                     str(list(property_dict[solution_name].keys()))) from None
 
     # generate figure and make a DataFrame of the data
     fig = go.Figure()
@@ -136,7 +130,7 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
         df = df.transpose()
         fig = px.line(df, x=df.index, y=df.columns, labels={"variable": legend_label})
         fig.update_xaxes(type="category")
-    elif series and x_axis == "solution":
+    elif series and x_axis == "solute":
         # each species is a line
         fig = px.line(df, x=df.index, y=df.columns, labels={"variable": legend_label})
         fig.update_xaxes(type="category")
@@ -144,7 +138,7 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
         # each solution is a bar
         df = df.transpose()
         fig = px.bar(df, x=df.index, y=df.columns, barmode="group", labels={"variable": legend_label})
-    elif not series and x_axis == "solution":
+    elif not series and x_axis == "solute":
         # each species is a bar
         fig = px.bar(df, x=df.index, y=df.columns, barmode="group", labels={"variable": legend_label})
     return fig
@@ -280,6 +274,7 @@ def compare_residence_times(solutions, res_type="residence_times_fit", rename_so
 
 # TODO: work on rdfs; make them tiled
 # this will have to be implemented post-merge
+# use iba_small_solutes (will return a solute that has three atom solutes
 # solvents are on one axis and solutions are on the other
 def compare_rdfs(solutions, atoms):
     # can atom groups be matched to solutions / universes behind the scenes?

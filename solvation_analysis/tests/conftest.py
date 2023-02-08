@@ -5,6 +5,9 @@ import pandas as pd
 import pytest
 
 from MDAnalysis import transformations
+from solvation_analysis.networking import Networking
+from solvation_analysis.residence import Residence
+
 from solvation_analysis.rdf_parser import identify_cutoff_poly
 from solvation_analysis.tests.datafiles import (
     bn_fec_data,
@@ -312,3 +315,13 @@ def solvation_data_large():
 def solvation_data_sparse(solvation_data_large):
     step = 10
     return solvation_data_large.loc[pd.IndexSlice[::step, :, :], :]
+
+
+@pytest.fixture(scope='module')
+def residence(solvation_data_sparse):
+    return Residence(solvation_data_sparse, step=10)
+
+
+@pytest.fixture(scope='module')
+def networking(run_solute):
+    return Networking.from_solute(run_solute, 'pf6')
