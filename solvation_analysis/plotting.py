@@ -112,16 +112,17 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
 
     # filter out components of solution to only include those in solvents_to_plot
     if solvents_to_plot:
-        for solution_name, solution_dict in property_dict.items():
-            new_property_dict = {}
-            for solvent_name in solvents_to_plot:
-                solvent_dict = property_dict[solution_name].get(solvent_name)
-                if solvent_dict is None:
-                    raise Exception("Invalid value of solvents_to_plot. \n solvents_to_plot: " +
-                                    str(solvents_to_plot) + "\n Valid options for solvents_to_plot: " +
-                                    str(list(property_dict[solution_name].keys()))) from None
-                new_property_dict[solvent_name] = solvent_dict
-            property_dict[solution_name] = new_property_dict
+        all_solvents = [set(solution_dict.keys()) for solution_dict in property_dict.values()]
+        valid_solvents = set.intersection(*all_solvents)
+        invalid_solvents = set.union(*all_solvents) - valid_solvents
+        if not set(solvents_to_plot).issubset(valid_solvents):
+            raise Exception(
+                f"solvents_to_plot must only include solvents that are"
+                f"present in all solutes. Valid values are {valid_solvents}."
+            )
+        for solution_dict in property_dict.values():
+            for solvent in invalid_solvents:
+                solution_dict.pop(solvent, None)
 
     # generate figure and make a DataFrame of the data
     fig = go.Figure()
