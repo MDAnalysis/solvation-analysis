@@ -71,7 +71,7 @@ def plot_shell_size_histogram(solution):
     return fig
 
 
-def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, legend_label, x_axis="species",
+def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, legend_label, x_axis="solvent",
                           series=False):
     """
     A generic plotting function that can compare dictionary data between multiple solutes.
@@ -80,7 +80,7 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
     ----------
     property_dict : dict of {str: dict}
         a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
-        is the name of the species of each solution and each value is the property of interest
+        is the name of the solvent of each solution and each value is the property of interest
     rename_solvent_dict : dict of {str: str}
         Renames solvents within the plot, useful for comparing similar solvents in different solutes.
         The keys are the original solvent names and the values are the new name
@@ -92,13 +92,13 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
     legend_label : str
         title of legend as a string
     x_axis : str
-        species whether the  "species" or "solution" to be graphed on the x_axis
+        the value must be "solvent" or "solute" and decides which to plot the x_axis
     series : bool
-    (False for a bar graph; True for a line graph)
+        False for a bar graph, True for a line graph
 
     Returns
     -------
-    fig : Plotly.Figure (generic plot)
+    fig : Plotly.Figure
 
     """
     property_dict = deepcopy(property_dict)
@@ -129,21 +129,21 @@ def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, 
     df = pd.DataFrame(data=property_dict.values())
     df.index = list(property_dict.keys())
 
-    if series and x_axis == "species":
+    if series and x_axis == "solvent":
         # each solution is a line
         df = df.transpose()
         fig = px.line(df, x=df.index, y=df.columns, labels={"variable": legend_label})
         fig.update_xaxes(type="category")
     elif series and x_axis == "solute":
-        # each species is a line
+        # each solvent is a line
         fig = px.line(df, x=df.index, y=df.columns, labels={"variable": legend_label})
         fig.update_xaxes(type="category")
-    elif not series and x_axis == "species":
+    elif not series and x_axis == "solvent":
         # each solution is a bar
         df = df.transpose()
         fig = px.bar(df, x=df.index, y=df.columns, barmode="group", labels={"variable": legend_label})
     elif not series and x_axis == "solute":
-        # each species is a bar
+        # each solvent is a bar
         fig = px.bar(df, x=df.index, y=df.columns, barmode="group", labels={"variable": legend_label})
     return fig
 
@@ -177,7 +177,7 @@ def compare_pairing(solutions, rename_solvent_dict=None, solvents_to_plot=None, 
     title : title of figure as a string
     legend_label : title of legend as a string
     kwargs : consists of the x_axis and series parameters
-        x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
+        x_axis : a string specifying "solvent" or "solution" to be graphed on the x_axis
         series : Boolean (False for a bar graph; True for a line graph)
 
     Returns
@@ -214,7 +214,7 @@ def compare_coordination_numbers(solutions, rename_solvent_dict=None, solvents_t
     title : title of figure as a string
     legend_label : title of legend as a string
     kwargs : consists of the x_axis and series parameters
-        x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
+        x_axis : a string specifying "solvent" or "solution" to be graphed on the x_axis
         series : Boolean (False for a bar graph; True for a line graph)
 
     Returns
@@ -252,7 +252,7 @@ def compare_residence_times(solutions, res_type="residence_times_fit", rename_so
     title : title of figure as a string
     legend_label : title of legend as a string
     kwargs : consists of the x_axis and series parameters
-        x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
+        x_axis : a string specifying "solvent" or "solution" to be graphed on the x_axis
         series : Boolean (False for a bar graph; True for a line graph)
 
     Returns
