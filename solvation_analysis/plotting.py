@@ -71,27 +71,30 @@ def plot_shell_size_histogram(solution):
     return fig
 
 
-# multiple solutions
 def compare_solvent_dicts(property_dict, rename_solvent_dict, solvents_to_plot, legend_label, x_axis="species",
                           series=False):
-    # generalist plotter, this can plot either bar or line charts of the same data
     """
+    A generic plotting function that can compare dictionary data between multiple solutes.
 
     Parameters
     ----------
     property_dict : dict of {str: dict}
-        a dictionary with the solution name as keys and a dict of {str: float} as values, where each string
-        is the name of the species of each solution and each float is the value of the property of interest
-    rename_solvent_dict : dict of {str: str}, where the keys are strings of solvent names and the values are
-        strings of a more generic name for the solvent (i.e. {"EAf" : "EAx", "fEAf" : "EAx"})
-    solvents_to_plot : list of strings of solvent names that are common to all systems in question,
-        graphed in the order that is passed into the function. Names of solutions are first swapped with the
-        more generic name, if rename_solvent_dict is specified, before filtering for solution names
-        specified by solvents_to_plot. In order for solvents_to_plot to execute properly, any solution names
-        affected by the swap with rename_solvent_dict must be referenced by the generic name in solvents_to_plot.
-    legend_label : title of legend as a string
-    x_axis : a string specifying "species" or "solution" to be graphed on the x_axis
-    series : Boolean (False for a bar graph; True for a line graph)
+        a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
+        is the name of the species of each solution and each value is the property of interest
+    rename_solvent_dict : dict of {str: str}
+        Renames solvents within the plot, useful for comparing similar solvents in different solutes.
+        The keys are the original solvent names and the values are the new name
+        e.g. {"EAf" : "EAx", "fEAf" : "EAx"}
+    solvents_to_plot : List[str]
+        List of solvent names to be plotted, they will be plotted in given order.
+        The solvents must be common to all systems in question. Renaming in `rename_solvent_dicts`
+        is applied first, so the solvent names in `solvents_to_plot should match the `values` of that dict.
+    legend_label : str
+        title of legend as a string
+    x_axis : str
+        species whether the  "species" or "solution" to be graphed on the x_axis
+    series : bool
+    (False for a bar graph; True for a line graph)
 
     Returns
     -------
