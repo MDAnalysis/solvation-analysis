@@ -61,7 +61,7 @@ def plot_shell_size_histogram(solution):
     fig : Plotly.Figure
 
     """
-    speciation_data = solution.speciation.speciation_data
+    speciation_data = solution.speciation.speciation_data.copy()
     speciation_data["total"] = speciation_data.sum(axis=1)
     sums = speciation_data.groupby("total").sum()
     fig = go.Figure()
