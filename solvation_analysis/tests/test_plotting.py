@@ -1,6 +1,20 @@
 import numpy as np
 import pytest
-from solvation_analysis.plotting import *
+from solvation_analysis.plotting import (
+    plot_network_size_histogram,
+    plot_shell_size_histogram,
+    compare_solvent_dicts,
+    _compare_function_generator,
+    compare_free_solvents,
+    compare_pairing,
+    compare_coordination_numbers,
+    compare_residence_times_cutoff,
+    compare_residence_times_fit,
+    compare_diluent,
+)
+
+from solvation_analysis.residence import Residence
+from solvation_analysis.networking import Networking
 
 
 def test_plot_network_size_histogram(networking):
@@ -97,6 +111,14 @@ def test_compare_pairing_rename_solvent_dict(eax_solutes):
     # fig.show()
 
 
+def test_compare_free_solvents(eax_solutes):
+    compare_free_solvents(eax_solutes, solvents_to_plot=["fec", "pf6"])
+
+
+def test_compare_diluent(eax_solutes):
+    compare_diluent(eax_solutes, solvents_to_plot=["fec", "pf6"])
+
+
 # compare_coordination_numbers tests
 def test_compare_coordination_numbers_default_eax(eax_solutes):
     # call compare_coordination_numbers with only one required argument
@@ -147,22 +169,23 @@ def test_compare_coordination_numbers_case4(eax_solutes):
 
 
 # compare_residence_times tests
-def test_compare_residence_times_res_type_exception(eax_solutes):
+def test_compare_residence_times(eax_solutes):
     # this test should handle an exception relating to the acceptable arguments for res_type
-    with pytest.raises(Exception):
-        fig = compare_residence_times(eax_solutes, res_type="residence time", solvents_to_plot=["fec", "pf6"],
-                                      x_label="Species",
-                                      y_label="Residence Times",
-                                      title="Bar Graph of Residence Times")
+    for solute in eax_solutes.values():
+        residence = Residence.from_solute(solute)
+        solute.residence = residence
+
+    # with pytest.raises(Exception):
+    compare_residence_times_cutoff(eax_solutes, solvents_to_plot=["fec", "pf6"])
+    compare_residence_times_fit(eax_solutes, solvents_to_plot=["fec", "pf6"])
 
 
-def test_compare_residence_times_instantiation_exception(eax_solutes):
-    # this test should handle an exception relating to whether the Residence analysis class is instantiated
-    with pytest.raises(Exception):
-        fig = compare_residence_times(eax_solutes, res_type="residence_times", solvents_to_plot=["fec", "pf6"],
-                                      x_label="Species",
-                                      y_label="Residence Times",
-                                      title="Bar Graph of Residence Times")
-
-
+def test_compare_generic(eax_solutes):
+    compare = _compare_function_generator('pairing', 'pairing_dict', 'hello', 'This is a function')
+    fig = compare(eax_solutes, rename_solvent_dict={"ea": "EAx", "fea": "EAx", "eaf": "EAx", "feaf": "EAx"},
+                          solvents_to_plot=["pf6", "fec", "EAx"], x_label="Species", y_label="Pairing",
+                          title="Bar Graph of Solvent Pairing")
+    assert len(fig.data) == 4
+    for bar in fig.data:
+        assert set(bar.x) == {"pf6", "fec", "EAx"}
 
