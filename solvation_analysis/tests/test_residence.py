@@ -10,11 +10,6 @@ def test_residence_from_solute(run_solute):
     assert len(residence.residence_times_fit) == 3
 
 
-@pytest.fixture(scope='module')
-def residence(solvation_data_sparse):
-    return Residence(solvation_data_sparse, step=10)
-
-
 @pytest.mark.parametrize(
     "name, res_time",
     [
