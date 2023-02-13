@@ -15,6 +15,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import matplotlib
 from copy import deepcopy
+from solvation_analysis.solute import Solute
 
 import numpy as np
 import pandas as pd
@@ -27,13 +28,17 @@ def plot_network_size_histogram(networking):
 
     Parameters
     ----------
-    networking : Networking
+    networking : Networking | Solution
 
     Returns
     -------
     fig : Plotly.Figure
 
     """
+    if isinstance(networking, Solute):
+        if not hasattr(networking, "networking"):
+            raise ValueError(f"Solute networking analysis class must be instantiated.")
+        networking = networking.networking
     network_sizes = networking.network_sizes
     sums = network_sizes.sum(axis=0)
     total_networks = sums.sum()
@@ -48,20 +53,24 @@ def plot_network_size_histogram(networking):
     return fig
 
 
-def plot_shell_size_histogram(solution):
+def plot_shell_size_histogram(speciation):
     """
     Returns a histogram of shell sizes.
 
     Parameters
     ----------
-    solution : Solution
+    speciation : Speciation | Solution
 
     Returns
     -------
     fig : Plotly.Figure
 
     """
-    speciation_data = solution.speciation.speciation_data.copy()
+    if isinstance(speciation, Solute):
+        if not hasattr(speciation, "speciation"):
+            raise ValueError(f"Solute speciation analysis class must be instantiated.")
+        speciation = speciation.speciation
+    speciation_data = speciation.speciation_data.copy()
     speciation_data["total"] = speciation_data.sum(axis=1)
     sums = speciation_data.groupby("total").sum()
     fig = go.Figure()
@@ -138,7 +147,8 @@ def compare_solvent_dicts(
             )
         for solute_name, solution_dict in property_dict.items():
             new_solution_dict = {
-                solvent: value for solvent, value in solution_dict.items()
+                solvent: value
+                for solvent, value in solution_dict.items()
                 if solvent in solvents_to_plot
             }
             property_dict[solute_name] = new_solution_dict
@@ -151,7 +161,13 @@ def compare_solvent_dicts(
     if series and x_axis == "solvent":
         # each solution is a line
         df = df.transpose()
-        fig = px.line(df, x=df.index, y=df.columns, labels={"variable": legend_label}, markers=True)
+        fig = px.line(
+            df,
+            x=df.index,
+            y=df.columns,
+            labels={"variable": legend_label},
+            markers=True,
+        )
         fig.update_xaxes(type="category")
     elif series and x_axis == "solute":
         # each solvent is a line
@@ -179,12 +195,11 @@ def compare_solvent_dicts(
 
 
 def _compare_function_generator(
-        analysis_object,
-        attribute,
-        title,
-        top_level_docstring,
+    analysis_object,
+    attribute,
+    title,
+    top_level_docstring,
 ):
-
     def compare_func(
         solutions,
         rename_solvent_dict=None,
@@ -193,10 +208,10 @@ def _compare_function_generator(
         series=False,
         title=title,
         x_label=None,
-        y_label=attribute.replace('_', ' ').title(),
+        y_label=attribute.replace("_", " ").title(),
         legend_label=None,
     ):
-        valid_x_axis = set(['solvent', 'solute'])
+        valid_x_axis = set(["solvent", "solute"])
         assert x_axis in valid_x_axis, "x_axis must be equal to 'solute' or 'solvent'."
         x_label = x_label or x_axis
         legend_label = legend_label or (valid_x_axis - {x_axis}).pop()
@@ -204,12 +219,19 @@ def _compare_function_generator(
         property = {}
         for solute_name, solute in solutions.items():
             if not hasattr(solute, analysis_object):
-                raise ValueError(f"Solute {analysis_object} analysis class must be instantiated.")
+                raise ValueError(
+                    f"Solute {analysis_object} analysis class must be instantiated."
+                )
             property[solute_name] = getattr(getattr(solute, analysis_object), attribute)
 
         rename_solvent_dict = rename_solvent_dict or {}
         fig = compare_solvent_dicts(
-            property, rename_solvent_dict, solvents_to_plot, legend_label.title(), x_axis, series
+            property,
+            rename_solvent_dict,
+            solvents_to_plot,
+            legend_label.title(),
+            x_axis,
+            series,
         )
         fig.update_layout(
             xaxis_title_text=x_label.title(),
@@ -254,50 +276,50 @@ def _compare_function_generator(
 
 
 compare_pairing = _compare_function_generator(
-    'pairing',
-    'pairing_dict',
-    'Fractional Pairing of Solvents',
-    'Compare the solute-solvent pairing.'
+    "pairing",
+    "pairing_dict",
+    "Fractional Pairing of Solvents",
+    "Compare the solute-solvent pairing.",
 )
 
 
 compare_free_solvents = _compare_function_generator(
-    'pairing',
-    'fraction_free_solvents',
-    'Free Solvents in Solutes',
-    'Compare the relative fraction of free solvents.'
+    "pairing",
+    "fraction_free_solvents",
+    "Free Solvents in Solutes",
+    "Compare the relative fraction of free solvents.",
 )
 
 
 compare_diluent = _compare_function_generator(
-    'pairing',
-    'diluent_dict',
-    'Diluent Composition of Solutes',
-    'Compare the diluent composition.'
+    "pairing",
+    "diluent_dict",
+    "Diluent Composition of Solutes",
+    "Compare the diluent composition.",
 )
 
 
 compare_coordination_numbers = _compare_function_generator(
-    'coordination',
-    'cn_dict',
-    'Coordination Numbers of Solvents',
-    'Compare the coordination numbers.'
+    "coordination",
+    "cn_dict",
+    "Coordination Numbers of Solvents",
+    "Compare the coordination numbers.",
 )
 
 
 compare_residence_times_cutoff = _compare_function_generator(
-    'residence',
-    'residence_times_cutoff',
-    'Solute-Solvent Residence Time',
-    'Compare the solute-solvent residence times.'
+    "residence",
+    "residence_times_cutoff",
+    "Solute-Solvent Residence Time",
+    "Compare the solute-solvent residence times.",
 )
 
 
 compare_residence_times_fit = _compare_function_generator(
-    'residence',
-    'residence_times_fit',
-    'Solute-Solvent Residence Time.',
-    'Compare the solute-solvent residence times.'
+    "residence",
+    "residence_times_fit",
+    "Solute-Solvent Residence Time.",
+    "Compare the solute-solvent residence times.",
 )
 
 
