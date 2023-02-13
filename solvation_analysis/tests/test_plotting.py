@@ -220,7 +220,7 @@ def test_compare_coordination_numbers_case2(eax_solutes):
     assert len(fig.data) == 2
     for bar in fig.data:
         assert set(bar.x) == {"feaf", "eaf", "fea", "ea"}
-    fig.show()
+    # fig.show()
 
 
 def test_compare_coordination_numbers_case3(eax_solutes):

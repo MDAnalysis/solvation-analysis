@@ -208,6 +208,7 @@ def _compare_function_generator(
             xaxis_title_text=x_label.title(),
             yaxis_title_text=y_label.title(),
             title=title.title(),
+            template="plotly_white",
         )
         return fig
 
