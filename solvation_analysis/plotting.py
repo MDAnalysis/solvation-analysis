@@ -148,11 +148,11 @@ def compare_solvent_dicts(
     if series and x_axis == "solvent":
         # each solution is a line
         df = df.transpose()
-        fig = px.line(df, x=df.index, y=df.columns, labels={"variable": legend_label})
+        fig = px.line(df, x=df.index, y=df.columns, labels={"variable": legend_label}, markers=True)
         fig.update_xaxes(type="category")
     elif series and x_axis == "solute":
         # each solvent is a line
-        fig = px.line(df, y=df.columns, labels={"variable": legend_label})
+        fig = px.line(df, y=df.columns, labels={"variable": legend_label}, markers=True)
         fig.update_xaxes(type="category")
     elif not series and x_axis == "solvent":
         # each solution is a bar
