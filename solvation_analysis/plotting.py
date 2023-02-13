@@ -152,7 +152,7 @@ def compare_solvent_dicts(
         fig.update_xaxes(type="category")
     elif series and x_axis == "solute":
         # each solvent is a line
-        fig = px.line(df, x=df.index, y=df.columns, labels={"variable": legend_label})
+        fig = px.line(df, y=df.columns, labels={"variable": legend_label})
         fig.update_xaxes(type="category")
     elif not series and x_axis == "solvent":
         # each solution is a bar
@@ -168,7 +168,6 @@ def compare_solvent_dicts(
         # each solvent is a bar
         fig = px.bar(
             df,
-            x=df.index,
             y=df.columns,
             barmode="group",
             labels={"variable": legend_label},
@@ -189,11 +188,16 @@ def _compare_function_generator(
         solvents_to_plot=None,
         x_axis="solvent",
         series=False,
-        x_label="Solvent",
-        y_label=attribute.replace('_', ' ').title(),
         title=title,
-        legend_label="Legend",
+        x_label=None,
+        y_label=attribute.replace('_', ' ').title(),
+        legend_label=None,
     ):
+        valid_x_axis = set(['solvent', 'solute'])
+        assert x_axis in valid_x_axis, "x_axis must be equal to 'solute' or 'solvent'."
+        x_label = x_label or x_axis
+        legend_label = legend_label or (valid_x_axis - {x_axis}).pop()
+
         property = {}
         for solute_name, solute in solutions.items():
             if not hasattr(solute, analysis_object):
@@ -202,7 +206,7 @@ def _compare_function_generator(
 
         rename_solvent_dict = rename_solvent_dict or {}
         fig = compare_solvent_dicts(
-            property, rename_solvent_dict, solvents_to_plot, legend_label, x_axis, series
+            property, rename_solvent_dict, solvents_to_plot, legend_label.title(), x_axis, series
         )
         fig.update_layout(
             xaxis_title_text=x_label.title(),
