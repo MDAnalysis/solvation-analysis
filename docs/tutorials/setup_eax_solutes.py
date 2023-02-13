@@ -11,6 +11,7 @@ boxes = {
     'feaf': [50.023129, 50.023129, 50.023129, 90, 90, 90],
 }
 us = {}
+# iterate through all the paths
 for solvent_dir in pathlib.Path(eax_data).iterdir():
     u_solv = mda.Universe(
         str(solvent_dir / 'topology.pdb'),
@@ -22,22 +23,16 @@ for solvent_dir in pathlib.Path(eax_data).iterdir():
     u_solv.trajectory.add_transformations(set_dim)
     us[solvent_dir.stem] = u_solv
 
-atom_groups_dict = {}
-for name, u in us.items():
+reordered_us = {name: us[name] for name in ['ea', 'eaf', 'fea', 'feaf']}
+
+u_eax_atom_groups = {}
+for name, u in reordered_us.items():
     atom_groups = {}
     atom_groups['li'] = u.atoms.select_atoms("element Li")
     atom_groups['pf6'] = u.atoms.select_atoms("byres element P")
+    # this finds the boundary between fec and eax and selects both groups
     residue_lengths = np.array([len(elements) for elements in u.residues.elements])
     eax_fec_cutoff = np.unique(residue_lengths, return_index=True)[1][2]
     atom_groups[name] = u.atoms.select_atoms(f"resid 1:{eax_fec_cutoff}")
     atom_groups['fec'] = u.atoms.select_atoms(f"resid {eax_fec_cutoff + 1}:600")
-    atom_groups_dict[name] = atom_groups
-
-solutes = {}
-for name, atom_groups in u_eax_atom_groups.items():
-    solute = Solute.from_atoms(
-        atom_groups['li'],
-        {'pf6': atom_groups['pf6'], name: atom_groups[name], 'fec': atom_groups['fec']},
-    )
-    solute.run()
-    solutes[name] = solute
+    u_eax_atom_groups[name] = atom_groups
