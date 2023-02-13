@@ -133,7 +133,7 @@ def compare_solvent_dicts(
         invalid_solvents = set.union(*all_solvents) - valid_solvents
         if not set(solvents_to_plot).issubset(valid_solvents):
             raise Exception(
-                f"solvents_to_plot must only include solvents that are"
+                f"solvents_to_plot must only include solvents that are "
                 f"present in all solutes. Valid values are {valid_solvents}."
             )
         for solution_dict in property_dict.values():
@@ -176,207 +176,121 @@ def compare_solvent_dicts(
     return fig
 
 
-def compare_free_solvents(solutions):
-    # this should be a grouped vertical bar chart or a line chart
-    # 1.0 should be marked and annotated with a dotted line
-    fig = compare_solvent_dicts()
-    return
-
-
-def compare_pairing(
-    solutions,
-    rename_solvent_dict=None,
-    solvents_to_plot=None,
-    x_axis="solvent",
-    series=False,
-    x_label="Solvent",
-    y_label="Pairing",
-    title="Graph of Pairing Data",
-    legend_label="Legend",
-    **kwargs,
+def _compare_function_generator(
+        analysis_object,
+        attribute,
+        title,
+        top_level_docstring,
 ):
-    # this should be a grouped vertical bar chart or a line chart
-    # 1.0 should be marked and annotated with a dotted line
-    """
-    Compares the pairing of multiple solutions.
-    Parameters
-    ----------
-    property_dict : dict of {str: dict}
-        a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
-        is the name of the solvent of each solution and each value is the property of interest
-    rename_solvent_dict : dict of {str: str}
-        Renames solvents within the plot, useful for comparing similar solvents in different solutes.
-        The keys are the original solvent names and the values are the new name
-        e.g. {"EAf" : "EAx", "fEAf" : "EAx"}
-    solvents_to_plot : List[str]
-        List of solvent names to be plotted, they will be plotted in given order.
-        The solvents must be common to all systems in question. Renaming in `rename_solvent_dicts`
-        is applied first, so the solvent names in `solvents_to_plot should match the `values` of that dict.
-    x_axis : str
-        the value must be "solvent" or "solute" and decides which to plot the x_axis
-    series : bool
-        False for a bar graph, True for a line graph
-    x_label : str
-        title of the x-axis
-    y_label : str
-        title of the y-axis
-    title : str
-        title of figure
-    legend_label : str
-        title of legend
 
-    Returns
-    -------
-    fig : Plotly.Figure
+    def compare_func(
+        solutions,
+        rename_solvent_dict=None,
+        solvents_to_plot=None,
+        x_axis="solvent",
+        series=False,
+        x_label="Solvent",
+        y_label=attribute.replace('_', ' ').title(),
+        title=title,
+        legend_label="Legend",
+    ):
+        property = {}
+        for solute_name, solute in solutions.items():
+            if not hasattr(solute, analysis_object):
+                raise ValueError(f"Solute {analysis_object} analysis class must be instantiated.")
+            property[solute_name] = getattr(getattr(solute, analysis_object), attribute)
 
-    """
-    rename_solvent_dict = rename_solvent_dict or {}
-    pairing = {
-        solution_name: solutions[solution_name].pairing.pairing_dict
-        for solution_name in solutions
-    }
-    fig = compare_solvent_dicts(
-        pairing, rename_solvent_dict, solvents_to_plot, legend_label, x_axis, series
-    )
-    fig.update_layout(
-        xaxis_title_text=x_label.title(),
-        yaxis_title_text=y_label.title(),
-        title=title.title(),
-    )
-    return fig
-
-
-def compare_coordination_numbers(
-    solutions,
-    rename_solvent_dict=None,
-    solvents_to_plot=None,
-    x_axis="solvent",
-    series=False,
-    x_label="Solvent",
-    y_label="Coordination",
-    title="Graph of Coordination Data",
-    legend_label="Legend",
-    **kwargs,
-):
-    """
-    Compares the coordination numbers of multiple solutions.
-
-    Parameters
-    ----------
-    property_dict : dict of {str: dict}
-        a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
-        is the name of the solvent of each solution and each value is the property of interest
-    rename_solvent_dict : dict of {str: str}
-        Renames solvents within the plot, useful for comparing similar solvents in different solutes.
-        The keys are the original solvent names and the values are the new name
-        e.g. {"EAf" : "EAx", "fEAf" : "EAx"}
-    solvents_to_plot : List[str]
-        List of solvent names to be plotted, they will be plotted in given order.
-        The solvents must be common to all systems in question. Renaming in `rename_solvent_dicts`
-        is applied first, so the solvent names in `solvents_to_plot should match the `values` of that dict.
-    x_axis : str
-        the value must be "solvent" or "solute" and decides which to plot the x_axis
-    series : bool
-        False for a bar graph, True for a line graph
-    x_label : str
-        title of the x-axis
-    y_label : str
-        title of the y-axis
-    title : str
-        title of figure
-    legend_label : str
-        title of legend
-
-    Returns
-    -------
-    fig : Plotly.Figure
-
-    """
-    rename_solvent_dict = rename_solvent_dict or {}
-    coordination = {
-        solution_name: solutions[solution_name].coordination.cn_dict
-        for solution_name in solutions
-    }
-    fig = compare_solvent_dicts(
-        coordination, rename_solvent_dict, solvents_to_plot, legend_label, x_axis, series
-    )
-    fig.update_layout(
-        xaxis_title_text=x_label.title(),
-        yaxis_title_text=y_label.title(),
-        title=title.title(),
-    )
-    return fig
-
-
-def compare_residence_times(
-    solutions,
-    res_type="residence_times_fit",
-    rename_solvent_dict=None,
-    solvents_to_plot=None,
-    x_axis="solvent",
-    series=False,
-    x_label="Solvent",
-    y_label="Residence Time",
-    title="Graph of Residence Time Data",
-    legend_label="Legend",
-    **kwargs,
-):
-    """
-    Compares the residence times of multiple solutions.
-
-    Parameters
-    ----------
-    property_dict : dict of {str: dict}
-        a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
-        is the name of the solvent of each solution and each value is the property of interest
-    rename_solvent_dict : dict of {str: str}
-        Renames solvents within the plot, useful for comparing similar solvents in different solutes.
-        The keys are the original solvent names and the values are the new name
-        e.g. {"EAf" : "EAx", "fEAf" : "EAx"}
-    solvents_to_plot : List[str]
-        List of solvent names to be plotted, they will be plotted in given order.
-        The solvents must be common to all systems in question. Renaming in `rename_solvent_dicts`
-        is applied first, so the solvent names in `solvents_to_plot should match the `values` of that dict.
-    x_axis : str
-        the value must be "solvent" or "solute" and decides which to plot the x_axis
-    series : bool
-        False for a bar graph, True for a line graph
-    x_label : str
-        title of the x-axis
-    y_label : str
-        title of the y-axis
-    title : str
-        title of figure
-    legend_label : str
-        title of legend
-
-    Returns
-    -------
-    fig : Plotly.Figure
-
-    """
-    #
-    if res_type not in ["residence_times", "residence_times_fit"]:
-        raise ValueError(
-            'res_type must be either "residence_times" or "residence_times_fit"'
+        rename_solvent_dict = rename_solvent_dict or {}
+        fig = compare_solvent_dicts(
+            property, rename_solvent_dict, solvents_to_plot, legend_label, x_axis, series
         )
+        fig.update_layout(
+            xaxis_title_text=x_label.title(),
+            yaxis_title_text=y_label.title(),
+            title=title.title(),
+        )
+        return fig
 
-    res_time = {}
-    for solution_name, solution in solutions.items():
-        if not hasattr(solution, "residence"):
-            raise ValueError("Solution's Residence analysis class is not instantiated.")
-        res_time[solution_name] = getattr(solution.residence, res_type)
+    arguments_docstring = """    
+    
+    property_dict : dict of {str: dict}
+        a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
+        is the name of the solvent of each solution and each value is the property of interest
+    rename_solvent_dict : dict of {str: str}
+        Renames solvents within the plot, useful for comparing similar solvents in different solutes.
+        The keys are the original solvent names and the values are the new name
+        e.g. {"EAf" : "EAx", "fEAf" : "EAx"}
+    solvents_to_plot : List[str]
+        List of solvent names to be plotted, they will be plotted in given order.
+        The solvents must be common to all systems in question. Renaming in `rename_solvent_dicts`
+        is applied first, so the solvent names in `solvents_to_plot should match the `values` of that dict.
+    x_axis : str
+        the value must be "solvent" or "solute" and decides which to plot the x_axis
+    series : bool
+        False for a bar graph, True for a line graph
+    x_label : str
+        title of the x-axis
+    y_label : str
+        title of the y-axis
+    title : str
+        title of figure
+    legend_label : str
+        title of legend
 
-    rename_solvent_dict = rename_solvent_dict or {}
-    fig = compare_solvent_dicts(
-        res_time, rename_solvent_dict, solvents_to_plot, legend_label, x_axis, series
-    )
-    fig.update_layout(
-        xaxis_title_text=x_label.title(),
-        yaxis_title_text=y_label.title(),
-        title=title.title(),
-    )
-    return fig
+    Returns
+    -------
+    fig : Plotly.Figure
+    """
+    compare_func.__doc__ = top_level_docstring + arguments_docstring
+    return compare_func
+
+
+compare_pairing = _compare_function_generator(
+    'pairing',
+    'pairing_dict',
+    'Fractional pairing of solvents.',
+    'Pairing plots the stuff'
+)
+
+
+compare_free_solvents = _compare_function_generator(
+    'pairing',
+    'fraction_free_solvents',
+    'Fractional pairing of solvents.',
+    'Pairing plots the stuff'
+)
+
+
+compare_diluent = _compare_function_generator(
+    'pairing',
+    'diluent_dict',
+    'Fractional pairing of solvents.',
+    'Pairing plots the stuff'
+)
+
+
+compare_coordination_numbers = _compare_function_generator(
+    'coordination',
+    'cn_dict',
+    'Coordination numbers of solvents.',
+    'Coordination plots the stuff'
+)
+
+
+compare_residence_times_cutoff = _compare_function_generator(
+    'residence',
+    'residence_times_cutoff',
+    'Coordination numbers of solvents.',
+    'Coordination plots the stuff'
+)
+
+
+compare_residence_times_fit = _compare_function_generator(
+    'residence',
+    'residence_times_fit',
+    'Coordination numbers of solvents.',
+    'Coordination plots the stuff'
+)
 
 
 # TODO: work on rdfs; make them tiled
