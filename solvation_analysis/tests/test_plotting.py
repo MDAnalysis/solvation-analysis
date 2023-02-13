@@ -1,9 +1,7 @@
-import numpy as np
 import pytest
 from solvation_analysis.plotting import (
     plot_network_size_histogram,
     plot_shell_size_histogram,
-    compare_solvent_dicts,
     _compare_function_generator,
     compare_free_solvents,
     compare_pairing,
@@ -14,7 +12,6 @@ from solvation_analysis.plotting import (
 )
 
 from solvation_analysis.residence import Residence
-from solvation_analysis.networking import Networking
 
 
 def test_plot_network_size_histogram(networking):
@@ -190,6 +187,26 @@ def test_compare_coordination_numbers_default_eax(eax_solutes):
     fig = compare_coordination_numbers(eax_solutes)
     assert len(fig.data) == 4
     # fig.show()
+
+
+def test_compare_coordination_numbers_solute_four_cases(eax_solutes):
+    fig = compare_coordination_numbers(eax_solutes, x_axis='solute')
+    assert len(fig.data) == 6
+
+    fig = compare_coordination_numbers(eax_solutes, x_axis='solute', series=True)
+    assert len(fig.data) == 6
+
+    rename = {
+        "ea": "EAx",
+        "fea": "EAx",
+        "eaf": "EAx",
+        "feaf": "EAx",
+    }
+    fig = compare_coordination_numbers(eax_solutes, x_axis='solute', rename_solvent_dict=rename)
+    assert len(fig.data) == 3
+
+    fig = compare_coordination_numbers(eax_solutes, x_axis='solute', series=True, rename_solvent_dict=rename)
+    assert len(fig.data) == 3
 
 
 def test_compare_coordination_numbers_case1(eax_solutes):
