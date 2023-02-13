@@ -17,16 +17,14 @@ from solvation_analysis.residence import Residence
 
 def test_plot_network_size_histogram(run_solute):
     run_solute.networking = Networking.from_solute(run_solute, 'pf6')
-    fig = plot_network_size_histogram(run_solute)
-    fig = plot_network_size_histogram(run_solute.networking)
-    # fig.show()
+    plot_network_size_histogram(run_solute)
+    plot_network_size_histogram(run_solute.networking)
     assert True
 
 
 def test_plot_shell_size_histogram(run_solute):
-    fig = plot_shell_size_histogram(run_solute)
-    fig = plot_shell_size_histogram(run_solute.speciation)
-    # fig.show()
+    plot_shell_size_histogram(run_solute)
+    plot_shell_size_histogram(run_solute.speciation)
     assert True
 
 
