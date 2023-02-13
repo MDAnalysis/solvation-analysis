@@ -208,6 +208,15 @@ def test_compare_coordination_numbers_solute_four_cases(eax_solutes):
     fig = compare_coordination_numbers(eax_solutes, x_axis='solute', series=True, rename_solvent_dict=rename)
     assert len(fig.data) == 3
 
+    fig = compare_coordination_numbers(
+        eax_solutes,
+        x_axis='solute',
+        rename_solvent_dict=rename,
+        series=True,
+        solvents_to_plot=['EAx', 'pf6'],
+    )
+    assert len(fig.data) == 2
+
 
 def test_compare_coordination_numbers_case1(eax_solutes):
     # solvents_to_plot on x axis, each bar is a solute
