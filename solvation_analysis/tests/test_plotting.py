@@ -11,17 +11,21 @@ from solvation_analysis.plotting import (
     compare_diluent,
 )
 
+from solvation_analysis.networking import Networking
 from solvation_analysis.residence import Residence
 
 
-def test_plot_network_size_histogram(networking):
-    fig = plot_network_size_histogram(networking)
+def test_plot_network_size_histogram(run_solute):
+    run_solute.networking = Networking.from_solute(run_solute, 'pf6')
+    fig = plot_network_size_histogram(run_solute)
+    fig = plot_network_size_histogram(run_solute.networking)
     # fig.show()
     assert True
 
 
 def test_plot_shell_size_histogram(run_solute):
     fig = plot_shell_size_histogram(run_solute)
+    fig = plot_shell_size_histogram(run_solute.speciation)
     # fig.show()
     assert True
 
