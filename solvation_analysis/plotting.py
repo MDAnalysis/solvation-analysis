@@ -248,48 +248,48 @@ def _compare_function_generator(
 compare_pairing = _compare_function_generator(
     'pairing',
     'pairing_dict',
-    'Fractional pairing of solvents.',
-    'Pairing plots the stuff'
+    'Fractional Pairing of Solvents',
+    'Compare the solute-solvent pairing.'
 )
 
 
 compare_free_solvents = _compare_function_generator(
     'pairing',
     'fraction_free_solvents',
-    'Fractional pairing of solvents.',
-    'Pairing plots the stuff'
+    'Free Solvents in Solutes',
+    'Compare the relative fraction of free solvents.'
 )
 
 
 compare_diluent = _compare_function_generator(
     'pairing',
     'diluent_dict',
-    'Fractional pairing of solvents.',
-    'Pairing plots the stuff'
+    'Diluent Composition of Solutes',
+    'Compare the diluent composition.'
 )
 
 
 compare_coordination_numbers = _compare_function_generator(
     'coordination',
     'cn_dict',
-    'Coordination numbers of solvents.',
-    'Coordination plots the stuff'
+    'Coordination Numbers of Solvents',
+    'Compare the coordination numbers.'
 )
 
 
 compare_residence_times_cutoff = _compare_function_generator(
     'residence',
     'residence_times_cutoff',
-    'Coordination numbers of solvents.',
-    'Coordination plots the stuff'
+    'Solute-Solvent Residence Time',
+    'Compare the solute-solvent residence times.'
 )
 
 
 compare_residence_times_fit = _compare_function_generator(
     'residence',
     'residence_times_fit',
-    'Coordination numbers of solvents.',
-    'Coordination plots the stuff'
+    'Solute-Solvent Residence Time.',
+    'Compare the solute-solvent residence times.'
 )
 
 
