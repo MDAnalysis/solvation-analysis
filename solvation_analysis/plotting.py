@@ -117,7 +117,7 @@ def compare_solvent_dicts(
     """
     property_dict = deepcopy(property_dict)
     # coerce solutions to a common name
-    for solution_name in rename_solvent_dict:
+    for solution_name in rename_solvent_dict.keys():
         if solution_name in property_dict:
             common_name = rename_solvent_dict[solution_name]
             # remove the solution name from the properties dict and rename to the common name
@@ -136,9 +136,12 @@ def compare_solvent_dicts(
                 f"solvents_to_plot must only include solvents that are "
                 f"present in all solutes. Valid values are {valid_solvents}."
             )
-        for solution_dict in property_dict.values():
-            for solvent in invalid_solvents:
-                solution_dict.pop(solvent, None)
+        for solute_name, solution_dict in property_dict.items():
+            new_solution_dict = {
+                solvent: value for solvent, value in solution_dict.items()
+                if solvent in solvents_to_plot
+            }
+            property_dict[solute_name] = new_solution_dict
 
     # generate figure and make a DataFrame of the data
     fig = go.Figure()
