@@ -14,3 +14,4 @@ API Documentation
     api/pairing
     api/residence
     api/speciation
+    api/plotting
