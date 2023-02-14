@@ -91,7 +91,7 @@ jobs:
     - name: Install package
 
       run: |
-        pip install .
+        python -m pip install .
 
     - name: Run tests
 

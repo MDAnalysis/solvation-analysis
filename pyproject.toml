@@ -36,7 +36,8 @@ dependencies = [
     'matplotlib',
     'scipy',
     'statsmodels',
-    'plotly'
+    'plotly',
+    'rdkit'
 ]
 
 classifiers = [
