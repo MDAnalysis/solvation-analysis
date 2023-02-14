@@ -15,7 +15,7 @@ authors = [
     {name = 'Orion Cohen', email = 'orioncohen@berkeley.edu'}
 ]
 maintainers = [
-    {name = 'Orion Cohen', email = 'orioncohen@berkeley.edu'}
+    {name = 'Orion Cohen', email = 'orioncohen@berkeley.edu'},
     {name = 'Hugo MacDermott-Opeskin', email = 'hugomacdermott@gmail.com'}
 
 ]
