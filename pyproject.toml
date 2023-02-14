@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 name = "solvation-analysis"
 dynamic = ['version', 'readme']
 license = {file = "LICENSE"}
-description = "An object-oriented toolkit to analyze molecular dynamics trajectories."
+description = "A toolkit to analyze solvation structure in molecular dynamics trajectories."
 authors = [
     {name = 'Orion Cohen', email = 'orioncohen@berkeley.edu'}
 ]
