@@ -24,7 +24,7 @@ import pandas as pd
 # single solution
 def plot_network_size_histogram(networking):
     """
-    Returns a histogram of network sizes.
+    Plot a histogram of network sizes.
 
     Parameters
     ----------
@@ -48,14 +48,15 @@ def plot_network_size_histogram(networking):
         xaxis_title_text="Network Size",
         yaxis_title_text="Fraction of All Networks",
         title="Histogram of Network Sizes",
+        template="plotly_white",
     )
     fig.update_xaxes(type="category")
     return fig
 
 
-def plot_shell_size_histogram(speciation):
+def plot_shell_composition_by_size(speciation):
     """
-    Returns a histogram of shell sizes.
+    Plot the composition of shells broken down by shell size.
 
     Parameters
     ----------
@@ -83,6 +84,7 @@ def plot_shell_size_histogram(speciation):
         xaxis_title_text="Shell Size",
         yaxis_title_text="Fraction of Total Molecules",
         title="Fraction of Solvents in Shells of Different Sizes",
+        template="plotly_white",
     )
     fig.update_xaxes(type="category")
     return fig
