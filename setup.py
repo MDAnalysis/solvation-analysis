@@ -50,6 +50,8 @@ setup(
         'pandas',
         'matplotlib',
         'scipy',
+        'statsmodels', 
+        'plotly'
     ],
     # Additional entries you may want simply uncomment the lines you want and fill in the data
     # url='http://www.my_package.com',  # Website
