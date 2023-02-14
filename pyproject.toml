@@ -28,15 +28,15 @@ keywords = [
 ]
 
 dependencies = [
-    numpy>=1.16.0,
-    pandas,
-    mdanalysis>=2.0.0,
-    pytest,
-    pathlib,
-    matplotlib,
-    scipy,
-    statsmodels,
-    plotly
+    'numpy>=1.16.0',
+    'pandas',
+    'mdanalysis>=2.0.0',
+    'pytest',
+    'pathlib',
+    'matplotlib',
+    'scipy',
+    'statsmodels',
+    'plotly'
 ]
 
 classifiers = [
