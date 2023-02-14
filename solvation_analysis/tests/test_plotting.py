@@ -1,7 +1,7 @@
 import pytest
 from solvation_analysis.plotting import (
     plot_network_size_histogram,
-    plot_shell_size_histogram,
+    plot_shell_composition_by_size,
     _compare_function_generator,
     compare_free_solvents,
     compare_pairing,
@@ -23,8 +23,8 @@ def test_plot_network_size_histogram(run_solute):
 
 
 def test_plot_shell_size_histogram(run_solute):
-    plot_shell_size_histogram(run_solute)
-    plot_shell_size_histogram(run_solute.speciation)
+    plot_shell_composition_by_size(run_solute)
+    plot_shell_composition_by_size(run_solute.speciation)
     assert True
 
 
