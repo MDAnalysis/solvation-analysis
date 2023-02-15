@@ -98,4 +98,4 @@ jobs:
 
     - name: Run tests
       run: |
-        pip install pytest && pytest -v --color=yes solvation_analysis/tests/
+        pytest -v --color=yes solvation_analysis/tests/
