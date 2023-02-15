@@ -1,0 +1,66 @@
+[build-system]
+requires = [
+  "setuptools",
+  "versioneer[toml]",
+  "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solvation-analysis"
+dynamic = ['version', 'readme']
+license = {file = "LICENSE"}
+description = "A toolkit to analyze solvation structure in molecular dynamics trajectories."
+authors = [
+    {name = 'Orion Cohen', email = 'orioncohen@berkeley.edu'}
+]
+maintainers = [
+    {name = 'Orion Cohen', email = 'orioncohen@berkeley.edu'},
+    {name = 'Hugo MacDermott-Opeskin', email = 'hugomacdermott@gmail.com'}
+
+]
+requires-python = ">=3.8"
+
+keywords = [
+    "python", "science", "chemistry", "biophysics", "molecular-dynamics",
+    "computational-chemistry", "molecular-simulation", "analysis",
+    "trajectory-analysis", "solvation"
+]
+
+dependencies = [
+    'numpy>=1.20.0',
+    'pandas',
+    'mdanalysis>=2.0.0',
+    'pytest',
+    'pathlib',
+    'matplotlib',
+    'scipy',
+    'statsmodels',
+    'plotly',
+    'rdkit'
+]
+
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Environment :: Console',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+    'Operating System :: POSIX',
+    'Operating System :: MacOS :: MacOS X',
+    'Operating System :: Microsoft :: Windows',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Topic :: Scientific/Engineering',
+    'Topic :: Scientific/Engineering :: Bio-Informatics',
+    'Topic :: Scientific/Engineering :: Chemistry',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+]
+
+
+[project.urls]
+Documentation = 'https://solvation-analysis.readthedocs.io'
+"Issue Tracker" = 'https://github.com/MDAnalysis/solvation-analysis/issues'
+Source = 'https://github.com/MDAnalysis/solvation-analysis'
