@@ -1,5 +1,5 @@
 setuptools
-numpy>=1.16.0
+numpy>=1.20.0
 pandas
 mdanalysis>=2.0.0
 pytest
