@@ -29,6 +29,11 @@ SolvationAnalysis is available on PyPI and can be installed with pip:
 pip install solvation-analysis
 ```
 
+### Contributing
+
+Contributions, both issues and PRs, are welcome. If you'd like to contribute, we ask that you 
+follow the community guidelines outlined in the [MDAnalysis Code of Conduct](https://www.mdanalysis.org/pages/conduct/).
+
 ---
 
 #### Acknowledgements
