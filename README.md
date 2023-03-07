@@ -21,6 +21,14 @@ in understanding the solvation structure of a liquid, this package is for you!
 
 Find the documentation on [readthedocs].
 
+### Installing SolvationAnalysis
+
+SolvationAnalysis is available on PyPI and can be installed with pip:
+
+```bash
+pip install solvation-analysis
+```
+
 ---
 
 #### Acknowledgements
