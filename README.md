@@ -19,7 +19,7 @@ and Universe data structures to parse solvation information. If you are interest
 in understanding the solvation structure of a liquid, this package is for you!
 
 
-Find the documentation on [readthedocs].
+Find documentation and tutorials on [readthedocs].
 
 ### Installing SolvationAnalysis
 
