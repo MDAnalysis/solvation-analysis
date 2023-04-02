@@ -71,20 +71,6 @@ class Residence:
         The spacing of frames in solvation_data. This should be equal
         to solute.step.
 
-    Attributes
-    ----------
-    residence_times_cutoff : dict of {str: float}
-        a dictionary where keys are residue names and values are the
-        residence times of the that residue on the solute, calculated
-        with the 1/e cutoff method.
-    residence_times_fit : dict of {str: float}
-        a dictionary where keys are residue names and values are the
-        residence times of the that residue on the solute, calculated
-        with the exponential fit method.
-    fit_parameters : pd.DataFrame
-        a dictionary where keys are residue names and values are the
-        arameters for the exponential fit to the autocorrelation function.
-
     Examples
     --------
 

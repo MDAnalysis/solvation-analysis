@@ -52,30 +52,6 @@ class Networking:
     res_name_map : pd.Series
         a mapping between residue indices and the solute & solvent names in a Solute.
 
-    Attributes
-    ----------
-    network_df : pd.DataFrame
-        the dataframe containing all networking data. the indices are the frame and
-        network index, respectively. the columns are the solvent_name and res_ix.
-    network_sizes : pd.DataFrame
-        a dataframe of network sizes. the index is the frame. the column headers
-        are network sizes, or the number of solutes + solvents in the network, so
-        the columns might be [2, 3, 4, ...]. the values in each column are the
-        number of networks with that size in each frame.
-    solute_status : dict of {str: float}
-        a dictionary where the keys are the "status" of the solute and the values
-        are the fraction of solute with that status, averaged over all frames.
-        "isolated" means that the solute not coordinated with any of the networking
-        solvents, network size is 1.
-        "paired" means the solute and is coordinated with a single networking
-        solvent and that solvent is not coordinated to any other solutes, network
-        size is 2.
-        "networked" means that the solute is coordinated to more than one solvent
-        or its solvent is coordinated to more than one solute, network size >= 3.
-    solute_status_by_frame : pd.DataFrame
-        as described above, except organized into a dataframe where each
-        row is a unique frame and the columns are "isolated", "paired", and "networked".
-
     Examples
     --------
      .. code-block:: python

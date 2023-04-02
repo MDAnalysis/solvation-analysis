@@ -44,25 +44,6 @@ class Pairing:
     n_solvents : dict of {str: int}
         The number of each kind of solvent.
 
-    Attributes
-    ----------
-    solvent_pairing : dict of {str: float}
-        a dictionary where keys are residue names (str) and values are the
-        fraction of solutes that contain that residue (float).
-    pairing_by_frame : pd.DataFrame
-        a dictionary tracking the mean fraction of each residue across frames.
-    fraction_free_solvents : dict of {str: float}
-        a dictionary containing the fraction of each solvent that is free. e.g.
-        not coordinated to a solute.
-    diluent_composition : dict of {str: float}
-        the fraction of the diluent constituted by each solvent. The diluent is
-        defined as everything that is not coordinated with the solute.
-    diluent_composition_by_frame : pd.DataFrame
-        a DataFrame of the diluent composition in each frame of the trajectory.
-    diluent_counts : pd.DataFrame
-        a DataFrame of the raw solvent counts in the diluent in each frame of the trajectory.
-
-
     Examples
     --------
 
