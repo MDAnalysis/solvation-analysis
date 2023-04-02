@@ -189,7 +189,7 @@ def test_coordination_numbers(name, cn, run_solute):
 )
 def test_pairing(name, fraction, run_solute):
     # duplicated to test in solute
-    pairing_dict = run_solute.pairing.pairing_dict
+    pairing_dict = run_solute.pairing.solvent_pairing
     np.testing.assert_allclose([fraction], pairing_dict[name], atol=0.05)
 
 
