@@ -160,20 +160,20 @@ class Speciation:
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
-        query_counts = self.speciation_df.query(query)
+        query_counts = self.speciation_data.query(query)
         return query_counts
 
     def _solvent_co_occurrence(self):
         # calculate the co-occurrence of solvent molecules.
         expected_solvents_list = []
         actual_solvents_list = []
-        for solvent in self.speciation_df.columns.values:
+        for solvent in self.speciation_data.columns.values:
             # calculate number of available coordinating solvent slots
-            shells_w_solvent = self.speciation_df.query(f'{solvent} > 0')
+            shells_w_solvent = self.speciation_data.query(f'{solvent} > 0')
             n_solvents = shells_w_solvent.sum()
             # calculate expected number of coordinating solvents
             n_coordination_slots = n_solvents.sum() - len(shells_w_solvent)
-            coordination_fraction = self.speciation_df.sum() / self.speciation_df.sum().sum()
+            coordination_fraction = self.speciation_data.sum() / self.speciation_data.sum().sum()
             expected_solvents = coordination_fraction * n_coordination_slots
             # calculate actual number of coordinating solvents
             actual_solvents = n_solvents.copy()
@@ -206,7 +206,7 @@ class Speciation:
 
         """
         # TODO: rewrite in plotly and move this to the plotting module
-        solvent_names = self.speciation_df.columns.values
+        solvent_names = self.speciation_data.columns.values
         fig, ax = plt.subplots()
         im = ax.imshow(self.solvent_co_occurrence)
         # We want to show all ticks...
@@ -234,7 +234,7 @@ class Speciation:
         return fig, ax
 
     @property
-    def speciation_df(self):
+    def speciation_data(self):
         """
         A dataframe containing the speciation of every solute at
         every trajectory frame. Indexed by frame and solute numbers.

@@ -6,7 +6,7 @@ from solvation_analysis.speciation import Speciation
 
 def test_speciation_from_solute(run_solute):
     speciation = Speciation.from_solute(run_solute)
-    assert len(speciation.speciation_df) == 490
+    assert len(speciation.speciation_data) == 490
 
 
 @pytest.mark.parametrize(
