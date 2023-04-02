@@ -71,7 +71,7 @@ def plot_shell_composition_by_size(speciation):
         if not hasattr(speciation, "speciation"):
             raise ValueError(f"Solute speciation analysis class must be instantiated.")
         speciation = speciation.speciation
-    speciation_data = speciation.speciation_data.copy()
+    speciation_data = speciation.speciation_df.copy()
     speciation_data["total"] = speciation_data.sum(axis=1)
     sums = speciation_data.groupby("total").sum()
     fig = go.Figure()

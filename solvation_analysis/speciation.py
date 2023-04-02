@@ -51,33 +51,14 @@ class Speciation:
         The number of frames in solvation_data.
     n_solutes : int
         The number of solutes in solvation_data.
-
-    Attributes
-    ----------
-    speciation : pandas.DataFrame
-        a dataframe containing the speciation of every li ion at
-        every trajectory frame. Indexed by frame and solute numbers.
-        Columns are the solvent molecules and values are the number
-        of solvent in the shell.
-    speciation_fraction : pandas.DataFrame
-        the fraction of shells of each type. Columns are the solvent
-        molecules and and values are the number of solvent in the shell.
-        The final column is the fraction of total shell of that
-        particular composition.
-    co_occurrence : pandas.DataFrame
-        The actual co-occurrence of solvents divided by the expected co-occurrence.
-        In other words, given one molecule of solvent i in the shell, what is the
-        probability of finding a solvent j relative to choosing a solvent at random
-        from the pool of all coordinated solvents. This matrix will
-        likely not be symmetric.
     """
 
     def __init__(self, solvation_data, n_frames, n_solutes):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.speciation_data, self.speciation_fraction = self._compute_speciation()
-        self.co_occurrence = self._solvent_co_occurrence()
+        self._speciation_df, self._speciation_fraction = self._compute_speciation()
+        self._solvent_co_occurrence = self._solvent_co_occurrence()
 
     @staticmethod
     def from_solute(solute):
@@ -179,20 +160,20 @@ class Speciation:
         """
         query_list = [f"{name} == {str(count)}" for name, count in shell_dict.items()]
         query = " and ".join(query_list)
-        query_counts = self.speciation_data.query(query)
+        query_counts = self.speciation_df.query(query)
         return query_counts
 
     def _solvent_co_occurrence(self):
         # calculate the co-occurrence of solvent molecules.
         expected_solvents_list = []
         actual_solvents_list = []
-        for solvent in self.speciation_data.columns.values:
+        for solvent in self.speciation_df.columns.values:
             # calculate number of available coordinating solvent slots
-            shells_w_solvent = self.speciation_data.query(f'{solvent} > 0')
+            shells_w_solvent = self.speciation_df.query(f'{solvent} > 0')
             n_solvents = shells_w_solvent.sum()
             # calculate expected number of coordinating solvents
             n_coordination_slots = n_solvents.sum() - len(shells_w_solvent)
-            coordination_fraction = self.speciation_data.sum() / self.speciation_data.sum().sum()
+            coordination_fraction = self.speciation_df.sum() / self.speciation_df.sum().sum()
             expected_solvents = coordination_fraction * n_coordination_slots
             # calculate actual number of coordinating solvents
             actual_solvents = n_solvents.copy()
@@ -225,9 +206,9 @@ class Speciation:
 
         """
         # TODO: rewrite in plotly and move this to the plotting module
-        solvent_names = self.speciation_data.columns.values
+        solvent_names = self.speciation_df.columns.values
         fig, ax = plt.subplots()
-        im = ax.imshow(self.co_occurrence)
+        im = ax.imshow(self.solvent_co_occurrence)
         # We want to show all ticks...
         ax.set_xticks(np.arange(len(solvent_names)))
         ax.set_yticks(np.arange(len(solvent_names)))
@@ -243,7 +224,7 @@ class Speciation:
         # Loop over data dimensions and create text annotations.
         for i in range(len(solvent_names)):
             for j in range(len(solvent_names)):
-                ax.text(j, i, round(self.co_occurrence.iloc[i, j], 2),
+                ax.text(j, i, round(self.solvent_co_occurrence.iloc[i, j], 2),
                         horizontalalignment="center",
                         verticalalignment="center",
                         color="black",
@@ -251,3 +232,34 @@ class Speciation:
                         )
         fig.tight_layout()
         return fig, ax
+
+    @property
+    def speciation_df(self):
+        """
+        A dataframe containing the speciation of every solute at
+        every trajectory frame. Indexed by frame and solute numbers.
+        Columns are the solvent molecules and values are the number
+        of solvent in the shell.
+        """
+        return self._speciation_df
+
+    @property
+    def speciation_fraction(self):
+        """
+        The fraction of shells of each type. Columns are the solvent
+        molecules and values are the number of solvent in the shell.
+        The final column is the fraction of total shell of that
+        particular composition.
+        """
+        return self._speciation_fraction
+
+    @property
+    def solvent_co_occurrence(self):
+        """
+        The actual co-occurrence of solvents divided by the expected co-occurrence.
+        In other words, given one molecule of solvent i in the shell, what is the
+        probability of finding a solvent j relative to choosing a solvent at random
+        from the pool of all coordinated solvents. This matrix will
+        likely not be symmetric.
+        """
+        return self._solvent_co_occurrence
