@@ -243,7 +243,7 @@ def _compare_function_generator(
         )
         return fig
 
-    arguments_docstring = """    
+    arguments_docstring = """
     
     property_dict : dict of {str: dict}
         a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
