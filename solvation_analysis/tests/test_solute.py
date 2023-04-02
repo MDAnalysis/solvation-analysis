@@ -175,7 +175,7 @@ def test_speciation_find_shells(shell, n_shells, run_solute):
 )
 def test_coordination_numbers(name, cn, run_solute):
     # duplicated to test in solute
-    coord_dict = run_solute.coordination.cn_dict
+    coord_dict = run_solute.coordination.coordination_numbers
     np.testing.assert_allclose(cn, coord_dict[name], atol=0.05)
 
 
@@ -189,7 +189,7 @@ def test_coordination_numbers(name, cn, run_solute):
 )
 def test_pairing(name, fraction, run_solute):
     # duplicated to test in solute
-    pairing_dict = run_solute.pairing.pairing_dict
+    pairing_dict = run_solute.pairing.solvent_pairing
     np.testing.assert_allclose([fraction], pairing_dict[name], atol=0.05)
 
 

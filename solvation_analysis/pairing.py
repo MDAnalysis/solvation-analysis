@@ -44,25 +44,6 @@ class Pairing:
     n_solvents : dict of {str: int}
         The number of each kind of solvent.
 
-    Attributes
-    ----------
-    pairing_dict : dict of {str: float}
-        a dictionary where keys are residue names (str) and values are the
-        fraction of solutes that contain that residue (float).
-    pairing_by_frame : pd.DataFrame
-        a dictionary tracking the mean fraction of each residue across frames.
-    fraction_free_solvents : dict of {str: float}
-        a dictionary containing the fraction of each solvent that is free. e.g.
-        not coordinated to a solute.
-    diluent_dict : dict of {str: float}
-        the fraction of the diluent constituted by each solvent. The diluent is
-        defined as everything that is not coordinated with the solute.
-    diluent_by_frame : pd.DataFrame
-        a DataFrame of the diluent composition in each frame of the trajectory.
-    diluent_counts : pd.DataFrame
-        a DataFrame of the raw solvent counts in the diluent in each frame of the trajectory.
-
-
     Examples
     --------
 
@@ -71,7 +52,7 @@ class Pairing:
         # first define Li, BN, and FEC AtomGroups
         >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
         >>> solute.run()
-        >>> solute.pairing.pairing_dict
+        >>> solute.pairing.solvent_pairing
         {'BN': 1.0, 'FEC': 0.210, 'PF6': 0.120}
     """
 
@@ -80,9 +61,9 @@ class Pairing:
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self.solvent_counts = n_solvents
-        self.pairing_dict, self.pairing_by_frame = self._fraction_coordinated()
-        self.fraction_free_solvents = self._fraction_free_solvent()
-        self.diluent_dict, self.diluent_by_frame, self.diluent_counts = self._diluent_composition()
+        self._solvent_pairing, self._pairing_by_frame = self._fraction_coordinated()
+        self._fraction_free_solvents = self._fraction_free_solvent()
+        self._diluent_composition, self._diluent_composition_by_frame, self._diluent_counts = self._diluent_composition()
 
     @staticmethod
     def from_solute(solute):
@@ -135,3 +116,47 @@ class Pairing:
         diluent_dict = diluent_by_frame.mean(axis=1).to_dict()
         return diluent_dict, diluent_by_frame, diluent_counts
 
+    @property
+    def solvent_pairing(self):
+        """
+        A dictionary where keys are residue names (str) and values are the
+        fraction of solutes that contain that residue (float).
+        """
+        return self._solvent_pairing
+
+    @property
+    def pairing_by_frame(self):
+        """
+        A pd.Dataframe tracking the mean fraction of each residue across frames.
+        """
+        return self._pairing_by_frame
+
+    @property
+    def fraction_free_solvents(self):
+        """
+        A dictionary containing the fraction of each solvent that is free. e.g.
+        not coordinated to a solute.
+        """
+        return self._fraction_free_solvents
+
+    @property
+    def diluent_composition(self):
+        """
+        The fraction of the diluent constituted by each solvent. The diluent is
+        defined as everything that is not coordinated with the solute.
+        """
+        return self._diluent_composition
+
+    @property
+    def diluent_composition_by_frame(self):
+        """
+        A DataFrame of the diluent composition in each frame of the trajectory.
+        """
+        return self._diluent_composition_by_frame
+
+    @property
+    def diluent_counts(self):
+        """
+        A DataFrame of the raw solvent counts in the diluent in each frame of the trajectory.
+        """
+        return self._diluent_counts

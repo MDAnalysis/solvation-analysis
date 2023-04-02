@@ -46,11 +46,11 @@ setup(
 
     install_requires=[
         'numpy>=1.20.0',
-        'mdanalysis>=2.0.0b0',
+        'mdanalysis>=2.0.0',
         'pandas',
         'matplotlib',
         'scipy',
-        'statsmodels', 
+        'statsmodels',
         'plotly',
         'rdkit'
     ],

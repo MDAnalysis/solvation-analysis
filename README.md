@@ -21,6 +21,19 @@ in understanding the solvation structure of a liquid, this package is for you!
 
 Find the documentation on [readthedocs].
 
+### Installing SolvationAnalysis
+
+SolvationAnalysis is available on PyPI and can be installed with pip:
+
+```bash
+pip install solvation-analysis
+```
+
+### Contributing
+
+Contributions, both issues and PRs, are welcome. If you'd like to contribute, we ask that you 
+follow the community guidelines outlined in the [MDAnalysis Code of Conduct](https://www.mdanalysis.org/pages/conduct/).
+
 ---
 
 #### Acknowledgements

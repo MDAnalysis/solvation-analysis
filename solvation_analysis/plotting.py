@@ -243,7 +243,7 @@ def _compare_function_generator(
         )
         return fig
 
-    arguments_docstring = """    
+    arguments_docstring = """
     
     property_dict : dict of {str: dict}
         a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
@@ -279,7 +279,7 @@ def _compare_function_generator(
 
 compare_pairing = _compare_function_generator(
     "pairing",
-    "pairing_dict",
+    "solvent_pairing",
     "Fractional Pairing of Solvents",
     "Compare the solute-solvent pairing.",
 )
@@ -295,7 +295,7 @@ compare_free_solvents = _compare_function_generator(
 
 compare_diluent = _compare_function_generator(
     "pairing",
-    "diluent_dict",
+    "diluent_composition",
     "Diluent Composition of Solutes",
     "Compare the diluent composition.",
 )
@@ -303,7 +303,7 @@ compare_diluent = _compare_function_generator(
 
 compare_coordination_numbers = _compare_function_generator(
     "coordination",
-    "cn_dict",
+    "coordination_numbers",
     "Coordination Numbers of Solvents",
     "Compare the coordination numbers.",
 )

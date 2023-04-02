@@ -49,7 +49,7 @@ def test_speciation_find_shells(shell, n_shells, solvation_data):
 )
 def test_speciation_correlation(solvent_one, solvent_two, correlation, solvation_data):
     speciation = Speciation(solvation_data, 10, 49)
-    df = speciation.co_occurrence
+    df = speciation.solvent_co_occurrence
     np.testing.assert_allclose(df[solvent_one][solvent_two], correlation, atol=0.05)
 
 

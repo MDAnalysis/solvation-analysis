@@ -45,16 +45,6 @@ class Coordination:
     n_solutes : int
         The number of solutes in solvation_data.
 
-    Attributes
-    ----------
-    cn_dict : dict of {str: float}
-        a dictionary where keys are residue names (str) and values are the
-        mean coordination number of that residue (float).
-    cn_by_frame : pd.DataFrame
-        a DataFrame of the mean coordination number of in each frame of the trajectory.
-    coordinating_atoms : pd.DataFrame
-        fraction of each atom_type participating in solvation, calculated for each solvent.
-
     Examples
     --------
 
@@ -63,7 +53,7 @@ class Coordination:
         # first define Li, BN, and FEC AtomGroups
         >>> solute = Solute(Li, {'BN': BN, 'FEC': FEC, 'PF6': PF6})
         >>> solute.run()
-        >>> solute.coordination.cn_dict
+        >>> solute.coordination.coordination_numbers
         {'BN': 4.328, 'FEC': 0.253, 'PF6': 0.128}
 
     """
@@ -72,9 +62,9 @@ class Coordination:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
-        self.cn_dict, self.cn_by_frame = self._mean_cn()
+        self._cn_dict, self._cn_dict_by_frame = self._mean_cn()
         self.atom_group = atom_group
-        self.coordinating_atoms = self._calculate_coordinating_atoms()
+        self._coordinating_atoms = self._calculate_coordinating_atoms()
 
     @staticmethod
     def from_solute(solute):
@@ -132,3 +122,26 @@ class Coordination:
                          .set_index(ATOM_TYPE, append=True)
                          )
         return type_fractions[type_fractions[FRACTION] > tol]
+
+    @property
+    def coordination_numbers(self):
+        """
+        A dictionary where keys are residue names (str) and values are the
+        mean coordination number of that residue (float).
+        """
+        return self._cn_dict
+
+    @property
+    def coordination_numbers_by_frame(self):
+        """
+        A DataFrame of the mean coordination number of in each frame of the trajectory.
+        """
+        return self._cn_dict_by_frame
+
+    @property
+    def coordinating_atoms(self):
+        """
+        Fraction of each atom_type participating in solvation, calculated for each solvent.
+        """
+        return self._coordinating_atoms
+

@@ -298,7 +298,7 @@ def test_compare_residence_times(eax_solutes):
 
 def test_compare_generic(eax_solutes):
     compare = _compare_function_generator(
-        "pairing", "pairing_dict", "hello", "This is a function"
+        "pairing", "solvent_pairing", "hello", "This is a function"
     )
     fig = compare(
         eax_solutes,

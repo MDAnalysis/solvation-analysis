@@ -77,8 +77,9 @@ coordination numbers, solute-solvent pairing, and solute speciation,
 SolvationAnalysis uses tools from the SciPy ecosystem [@numpy:2020] [@scipy:2020]
 to implement analyses of network formation [@Xie:2023] and residence
 times [@Self:2019], summarized in \autoref{fig:summary}. To make visualization fast, 
-the package includes a robust set of plotting tools built
-on top of `Matplotlib` and `Plotly` [@matplotlib:2007] [@plotly:2015].
+the package includes a robust set of plotting tools built on top of `Matplotlib` and 
+`Plotly` [@matplotlib:2007] [@plotly:2015]. Paired with nglview [@nglview:2018], both 
+exploration and 3d visualization can be done in a Jupyter notebook.
 A full set of tutorials based on state-of-the-art battery electrolytes 
 [@Hou:2019] [@Dong-Joo:2022] are also included to familiarize new researchers
 with solvation structure analysis. Together, these features allow for

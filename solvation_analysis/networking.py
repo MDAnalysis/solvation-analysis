@@ -52,30 +52,6 @@ class Networking:
     res_name_map : pd.Series
         a mapping between residue indices and the solute & solvent names in a Solute.
 
-    Attributes
-    ----------
-    network_df : pd.DataFrame
-        the dataframe containing all networking data. the indices are the frame and
-        network index, respectively. the columns are the solvent_name and res_ix.
-    network_sizes : pd.DataFrame
-        a dataframe of network sizes. the index is the frame. the column headers
-        are network sizes, or the number of solutes + solvents in the network, so
-        the columns might be [2, 3, 4, ...]. the values in each column are the
-        number of networks with that size in each frame.
-    solute_status : dict of {str: float}
-        a dictionary where the keys are the "status" of the solute and the values
-        are the fraction of solute with that status, averaged over all frames.
-        "isolated" means that the solute not coordinated with any of the networking
-        solvents, network size is 1.
-        "paired" means the solute and is coordinated with a single networking
-        solvent and that solvent is not coordinated to any other solutes, network
-        size is 2.
-        "networked" means that the solute is coordinated to more than one solvent
-        or its solvent is coordinated to more than one solute, network size >= 3.
-    solute_status_by_frame : pd.DataFrame
-        as described above, except organized into a dataframe where each
-        row is a unique frame and the columns are "isolated", "paired", and "networked".
-
     Examples
     --------
      .. code-block:: python
@@ -95,10 +71,10 @@ class Networking:
         self.solute_res_ix = solute_res_ix
         self.res_name_map = res_name_map
         self.n_solute = len(solute_res_ix)
-        self.network_df = self._generate_networks()
-        self.network_sizes = self._calculate_network_sizes()
-        self.solute_status, self.solute_status_by_frame = self._calculate_solute_status()
-        self.solute_status = self.solute_status.to_dict()
+        self._network_df = self._generate_networks()
+        self._network_sizes = self._calculate_network_sizes()
+        self._solute_status, self._solute_status_by_frame = self._calculate_solute_status()
+        self._solute_status = self._solute_status.to_dict()
 
     @staticmethod
     def from_solute(solute, solvents):
@@ -239,3 +215,44 @@ class Networking:
         """
         res_ix = self.network_df.loc[pd.IndexSlice[frame, network_index], SOLVENT_IX].values
         return res_ix.astype(int)
+
+    @property
+    def network_df(self):
+        """
+        The dataframe containing all networking data. the indices are the frame and
+        network index, respectively. the columns are the solvent_name and res_ix.
+        """
+        return self._network_df
+
+    @property
+    def network_sizes(self):
+        """
+        A dataframe of network sizes. the index is the frame. the column headers
+        are network sizes, or the number of solutes + solvents in the network, so
+        the columns might be [2, 3, 4, ...]. the values in each column are the
+        number of networks with that size in each frame.
+        """
+        return self._network_sizes
+
+    @property
+    def solute_status(self):
+        """
+        A dictionary where the keys are the "status" of the solute and the values
+        are the fraction of solute with that status, averaged over all frames.
+        "isolated" means that the solute not coordinated with any of the networking
+        solvents, network size is 1.
+        "paired" means the solute and is coordinated with a single networking
+        solvent and that solvent is not coordinated to any other solutes, network
+        size is 2.
+        "networked" means that the solute is coordinated to more than one solvent
+        or its solvent is coordinated to more than one solute, network size >= 3.
+        """
+        return self._solute_status
+
+    @property
+    def solute_status_by_frame(self):
+        """
+        As described above, except organized into a dataframe where each
+        row is a unique frame and the columns are "isolated", "paired", and "networked".
+        """
+        return self._solute_status_by_frame
