@@ -97,15 +97,6 @@ class Residence:
         {'BN': 4.02, 'FEC': 3.79, 'PF6': 1.15}
     """
 
-    def __init__(self, solvation_data, step):
-        self.solvation_data = solvation_data
-        self.auto_covariances = self._calculate_auto_covariance_dict()
-        self.residence_times_cutoff = self._calculate_residence_times_with_cutoff(self.auto_covariances, step)
-        self.residence_times_fit, self.fit_parameters = self._calculate_residence_times_with_fit(
-            self.auto_covariances,
-            step
-        )
-
     @staticmethod
     def from_solute(solute):
         """
@@ -259,3 +250,46 @@ class Residence:
 
         auto_covariance = np.mean(np.concatenate(auto_covariances, axis=1), axis=1)
         return auto_covariance
+
+    @property
+    def auto_covariances(self):
+        """
+        A dictionary where keys are residue names and values are the
+        autocovariance of the that residue on the solute.
+        """
+        return self._auto_covariances
+
+    @property
+    def residence_times_cutoff(self):
+        """
+        A dictionary where keys are residue names and values are the
+        residence times of the that residue on the solute, calculated
+        with the 1/e cutoff method.
+        """
+        return self._residence_times_cutoff
+
+    @property
+    def residence_times_fit(self):
+        """
+        A dictionary where keys are residue names and values are the
+        residence times of the that residue on the solute, calculated
+        with the exponential fit method.
+        """
+        return self._residence_times_fit
+
+    @property
+    def fit_parameters(self):
+        """
+        A dictionary where keys are residue names and values are the
+        arameters for the exponential fit to the autocorrelation function.
+        """
+        return self._fit_parameters
+
+    def __init__(self, solvation_data, step):
+        self.solvation_data = solvation_data
+        self._auto_covariances = self._calculate_auto_covariance_dict()
+        self._residence_times_cutoff = self._calculate_residence_times_with_cutoff(self._auto_covariances, step)
+        self._residence_times_fit, self._fit_parameters = self._calculate_residence_times_with_fit(
+            self._auto_covariances,
+            step
+        )
