@@ -224,6 +224,7 @@ class Speciation:
         ax : matplotlib.Axes
 
         """
+        # TODO: rewrite in plotly and move this to the plotting module
         solvent_names = self.speciation_data.columns.values
         fig, ax = plt.subplots()
         im = ax.imshow(self.co_occurrence)
