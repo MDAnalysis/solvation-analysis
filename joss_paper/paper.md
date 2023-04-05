@@ -31,17 +31,17 @@ authors:
    orcid: 0000-0003-2495-5509
    affiliation: "5,6"
 affiliations:
- - name: Materials Science Division, Lawrence Berkeley National Laboratory, USA
+ - name: Materials Science Division, Lawrence Berkeley National Laboratory, United States of America
    index: 1
  - name: Australian National University, Australia
    index: 2
  - name: Institute of Materials Research, Shenzhen International Graduate School, Tsinghua University, China
    index: 3
- - name: Energy Storage & Distributed Resources Division, Lawrence Berkeley National Laboratory, USA
+ - name: Energy Storage & Distributed Resources Division, Lawrence Berkeley National Laboratory, United States of America
    index: 4
- - name: Department of Materials Science, University of California, USA
+ - name: Department of Materials Science, University of California, United States of America
    index: 5
- - name: Molecular Foundry, Lawrence Berkeley National Laboratory, USA
+ - name: Molecular Foundry, Lawrence Berkeley National Laboratory, United States of America
    index: 6
 date: 12 January 2023
 bibliography: paper.bib
