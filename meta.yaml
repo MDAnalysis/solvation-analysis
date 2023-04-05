@@ -1,13 +1,13 @@
 {% set name = "solvation_analysis" %}
-{% set version = "0.1.5" %}
+{% set version = "0.3.1" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/solvation_analysis-{{ version }}.tar.gz
-  sha256: f33b867f42aace0d4f9199da86b21d2bd04a3cf9dab8ba039e0ee21bdd81b919
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/solvation-analysis-{{ version }}.tar.gz
+  sha256: 18503c20d12d745da33d5da5f06f4a2f0482dbbe55364ad34ca3eec416cb2e71
 
 build:
   noarch: python
@@ -15,9 +15,15 @@ build:
   number: 0
 
 requirements:
+  build:
+    - versioneer-518
   host:
     - python >=3.7
     - pip
+    - pathlib
+    - pytest
+    - rdkit
+    - versioneer-518
   run:
     - python >=3.7
     - numpy >=1.16.0
@@ -25,6 +31,9 @@ requirements:
     - pandas
     - matplotlib-base
     - scipy
+    - plotly
+    - statsmodels
+    - rdkit
 
 test:
   imports:
@@ -43,9 +52,10 @@ about:
     integrates with MDAnalysis, making use of the core AtomGroup and Universe
     data structures to parse solvation information. If you are interested in
     understanding the solvation structure of a liquid, this package is for you!
-  license: GPL-3.0
+  license: GPL-3.0-only
   license_file: LICENSE
 
 extra:
   recipe-maintainers:
     - orionarcher
+    - hmacdope
