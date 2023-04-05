@@ -44,6 +44,10 @@ class Coordination:
         The number of frames in solvation_data.
     n_solutes : int
         The number of solutes in solvation_data.
+    solvent_counts: Dict[str, int]
+        A dictionary of the number of residues for each solvent.
+    atom_group : MDAnalysis.core.groups.AtomGroup
+        The atom group of all atoms in the universe.
 
     Examples
     --------
@@ -58,13 +62,15 @@ class Coordination:
 
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes, atom_group):
+    def __init__(self, solvation_data, n_frames, n_solutes, solvent_counts, atom_group):
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
         self._cn_dict, self._cn_dict_by_frame = self._mean_cn()
         self.atom_group = atom_group
         self._coordinating_atoms = self._calculate_coordinating_atoms()
+        self.solvent_counts = solvent_counts
+        self._coordination_vs_random = self._calculate_coordination_vs_random()
 
     @staticmethod
     def from_solute(solute):
@@ -84,6 +90,7 @@ class Coordination:
             solute.solvation_data,
             solute.n_frames,
             solute.n_solutes,
+            solute.solvent_counts,
             solute.u.atoms,
         )
 
@@ -123,6 +130,23 @@ class Coordination:
                          )
         return type_fractions[type_fractions[FRACTION] > tol]
 
+    def _calculate_coordination_vs_random(self):
+        """
+        Calculate the coordination number relative to random coordination.
+
+        Values higher than 1 imply a higher coordination than expected from
+        random distribution of solvents. Values lower than 1 imply a lower
+        coordination than expected from random distribution of solvents.
+        """
+        average_shell_size = sum(self.coordination_numbers.values())
+        total_solvents = sum(self.solvent_counts.values())
+        coordination_vs_random = {}
+        for solvent, count in self.solvent_counts.items():
+            random = count * average_shell_size / total_solvents
+            vs_random = self.coordination_numbers[solvent] / random
+            coordination_vs_random[solvent] = vs_random
+        return coordination_vs_random
+
     @property
     def coordination_numbers(self):
         """
@@ -145,3 +169,13 @@ class Coordination:
         """
         return self._coordinating_atoms
 
+    @property
+    def coordination_vs_random(self):
+        """
+        Coordination number relative to random coordination.
+
+        Values higher than 1 imply a higher coordination than expected from
+        random distribution of solvents. Values lower than 1 imply a lower
+        coordination than expected from random distribution of solvents.
+        """
+        return self._coordination_vs_random

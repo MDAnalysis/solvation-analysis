@@ -39,15 +39,16 @@ def test_coordinating_atoms(name, atom_type, fraction, solvation_data, run_solut
     np.testing.assert_allclose(fraction, calculated_fraction, atol=0.05)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+@pytest.mark.parametrize(
+    "name, coord",
+    [
+        ("fec", 0.15),
+        ("bn", 1.64),
+        ("pf6", 0.38),
+    ],
+)
+def test_coordination_relative_to_random(name, coord, solvation_data, run_solute):
+    atoms = run_solute.u.atoms
+    coordination = Coordination(solvation_data, 10, 49, run_solute.solvent_counts, atoms)
+    np.testing.assert_allclose(coord, coordination.coordination_vs_random[name], atol=0.05)
+    assert len(coordination.coordination_numbers_by_frame) == 3
