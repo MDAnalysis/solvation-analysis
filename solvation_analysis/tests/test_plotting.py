@@ -2,6 +2,7 @@ import pytest
 from solvation_analysis.plotting import (
     plot_network_size_histogram,
     plot_shell_composition_by_size,
+    plot_co_occurrence,
     _compare_function_generator,
     compare_free_solvents,
     compare_pairing,
@@ -13,6 +14,7 @@ from solvation_analysis.plotting import (
 
 from solvation_analysis.networking import Networking
 from solvation_analysis.residence import Residence
+from solvation_analysis.speciation import Speciation
 
 
 def test_plot_network_size_histogram(run_solute):
@@ -311,3 +313,9 @@ def test_compare_generic(eax_solutes):
     assert len(fig.data) == 4
     for bar in fig.data:
         assert set(bar.x) == {"pf6", "fec", "EAx"}
+
+
+def test_plot_co_occurrence(solvation_data):
+    speciation = Speciation(solvation_data, 10, 49)
+    fig = plot_co_occurrence(speciation)
+    # fig.show()

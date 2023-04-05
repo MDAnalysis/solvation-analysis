@@ -90,6 +90,88 @@ def plot_shell_composition_by_size(speciation):
     return fig
 
 
+def plot_co_occurrence(speciation, colorscale=None):
+    """
+    Plot the co-occurrence matrix of the solute using Plotly.
+
+    Co-occurrence as a heatmap with numerical values in addition to colors.
+
+    Args
+    ----
+    speciation: Speciation | Solution
+    colorscale : any valid argument to Plotly colorscale.
+
+    Returns
+    -------
+    fig : plotly.graph_objs.Figure
+    """
+    if isinstance(speciation, Solute):
+        if not hasattr(speciation, "speciation"):
+            raise ValueError(f"Solute speciation analysis class must be instantiated.")
+        speciation = speciation.speciation
+
+    solvent_names = speciation.speciation_data.columns.values
+
+    if colorscale:
+        colorscale = colorscale
+    else:
+        min_val = speciation.solvent_co_occurrence.min().min()
+        max_val = speciation.solvent_co_occurrence.max().max()
+        range_val = max_val - min_val
+
+        colorscale = [
+            [0, 'rgb(67,147,195)'],
+            [(1 - min_val) / range_val, "white"],
+            [1, 'rgb(214,96,77)']
+        ]
+
+    # Create a heatmap trace with text annotations
+    trace = go.Heatmap(
+        x=solvent_names,
+        y=solvent_names[::-1],  # Reverse the order of the y-axis labels
+        z=speciation.solvent_co_occurrence.values,  # Keep the data in the original order
+        text=speciation.solvent_co_occurrence.round(2).to_numpy(dtype=str),
+        # Keep the text annotations in the original order
+        hoverinfo="none",
+        colorscale=colorscale
+    )
+
+    # Update layout to display tick labels and text annotations
+    layout = go.Layout(
+        xaxis=dict(
+            tickmode='array',
+            tickvals=list(range(len(solvent_names))),
+            ticktext=solvent_names,
+            tickangle=-30,
+            side='top'
+        ),
+        yaxis=dict(
+            tickmode='array',
+            tickvals=list(range(len(solvent_names))),
+            ticktext=solvent_names,
+            autorange='reversed'
+        ),
+        margin=dict(l=60, r=60, b=60, t=60, pad=4),
+        annotations=[
+            dict(
+                x=i,
+                y=j,
+                text=str(round(speciation.solvent_co_occurrence.iloc[j, i], 2)),
+                font=dict(size=14, color="black"),
+                showarrow=False
+            )
+            for i in range(len(solvent_names))
+            for j in range(len(solvent_names))
+        ],
+        width=800,
+        height=600
+    )
+
+    # Create and return the Figure object
+    fig = go.Figure(data=[trace], layout=layout)
+    return fig
+
+
 def compare_solvent_dicts(
     property_dict,
     rename_solvent_dict,
