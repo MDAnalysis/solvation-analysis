@@ -20,8 +20,6 @@ solvation data a non-issue.
 """
 
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
 from solvation_analysis._column_names import *
 
@@ -192,46 +190,6 @@ class Speciation:
         # calculate correlation matrix
         correlation = actual_df / expected_df
         return correlation
-
-    def plot_co_occurrence(self):
-        """
-        Plot the co-occurrence matrix of the solute.
-
-        Co-occurrence as a heatmap with numerical values in addition to colors.
-
-        Returns
-        -------
-        fig : matplotlib.Figure
-        ax : matplotlib.Axes
-
-        """
-        # TODO: rewrite in plotly and move this to the plotting module
-        solvent_names = self.speciation_data.columns.values
-        fig, ax = plt.subplots()
-        im = ax.imshow(self.solvent_co_occurrence)
-        # We want to show all ticks...
-        ax.set_xticks(np.arange(len(solvent_names)))
-        ax.set_yticks(np.arange(len(solvent_names)))
-        # ... and label them with the respective list entries
-        ax.set_xticklabels(solvent_names, fontsize=14)
-        ax.set_yticklabels(solvent_names, fontsize=14)
-        # Let the horizontal axes labeling appear on top.
-        ax.tick_params(top=True, bottom=False,
-                       labeltop=True, labelbottom=False, )
-        # Rotate the tick labels and set their alignment.
-        plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
-                 rotation_mode="anchor")
-        # Loop over data dimensions and create text annotations.
-        for i in range(len(solvent_names)):
-            for j in range(len(solvent_names)):
-                ax.text(j, i, round(self.solvent_co_occurrence.iloc[i, j], 2),
-                        horizontalalignment="center",
-                        verticalalignment="center",
-                        color="black",
-                        fontsize=14,
-                        )
-        fig.tight_layout()
-        return fig, ax
 
     @property
     def speciation_data(self):
