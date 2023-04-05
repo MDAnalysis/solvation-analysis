@@ -94,7 +94,11 @@ def plot_co_occurrence(speciation, colorscale=None):
     """
     Plot the co-occurrence matrix of the solute using Plotly.
 
-    Co-occurrence as a heatmap with numerical values in addition to colors.
+    Co-occurrence represents the extent to which solvents occur with eachother
+    relative to random. Values higher than 1 mean that solvents occur together
+    more often than random and values lower than 1 mean solvents occur together
+    less often than random. "Random" is calculated based on the total number of
+    solvents participating in solvation, it ignores solvents in the diluent.
 
     Args
     ----
