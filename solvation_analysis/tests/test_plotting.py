@@ -313,6 +313,7 @@ def test_compare_generic(eax_solutes):
     assert len(fig.data) == 4
     for bar in fig.data:
         assert set(bar.x) == {"pf6", "fec", "EAx"}
+    # fig.show()
 
 
 def test_plot_co_occurrence(solvation_data):
