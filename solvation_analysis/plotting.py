@@ -142,6 +142,7 @@ def plot_co_occurrence(speciation, colorscale=None):
 
     # Update layout to display tick labels and text annotations
     layout = go.Layout(
+        title="Solvent Co-Occurrence Matrix",
         xaxis=dict(
             tickmode='array',
             tickvals=list(range(len(solvent_names))),
@@ -155,7 +156,7 @@ def plot_co_occurrence(speciation, colorscale=None):
             ticktext=solvent_names,
             autorange='reversed'
         ),
-        margin=dict(l=60, r=60, b=60, t=60, pad=4),
+        margin=dict(l=60, r=60, b=60, t=100, pad=4),
         annotations=[
             dict(
                 x=i,
@@ -167,8 +168,6 @@ def plot_co_occurrence(speciation, colorscale=None):
             for i in range(len(solvent_names))
             for j in range(len(solvent_names))
         ],
-        width=800,
-        height=600
     )
 
     # Create and return the Figure object
