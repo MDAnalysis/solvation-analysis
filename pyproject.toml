@@ -32,7 +32,6 @@ dependencies = [
     'pandas',
     'mdanalysis>=2.0.0',
     'pytest',
-    'pathlib',
     'matplotlib',
     'scipy',
     'statsmodels',
