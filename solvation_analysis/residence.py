@@ -117,6 +117,8 @@ class Residence:
         frame_solute_index = pd.MultiIndex.from_tuples(unique_indices, names=partial_index.names)
         auto_covariance_dict = {}
         for res_name, res_solvation_data in self.solvation_data.groupby([SOLVENT]):
+            if isinstance(res_name, tuple):
+                res_name = res_name[0]
             adjacency_mini = calculate_adjacency_dataframe(res_solvation_data)
             adjacency_df = adjacency_mini.reindex(frame_solute_index, fill_value=0)
             auto_covariance = Residence._calculate_auto_covariance(adjacency_df)
