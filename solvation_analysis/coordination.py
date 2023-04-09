@@ -123,11 +123,12 @@ class Coordination:
         type_fractions = type_counts[SOLVENT_ATOM_IX] / solvent_counts_list
         type_fractions.name = FRACTION
         # change index type
-        type_fractions = (type_fractions
-                         .reset_index(ATOM_TYPE)
-                         .astype({ATOM_TYPE: str})
-                         .set_index(ATOM_TYPE, append=True)
-                         )
+        type_fractions = (
+            type_fractions
+            .reset_index(ATOM_TYPE)
+            .astype({ATOM_TYPE: str})
+            .set_index(ATOM_TYPE, append=True)
+        )
         return type_fractions[type_fractions[FRACTION] > tol]
 
     def _calculate_coordination_vs_random(self):
@@ -141,9 +142,10 @@ class Coordination:
         average_shell_size = sum(self.coordination_numbers.values())
         total_solvents = sum(self.solvent_counts.values())
         coordination_vs_random = {}
-        for solvent, count in self.solvent_counts.items():
+        for solvent, cn in self.coordination_numbers.items():
+            count = self.solvent_counts[solvent]
             random = count * average_shell_size / total_solvents
-            vs_random = self.coordination_numbers[solvent] / random
+            vs_random = cn / random
             coordination_vs_random[solvent] = vs_random
         return coordination_vs_random
 

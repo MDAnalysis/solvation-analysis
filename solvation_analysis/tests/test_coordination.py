@@ -18,8 +18,7 @@ def test_coordination_from_solute(run_solute):
     ],
 )
 def test_coordination(name, cn, solvation_data, run_solute):
-    atoms = run_solute.u.atoms
-    coordination = Coordination(solvation_data, 10, 49, atoms)
+    coordination = Coordination.from_solute(run_solute)
     np.testing.assert_allclose(cn, coordination.coordination_numbers[name], atol=0.05)
     assert len(coordination.coordination_numbers_by_frame) == 3
 
@@ -33,8 +32,7 @@ def test_coordination(name, cn, solvation_data, run_solute):
     ],
 )
 def test_coordinating_atoms(name, atom_type, fraction, solvation_data, run_solute):
-    atoms = run_solute.u.atoms
-    coordination = Coordination(solvation_data, 10, 49, atoms)
+    coordination = Coordination.from_solute(run_solute)
     calculated_fraction = coordination._coordinating_atoms.loc[(name, atom_type)]
     np.testing.assert_allclose(fraction, calculated_fraction, atol=0.05)
 
