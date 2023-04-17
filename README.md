@@ -7,7 +7,9 @@ SolvationAnalysis
 [![GitHub Actions Status](https://github.com/MDAnalysis/solvation-analysis/workflows/CI/badge.svg)](https://github.com/MDAnalysis/solvation-analysis/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/MDAnalysis/solvation-analysis//branch/main/graph/badge.svg)](https://codecov.io/gh/MDAnalysis/solvation-analysis//branch/main)
 [![docs](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://solvation-analysis.readthedocs.io/en/latest/)
-[![DOI](https://zenodo.org/badge/371804402.svg)](https://zenodo.org/badge/latestdoi/371804402)
+[![pub](https://joss.theoj.org/papers/10.21105/joss.05183/status.svg)](https://doi.org/10.21105/joss.05183)
+
+[//]: # ([![DOI]&#40;https://zenodo.org/badge/371804402.svg&#41;]&#40;https://zenodo.org/badge/latestdoi/371804402&#41;)
 
 
 ---
@@ -34,14 +36,12 @@ pip install solvation-analysis
 Contributions, both issues and PRs, are welcome. If you'd like to contribute, we ask that you 
 follow the community guidelines outlined in the [MDAnalysis Code of Conduct](https://www.mdanalysis.org/pages/conduct/).
 
+### Citation
+
+This work is described in [JOSS](https://doi.org/10.21105/joss.05183), please cite it if you make
+use of this package in published work.
+
 ---
-
-#### Acknowledgements
-
-Google Summer of Code and the MDAnalysis team provided funding and support for this project.
-
-Main development by @orioncohen, with mentorship from @richardjgowers, @IAlibay, 
-@hmacdope, and @htz1992213.
 
 Project based on the 
 [Computational Molecular Science Python Cookiecutter](https://github.com/molssi/cookiecutter-cms) version 1.5.
