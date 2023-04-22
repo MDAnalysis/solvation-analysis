@@ -25,10 +25,14 @@ Find documentation and tutorials on [readthedocs].
 
 ### Installing SolvationAnalysis
 
-SolvationAnalysis is available on PyPI and can be installed with pip:
+SolvationAnalysis is available on PyPI and conda-forge can be installed with pip or conda:
 
 ```bash
 pip install solvation-analysis
+
+# or
+
+conda install -c conda-forge solvation_analysis
 ```
 
 ### Contributing
