@@ -167,7 +167,7 @@ class Speciation:
         actual_solvents_list = []
         for solvent in self.speciation_data.columns.values:
             # calculate number of available coordinating solvent slots
-            shells_w_solvent = self.speciation_data.query(f'{solvent} > 0')
+            shells_w_solvent = self.speciation_data.query(f'`{solvent}` > 0')
             n_solvents = shells_w_solvent.sum()
             # calculate expected number of coordinating solvents
             n_coordination_slots = n_solvents.sum() - len(shells_w_solvent)
