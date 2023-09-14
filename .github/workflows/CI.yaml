@@ -10,6 +10,9 @@ on:
   pull_request:
     branches:
       - "main"
+  schedule:
+    # Midnight Tuesdays and Fridays
+    - cron: "0 0 * * 2,5"
 
 concurrency:
   # Probably overly cautious group naming.
