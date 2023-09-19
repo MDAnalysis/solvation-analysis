@@ -12,6 +12,7 @@ dependencies:
   - nglview
   - nbsphinx
   - ipython
+  - plotly
 
 
     # Pip-only installs
