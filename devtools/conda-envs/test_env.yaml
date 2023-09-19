@@ -8,7 +8,7 @@ dependencies:
   - MDAnalysis>=2.0.0
   - scipy
   - numpy
-  - pandas
+  - pandas<2.1
   - matplotlib
   - statsmodels
   - pytest
