@@ -7,6 +7,7 @@ dependencies:
   - pip
   - MDAnalysis>=2.0.0
   - scipy
+  - setuptools
   - numpy
   - pandas
   - matplotlib
