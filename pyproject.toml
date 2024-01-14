@@ -33,6 +33,7 @@ dependencies = [
     'mdanalysis>=2.0.0',
     'pytest',
     'matplotlib',
+    'setuptools',
     'scipy',
     'statsmodels',
     'plotly',
