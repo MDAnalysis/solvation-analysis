@@ -9,7 +9,7 @@ dependencies:
   - scipy
   - setuptools
   - numpy
-  - pandas>2.2
+  - pandas>=2.2
   - matplotlib
   - statsmodels
   - pytest
