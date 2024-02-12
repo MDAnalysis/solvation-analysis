@@ -13,6 +13,7 @@ dependencies:
   - nbsphinx
   - ipython
   - plotly
+  - sphinx_rtd_theme
 
 
     # Pip-only installs
