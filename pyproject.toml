@@ -29,10 +29,11 @@ keywords = [
 
 dependencies = [
     'numpy>=1.20.0',
-    'pandas<2.1',
+    'pandas>=2.2',
     'mdanalysis>=2.0.0',
     'pytest',
     'matplotlib',
+    'setuptools',
     'scipy',
     'statsmodels',
     'plotly',
