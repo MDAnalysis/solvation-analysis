@@ -185,9 +185,10 @@ class Solute(AnalysisBase):
     rdf_kernel : function, optional
         this function must take RDF bins and data as input and return
         a solvation radius as output. e.g. rdf_kernel(bins, data) -> 3.2. By default,
-        the rdf_kernel is solvation_analysis.rdf_parser.identify_solvation_cutoff.
+        the rdf_kernel is `solvation_analysis.rdf_parser.identify_cutoff_scipy`.
     kernel_kwargs : dict, optional
-        kwargs passed to rdf_kernel
+        kwargs passed to rdf_kernel. See `identify_cutoff_scipy` for options. This can
+        be used to set a default fallback radius for all solvents.
     rdf_init_kwargs : dict, optional
         kwargs passed to the initialization of the MDAnalysis.InterRDF used to plot
         the solute-solvent RDFs. By default, ``range`` will be set to (0, 7.5).
