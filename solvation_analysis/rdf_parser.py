@@ -228,6 +228,7 @@ def identify_cutoff_scipy(
     cutoff_region=(1.5, 4),
     failure_behavior="warn",
     min_trough_depth=0.02,
+    default=None,
     **kwargs
 ):
     """
@@ -248,6 +249,8 @@ def identify_cutoff_scipy(
     failure_behavior : str
         specifies the behavior of the function if no solvation shell is found, can
         be set to "silent", "warn", or "exception"
+    default : float, optional
+        the value to return if no solvation shell is found
     min_trough_depth : float
         the minimum depth of a trough to be considered a valid solvation cutoff
     kwargs : passed to the scipy.find_peaks function
@@ -260,10 +263,10 @@ def identify_cutoff_scipy(
     peaks, troughs = scipy_find_peaks_troughs(bins, rdf, **kwargs)
     if not good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins):
         if failure_behavior == "silent":
-            return np.NaN
+            return default
         if failure_behavior == "warn":
             warnings.warn("No solvation shell detected.")
-            return np.NaN
+            return default
         if failure_behavior == "exception":
             raise RuntimeError("Solute could not identify a solvation radius for at least one solvent. "
                                "Please enter the missing radii manually by adding them to the radii dict"

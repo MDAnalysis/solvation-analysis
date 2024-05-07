@@ -122,7 +122,7 @@ def test_identify_cutoff_scipy_easy(
 ):
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
     np.testing.assert_allclose(
-        identify_cutoff_scipy(bins, rdf, failure_behavior="warn"),
+        identify_cutoff_scipy(bins, rdf, failure_behavior="warn", default=np.NaN),
         cutoff,
         atol=0.2,
         equal_nan=True,
@@ -148,8 +148,8 @@ def test_identify_scipy_hard(
     bins_ez, rdf_ez = rdf_bins_and_data_easy[rdf_tag]
     bins_hd, rdf_hd = rdf_bins_and_data_hard[rdf_tag]
     np.testing.assert_allclose(
-        identify_cutoff_scipy(bins_hd, rdf_hd, failure_behavior="warn"),
-        identify_cutoff_scipy(bins_ez, rdf_ez, failure_behavior="warn"),
+        identify_cutoff_scipy(bins_hd, rdf_hd, failure_behavior="warn", default=np.NaN),
+        identify_cutoff_scipy(bins_ez, rdf_ez, failure_behavior="warn", default=np.NaN),
         atol=0.2,
         equal_nan=True,
     )
@@ -205,7 +205,7 @@ def test_identify_cutoff_non_solv(rdf_tag, rdf_bins_and_data_non_solv):
         equal_nan=True,
     )
     np.testing.assert_allclose(
-        identify_cutoff_scipy(bins, rdf, failure_behavior="warn"),
+        identify_cutoff_scipy(bins, rdf, failure_behavior="warn", default=np.NaN),
         np.NaN,
         equal_nan=True,
     )
