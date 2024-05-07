@@ -37,8 +37,11 @@ conda install -c conda-forge solvation_analysis
 
 ### Contributing
 
-Contributions, both issues and PRs, are welcome. If you'd like to contribute, we ask that you 
+Contributions, both issues and PRs, are welcome. If you'd like to contribute, we ask that you
 follow the community guidelines outlined in the [MDAnalysis Code of Conduct](https://www.mdanalysis.org/pages/conduct/).
+
+Solvation Analysis uses [pre-commit](https://pre-commit.com/) for linting. Make sure to install
+the pre-commit hooks if you are working on a contribution.
 
 ### Citation
 
@@ -47,7 +50,7 @@ use of this package in published work.
 
 ---
 
-Project based on the 
+Project based on the
 [Computational Molecular Science Python Cookiecutter](https://github.com/molssi/cookiecutter-cms) version 1.5.
 
 
