@@ -46,7 +46,7 @@ setup(
         "mdanalysis>=2.7.0",
         "pandas",
         "matplotlib",
-        "scipy==0.12.0",
+        "scipy==1.12.0",
         "statsmodels",
         "plotly",
         "rdkit",
