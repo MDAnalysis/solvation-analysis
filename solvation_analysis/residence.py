@@ -202,7 +202,6 @@ class Residence:
         ax.plot(frames, auto_covariance, "b-", label="auto covariance")
         try:
             ax.scatter(frames, exp_fit, label="exponential fit")
-        # TODO:check this
         except RuntimeError:
             warnings.warn(
                 f"The fit for {res_name} failed so the exponential "
