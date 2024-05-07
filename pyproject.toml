@@ -34,7 +34,7 @@ dependencies = [
     'pytest',
     'matplotlib',
     'setuptools',
-    'scipy',
+    'scipy==1.12.0',
     'statsmodels',
     'plotly',
     'rdkit'
