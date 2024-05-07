@@ -170,6 +170,10 @@ class Solute(AnalysisBase):
         kwargs passed to the internal MDAnalysis.InterRDF.run() command
         e.g. ``inner_rdf.run(**rdf_run_kwargs)``. By default, step, start, and
         stop will use any kwargs provided to ``solute.run(**kwargs)``.
+    skip_rdf : bool, optional
+        skip the RDF generation step. This is useful if you have already
+        calculated the RDFs and have the radii. If True, all radii must be
+        specified in the radii parameter.
     solute_name: str, optional
         the name of the solute, used for labeling.
     analysis_classes : List[str] or str, optional
@@ -240,6 +244,7 @@ class Solute(AnalysisBase):
             kernel_kwargs=None,
             rdf_init_kwargs=None,
             rdf_run_kwargs=None,
+            skip_rdf=False,
             solute_name="solute_0",
             analysis_classes=None,
             networking_solvents=None,
@@ -271,6 +276,11 @@ class Solute(AnalysisBase):
         self.solute_res_ix = pd.Series(solute_atoms.atoms.resindices, solute_atoms.atoms.ix)
         self.solute_name = solute_name
         self.solvents = solvents
+        if skip_rdf:
+            assert set(self.radii.keys()) >= set(self.solvents.keys()), (
+                "To skip RDF generation, all solvent radii must be specified."
+            )
+        self.skip_rdf = skip_rdf
 
         # instantiate the res_name_map
         self.res_name_map = pd.Series(['none'] * len(self.u.residues))
@@ -489,6 +499,9 @@ class Solute(AnalysisBase):
         self.solvation_data_duplicates = None
         self._solvation_frames = []
         for name, solvent in self.solvents.items():
+            if self.skip_rdf:
+                self.rdf_data = None
+                break
             # set kwargs with defaults
             self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (0, 7.5)
             self.rdf_init_kwargs["norm"] = self.rdf_init_kwargs.get("norm") or "density"
@@ -496,22 +509,11 @@ class Solute(AnalysisBase):
             self.rdf_run_kwargs["step"] = self.rdf_run_kwargs.get("step") or self.step
             self.rdf_run_kwargs["start"] = self.rdf_run_kwargs.get("start") or self.start
             # generate and save RDFs
-            if self.solute_atoms.intersection(solvent).n_atoms == 0:
-                # the solute IS NOT in a solvent, the usual case
-                rdf = InterRDF(self.solute_atoms, solvent, **self.rdf_init_kwargs)
-                rdf.run(**self.rdf_run_kwargs)
-                bins, data = rdf.results.bins, rdf.results.rdf
-            else:
-                # the solute IS in a solvent
-                # we divide the solute and solvent into two groups, so that the rdfs
-                # are not contaminated by the solute-solvent pairs.
-                halfway_point = self.solute_atoms.n_residues // 2
-                solute_half = self.solute_atoms[halfway_point:]
-                solvent_half = (solvent.residues - solute_half.residues).atoms
-                # this is hacky and will make our rdf noisier but it was easy to implement
-                rdf = InterRDF(solute_half, solvent_half, **self.rdf_init_kwargs)
-                rdf.run(**self.rdf_run_kwargs)
-                bins, data = rdf.results.bins, rdf.results.rdf
+            rdf = InterRDF(
+                self.solute_atoms, solvent, **self.rdf_init_kwargs, exclude_same="residue"
+            )
+            rdf.run(**self.rdf_run_kwargs)
+            bins, data = rdf.results.bins, rdf.results.rdf
             self.rdf_data[self.solute_name][name] = (bins, data)
             # generate and save plots
             if name not in self.radii.keys():
@@ -669,6 +671,7 @@ class Solute(AnalysisBase):
         if len(self.atom_solutes) == 1:
             solute_name = self.solute_name
         assert self.has_run, "Solute.run() must be called first."
+        assert not self.skip_rdf, "RDFs were skipped, so no RDFs are available."
         bins, data = self.rdf_data[solute_name][solvent_name]
         radius = self.atom_solutes[solute_name].radii[solvent_name]
         fig, ax = self._plot_solvation_radius(bins, data, radius)
