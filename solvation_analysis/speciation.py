@@ -51,7 +51,7 @@ class Speciation:
     Parameters
     ----------
     solvation_data : pandas.DataFrame
-        The solvation data frame output by Solute.
+        The solvation dataframe output by Solute.
     n_frames : int
         The number of frames in solvation_data.
     n_solutes : int
@@ -212,7 +212,7 @@ class Speciation:
     def speciation_data(self) -> pd.DataFrame:
         """
         A dataframe containing the speciation of every solute at
-        every trajectory frame. Indexed by frame and solute numbers.
+        every trajectory frame. Indexed by timestep and solute numbers.
         Columns are the solvent molecules and values are the number
         of solvent in the shell.
         """

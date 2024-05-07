@@ -22,12 +22,14 @@ def test_residence_times(name, res_time, residence):
     np.testing.assert_almost_equal(residence.residence_times_cutoff[name], res_time, 3)
 
 
-@pytest.mark.parametrize("name", ['fec', 'bn', 'pf6'])
+@pytest.mark.parametrize("name", ["fec", "bn", "pf6"])
 def test_plot_auto_covariance(name, residence):
     residence.plot_auto_covariance(name)
 
 
 def test_residence_time_warning(solvation_data_sparse):
-    # we step through the data frame to speed up the tests
-    with pytest.warns(UserWarning, match="the autocovariance for pf6 does not converge"):
+    # we step through the dataframe to speed up the tests
+    with pytest.warns(
+        UserWarning, match="the autocovariance for pf6 does not converge"
+    ):
         Residence(solvation_data_sparse, step=10)
