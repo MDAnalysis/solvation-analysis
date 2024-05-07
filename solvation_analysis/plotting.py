@@ -10,19 +10,20 @@ The plotting functions are a convenient way to visualize data by taking solution
 as their input and generating a Plotly.Figure object.
 """
 
-import plotly
+from typing import Union, Optional, Any, Callable
+from copy import deepcopy
+
 import plotly.graph_objects as go
 import plotly.express as px
-import matplotlib
-from copy import deepcopy
-from solvation_analysis.solute import Solute
-
-import numpy as np
 import pandas as pd
+
+from solvation_analysis.solute import Solute
+from solvation_analysis.networking import Networking
+from solvation_analysis.speciation import Speciation
 
 
 # single solution
-def plot_network_size_histogram(networking):
+def plot_network_size_histogram(networking: Union[Networking, Solute]) -> go.Figure:
     """
     Plot a histogram of network sizes.
 
@@ -37,7 +38,7 @@ def plot_network_size_histogram(networking):
     """
     if isinstance(networking, Solute):
         if not hasattr(networking, "networking"):
-            raise ValueError(f"Solute networking analysis class must be instantiated.")
+            raise ValueError("Solute networking analysis class must be instantiated.")
         networking = networking.networking
     network_sizes = networking.network_sizes
     sums = network_sizes.sum(axis=0)
@@ -54,7 +55,7 @@ def plot_network_size_histogram(networking):
     return fig
 
 
-def plot_shell_composition_by_size(speciation):
+def plot_shell_composition_by_size(speciation: Union[Speciation, Solute]) -> go.Figure:
     """
     Plot the composition of shells broken down by shell size.
 
@@ -69,7 +70,7 @@ def plot_shell_composition_by_size(speciation):
     """
     if isinstance(speciation, Solute):
         if not hasattr(speciation, "speciation"):
-            raise ValueError(f"Solute speciation analysis class must be instantiated.")
+            raise ValueError("Solute speciation analysis class must be instantiated.")
         speciation = speciation.speciation
     speciation_data = speciation.speciation_data.copy()
     speciation_data["total"] = speciation_data.sum(axis=1)
@@ -90,11 +91,13 @@ def plot_shell_composition_by_size(speciation):
     return fig
 
 
-def plot_co_occurrence(speciation, colorscale=None):
+def plot_co_occurrence(
+    speciation: Union[Speciation, Solute], colorscale: Optional[Any] = None
+) -> go.Figure:
     """
     Plot the co-occurrence matrix of the solute using Plotly.
 
-    Co-occurrence represents the extent to which solvents occur with eachother
+    Co-occurrence represents the extent to which solvents occur with each other
     relative to random. Values higher than 1 mean that solvents occur together
     more often than random and values lower than 1 mean solvents occur together
     less often than random. "Random" is calculated based on the total number of
@@ -111,7 +114,7 @@ def plot_co_occurrence(speciation, colorscale=None):
     """
     if isinstance(speciation, Solute):
         if not hasattr(speciation, "speciation"):
-            raise ValueError(f"Solute speciation analysis class must be instantiated.")
+            raise ValueError("Solute speciation analysis class must be instantiated.")
         speciation = speciation.speciation
 
     solvent_names = speciation.speciation_data.columns.values
@@ -124,9 +127,9 @@ def plot_co_occurrence(speciation, colorscale=None):
         range_val = max_val - min_val
 
         colorscale = [
-            [0, 'rgb(67,147,195)'],
+            [0, "rgb(67,147,195)"],
             [(1 - min_val) / range_val, "white"],
-            [1, 'rgb(214,96,77)']
+            [1, "rgb(214,96,77)"],
         ]
 
     # Create a heatmap trace with text annotations
@@ -137,24 +140,24 @@ def plot_co_occurrence(speciation, colorscale=None):
         text=speciation.solvent_co_occurrence.round(2).to_numpy(dtype=str),
         # Keep the text annotations in the original order
         hoverinfo="none",
-        colorscale=colorscale
+        colorscale=colorscale,
     )
 
     # Update layout to display tick labels and text annotations
     layout = go.Layout(
         title="Solvent Co-Occurrence Matrix",
         xaxis=dict(
-            tickmode='array',
+            tickmode="array",
             tickvals=list(range(len(solvent_names))),
             ticktext=solvent_names,
             tickangle=-30,
-            side='top'
+            side="top",
         ),
         yaxis=dict(
-            tickmode='array',
+            tickmode="array",
             tickvals=list(range(len(solvent_names))),
             ticktext=solvent_names,
-            autorange='reversed'
+            autorange="reversed",
         ),
         margin=dict(l=60, r=60, b=60, t=100, pad=4),
         annotations=[
@@ -163,7 +166,7 @@ def plot_co_occurrence(speciation, colorscale=None):
                 y=j,
                 text=str(round(speciation.solvent_co_occurrence.iloc[j, i], 2)),
                 font=dict(size=14, color="black"),
-                showarrow=False
+                showarrow=False,
             )
             for i in range(len(solvent_names))
             for j in range(len(solvent_names))
@@ -176,13 +179,13 @@ def plot_co_occurrence(speciation, colorscale=None):
 
 
 def compare_solvent_dicts(
-    property_dict,
-    rename_solvent_dict,
-    solvents_to_plot,
-    legend_label,
-    x_axis="solvent",
-    series=False,
-):
+    property_dict: dict[str, dict[str, float]],
+    rename_solvent_dict: dict[str, str],
+    solvents_to_plot: list[str],
+    legend_label: str,
+    x_axis: str = "solvent",
+    series: bool = False,
+) -> go.Figure:
     """
     A generic plotting function that can compare dictionary data between multiple solutes.
 
@@ -226,7 +229,6 @@ def compare_solvent_dicts(
             set(solution_dict.keys()) for solution_dict in property_dict.values()
         ]
         valid_solvents = set.intersection(*all_solvents)
-        invalid_solvents = set.union(*all_solvents) - valid_solvents
         if not set(solvents_to_plot).issubset(valid_solvents):
             raise Exception(
                 f"solvents_to_plot must only include solvents that are "
@@ -282,11 +284,11 @@ def compare_solvent_dicts(
 
 
 def _compare_function_generator(
-    analysis_object,
-    attribute,
-    title,
-    top_level_docstring,
-):
+    analysis_object: str,
+    attribute: str,
+    title: str,
+    top_level_docstring: str,
+) -> Callable:
     def compare_func(
         solutions,
         rename_solvent_dict=None,
@@ -329,7 +331,7 @@ def _compare_function_generator(
         return fig
 
     arguments_docstring = """
-    
+
     property_dict : dict of {str: dict}
         a dictionary with the solution name as keys and a dict of {str: float} as values, where each key
         is the name of the solvent of each solution and each value is the property of interest

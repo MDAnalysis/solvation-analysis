@@ -10,6 +10,8 @@ RDF Parser defines several functions for finding the solvation cutoff
 from an RDF.
 """
 
+from typing import Any, Optional, Union
+
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 import scipy
@@ -17,10 +19,10 @@ import matplotlib.pyplot as plt
 import warnings
 from scipy.signal import find_peaks, gaussian
 
-from solvation_analysis._column_names import *
 
-
-def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
+def interpolate_rdf(
+    bins: np.ndarray, rdf: np.ndarray, floor: float = 0.05, cutoff: float = 5
+) -> tuple[UnivariateSpline, tuple[float, float]]:
     """
     Fits a sciply.interpolate.UnivariateSpline to the starting region of
     the RDF. The floor and cutoff control the region of the RDF that the
@@ -49,7 +51,7 @@ def interpolate_rdf(bins, rdf, floor=0.05, cutoff=5):
     return f, bounds
 
 
-def identify_minima(f):
+def identify_minima(f: UnivariateSpline) -> tuple[np.ndarray, np.ndarray]:
     """
     Identifies the extrema of a interpolated polynomial.
 
@@ -75,7 +77,9 @@ def identify_minima(f):
     return cr_pts, cr_vals
 
 
-def plot_interpolation_fit(bins, rdf, **kwargs):
+def plot_interpolation_fit(
+    bins: np.ndarray, rdf: np.ndarray, **kwargs: Any
+) -> tuple[plt.Figure, plt.Axes]:
     """
     Calls interpolate_rdf and identify_minima to identify the extrema of an RDF.
     Plots the original rdf, the interpolated spline, and the extrema of the
@@ -109,7 +113,9 @@ def plot_interpolation_fit(bins, rdf, **kwargs):
     return fig, ax
 
 
-def good_cutoff(cutoff_region, cr_pts, cr_vals):
+def good_cutoff(
+    cutoff_region: tuple[float, float], cr_pts: np.ndarray, cr_vals: np.ndarray
+) -> bool:
     """
     Uses several heuristics to determine if the a solvation cutoff is valid
     solvation cutoff. This fails if there is no solvation shell.
@@ -139,13 +145,20 @@ def good_cutoff(cutoff_region, cr_pts, cr_vals):
         return True
 
 
-def good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins):
+def good_cutoff_scipy(
+    cutoff_region: tuple[float, float],
+    min_trough_depth: float,
+    peaks: np.ndarray,
+    troughs: np.ndarray,
+    rdf: np.ndarray,
+    bins: np.ndarray,
+) -> bool:
     """
     Uses several heuristics to determine if the solvation cutoff is valid
     solvation cutoff. This fails if there is no solvation shell.
 
     Heuristics:
-      -  trough follows peak
+      -  troughs follows peaks
       -  in `Solute.cutoff_region` (specified by kwarg)
       -  normalized peak height > 0.05
 
@@ -154,7 +167,7 @@ def good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins
     cutoff_region : tuple
         boundaries in which to search for a solvation shell cutoff, i.e. (1.5, 4)
     min_trough_depth : float
-        the minimum depth of a trough to be considered a valid solvation cutoff
+        the minimum depth to be considered a valid solvation cutoff
     peaks : np.array
         the indices of the peaks in the bins array
     troughs : np.array
@@ -171,16 +184,22 @@ def good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins
     # normalize rdf
     norm_rdf = rdf / np.max(rdf)
     if (
-        len(peaks) == 0 or len(troughs) == 0  # insufficient critical points
+        len(peaks) == 0
+        or len(troughs) == 0  # insufficient critical points
         or troughs[0] < peaks[0]  # not a min and max
-        or not (cutoff_region[0] < bins[troughs[0]] < cutoff_region[1])  # min not in cutoff
-        or abs(norm_rdf[peaks[0]] - norm_rdf[troughs[0]]) < min_trough_depth  # peak too small
+        or not (
+            cutoff_region[0] < bins[troughs[0]] < cutoff_region[1]
+        )  # min not in cutoff
+        or abs(norm_rdf[peaks[0]] - norm_rdf[troughs[0]])
+        < min_trough_depth  # peak too small
     ):
         return False
     return True
 
 
-def scipy_find_peaks_troughs(bins, rdf, return_rdf=False, **kwargs):
+def scipy_find_peaks_troughs(
+    bins: np.ndarray, rdf: np.ndarray, return_rdf: bool = False, **kwargs: Any
+) -> Union[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, np.ndarray]]:
     """
     Finds the indices of the peaks and troughs of an RDF.
 
@@ -223,14 +242,14 @@ def scipy_find_peaks_troughs(bins, rdf, return_rdf=False, **kwargs):
 
 
 def identify_cutoff_scipy(
-    bins,
-    rdf,
-    cutoff_region=(1.5, 4),
-    failure_behavior="warn",
-    min_trough_depth=0.02,
-    default=None,
-    **kwargs
-):
+    bins: np.ndarray,
+    rdf: np.ndarray,
+    cutoff_region: tuple[float, float] = (1.5, 4),
+    failure_behavior: str = "warn",
+    min_trough_depth: float = 0.02,
+    default: Optional[float] = None,
+    **kwargs: Any,
+) -> Optional[float]:
     """
     Identifies the solvation cutoff of an RDF.
 
@@ -252,7 +271,7 @@ def identify_cutoff_scipy(
     default : float, optional
         the value to return if no solvation shell is found
     min_trough_depth : float
-        the minimum depth of a trough to be considered a valid solvation cutoff
+        the minimum depth of troughs to be considered a valid solvation cutoff
     kwargs : passed to the scipy.find_peaks function
 
     Returns
@@ -261,25 +280,29 @@ def identify_cutoff_scipy(
         the solvation cutoff of the RDF
     """
     peaks, troughs = scipy_find_peaks_troughs(bins, rdf, **kwargs)
-    if not good_cutoff_scipy(cutoff_region, min_trough_depth, peaks, troughs, rdf, bins):
+    if not good_cutoff_scipy(
+        cutoff_region, min_trough_depth, peaks, troughs, rdf, bins
+    ):
         if failure_behavior == "silent":
             return default
         if failure_behavior == "warn":
             warnings.warn("No solvation shell detected.")
             return default
         if failure_behavior == "exception":
-            raise RuntimeError("Solute could not identify a solvation radius for at least one solvent. "
-                               "Please enter the missing radii manually by adding them to the radii dict"
-                               "and rerun the analysis.")
+            raise RuntimeError(
+                "Solute could not identify a solvation radius for at least one solvent. "
+                "Please enter the missing radii manually by adding them to the radii dict"
+                "and rerun the analysis."
+            )
     cutoff = bins[troughs[0]]
     return cutoff
 
 
 def plot_scipy_find_peaks_troughs(
-    bins,
-    rdf,
-    **kwargs,
-):
+    bins: np.ndarray,
+    rdf: np.ndarray,
+    **kwargs: Any,
+) -> tuple[plt.Figure, plt.Axes]:
     """
     Plot the original and smoothed RDF with the peaks and troughs located.
 
@@ -300,7 +323,9 @@ def plot_scipy_find_peaks_troughs(
     fig, ax : matplotlib pyplot Figure and Axis for the fit
 
     """
-    peaks, troughs, smooth_rdf = scipy_find_peaks_troughs(bins, rdf, return_rdf=True, **kwargs)
+    peaks, troughs, smooth_rdf = scipy_find_peaks_troughs(
+        bins, rdf, return_rdf=True, **kwargs
+    )
     fig, ax = plt.subplots()
     ax.plot(bins, rdf, "b--", label="rdf")
     ax.plot(bins, smooth_rdf, "g-", label="smooth_rdf")
@@ -314,8 +339,13 @@ def plot_scipy_find_peaks_troughs(
 
 
 def identify_cutoff_poly(
-    bins, rdf, failure_behavior="warn", cutoff_region=(1.5, 4), floor=0.05, cutoff=5
-):
+    bins: np.ndarray,
+    rdf: np.ndarray,
+    failure_behavior: str = "warn",
+    cutoff_region: tuple[float, float] = (1.5, 4),
+    floor: float = 0.05,
+    cutoff: float = 5,
+) -> float:
     """
     Identifies the solvation cutoff of an RDF using a polynomial interpolation.
 
@@ -349,7 +379,9 @@ def identify_cutoff_poly(
             warnings.warn("No solvation shell detected.")
             return np.NaN
         if failure_behavior == "exception":
-            raise RuntimeError("Solute could not identify a solvation radius for at least one solvent. "
-                               "Please enter the missing radii manually by adding them to the radii dict"
-                               "and rerun the analysis.")
+            raise RuntimeError(
+                "Solute could not identify a solvation radius for at least one solvent. "
+                "Please enter the missing radii manually by adding them to the radii dict"
+                "and rerun the analysis."
+            )
     return cr_pts[1]

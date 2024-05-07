@@ -21,7 +21,14 @@ solvation data a non-issue.
 
 import pandas as pd
 
-from solvation_analysis._column_names import *
+import solvation_analysis
+from solvation_analysis._column_names import (
+    FRAME,
+    SOLUTE_IX,
+    SOLVENT,
+    SOLVENT_IX,
+    COUNT,
+)
 
 
 class Speciation:
@@ -51,7 +58,9 @@ class Speciation:
         The number of solutes in solvation_data.
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes):
+    def __init__(
+        self, solvation_data: pd.DataFrame, n_frames: int, n_solutes: int
+    ) -> None:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
@@ -59,7 +68,7 @@ class Speciation:
         self._solvent_co_occurrence = self._solvent_co_occurrence()
 
     @staticmethod
-    def from_solute(solute):
+    def from_solute(solute: "solvation_analysis.Solute") -> "Speciation":
         """
         Generate a Speciation object from a solute.
 
@@ -78,8 +87,10 @@ class Speciation:
             solute.n_solutes,
         )
 
-    def _compute_speciation(self):
-        counts = self.solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT]).count()[SOLVENT_IX]
+    def _compute_speciation(self) -> tuple[pd.DataFrame, pd.DataFrame]:
+        counts = self.solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT]).count()[
+            SOLVENT_IX
+        ]
         counts_re = counts.reset_index([SOLVENT])
         speciation_data = counts_re.pivot(columns=[SOLVENT]).fillna(0).astype(int)
         res_names = speciation_data.columns.levels[1]
@@ -87,15 +98,19 @@ class Speciation:
         sum_series = speciation_data.groupby(speciation_data.columns.to_list()).size()
         sum_sorted = sum_series.sort_values(ascending=False)
         speciation_fraction = sum_sorted.reset_index().rename(columns={0: COUNT})
-        speciation_fraction[COUNT] = speciation_fraction[COUNT] / (self.n_frames * self.n_solutes)
+        speciation_fraction[COUNT] = speciation_fraction[COUNT] / (
+            self.n_frames * self.n_solutes
+        )
         return speciation_data, speciation_fraction
 
     @classmethod
-    def _mean_speciation(cls, speciation_frames, solute_number, frame_number):
+    def _mean_speciation(
+        cls, speciation_frames: pd.DataFrame, solute_number: int, frame_number: int
+    ) -> pd.Series:
         means = speciation_frames.sum(axis=1) / (solute_number * frame_number)
         return means
 
-    def calculate_shell_fraction(self, shell_dict):
+    def calculate_shell_fraction(self, shell_dict: dict[str, int]) -> float:
         """
         Calculate the fraction of shells matching shell_dict.
 
@@ -134,7 +149,7 @@ class Speciation:
         query_counts = self.speciation_fraction.query(query)
         return query_counts[COUNT].sum()
 
-    def get_shells(self, shell_dict):
+    def get_shells(self, shell_dict: dict[str, int]) -> pd.DataFrame:
         """
         Find all solvation shells that match shell_dict.
 
@@ -161,17 +176,19 @@ class Speciation:
         query_counts = self.speciation_data.query(query)
         return query_counts
 
-    def _solvent_co_occurrence(self):
+    def _solvent_co_occurrence(self) -> pd.DataFrame:
         # calculate the co-occurrence of solvent molecules.
         expected_solvents_list = []
         actual_solvents_list = []
         for solvent in self.speciation_data.columns.values:
             # calculate number of available coordinating solvent slots
-            shells_w_solvent = self.speciation_data.query(f'`{solvent}` > 0')
+            shells_w_solvent = self.speciation_data.query(f"`{solvent}` > 0")
             n_solvents = shells_w_solvent.sum()
             # calculate expected number of coordinating solvents
             n_coordination_slots = n_solvents.sum() - len(shells_w_solvent)
-            coordination_fraction = self.speciation_data.sum() / self.speciation_data.sum().sum()
+            coordination_fraction = (
+                self.speciation_data.sum() / self.speciation_data.sum().sum()
+            )
             expected_solvents = coordination_fraction * n_coordination_slots
             # calculate actual number of coordinating solvents
             actual_solvents = n_solvents.copy()
@@ -192,7 +209,7 @@ class Speciation:
         return correlation
 
     @property
-    def speciation_data(self):
+    def speciation_data(self) -> pd.DataFrame:
         """
         A dataframe containing the speciation of every solute at
         every trajectory frame. Indexed by frame and solute numbers.
@@ -202,7 +219,7 @@ class Speciation:
         return self._speciation_df
 
     @property
-    def speciation_fraction(self):
+    def speciation_fraction(self) -> pd.DataFrame:
         """
         The fraction of shells of each type. Columns are the solvent
         molecules and values are the number of solvent in the shell.
@@ -212,7 +229,7 @@ class Speciation:
         return self._speciation_fraction
 
     @property
-    def solvent_co_occurrence(self):
+    def solvent_co_occurrence(self) -> pd.DataFrame:
         """
         The actual co-occurrence of solvents divided by the expected co-occurrence.
         In other words, given one molecule of solvent i in the shell, what is the

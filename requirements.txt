@@ -1,11 +1,11 @@
 setuptools
 numpy>=1.20.0
 pandas>=2.2
-mdanalysis>=2.0.0
+mdanalysis>=2.7.0
 pytest
 pathlib
 matplotlib
-scipy
+scipy==1.12.0
 statsmodels
 plotly
 rdkit
