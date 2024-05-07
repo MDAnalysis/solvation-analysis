@@ -107,6 +107,7 @@ This is covered in the visualization tutorial.
 """
 from collections import defaultdict
 from functools import reduce
+from typing import Any, Callable, Optional, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -235,21 +236,21 @@ class Solute(AnalysisBase):
     """
 
     def __init__(
-            self,
-            solute_atoms,
-            solvents,
-            atom_solutes=None,
-            radii=None,
-            rdf_kernel=None,
-            kernel_kwargs=None,
-            rdf_init_kwargs=None,
-            rdf_run_kwargs=None,
-            skip_rdf=False,
-            solute_name="solute_0",
-            analysis_classes=None,
-            networking_solvents=None,
-            verbose=False,
-            internal_call=False,
+        self,
+        solute_atoms: mda.AtomGroup,
+        solvents: dict[str, mda.AtomGroup],
+        atom_solutes: Optional[dict[str, 'Solute']] = None,
+        radii: Optional[dict[str, float]] = None,
+        rdf_kernel: Optional[Callable[[np.ndarray, np.ndarray], float]] = None,
+        kernel_kwargs: Optional[dict[str, Any]] = None,
+        rdf_init_kwargs: Optional[dict[str, Any]] = None,
+        rdf_run_kwargs: Optional[dict[str, Any]] = None,
+        skip_rdf: bool = False,
+        solute_name: str = "solute_0",
+        analysis_classes: Optional[list[str]] = None,
+        networking_solvents: Optional[str] = None,
+        verbose: bool = False,
+        internal_call: bool = False,
     ):
         """
         This method is not intended to be called directly. Instead, use
@@ -303,7 +304,12 @@ class Solute(AnalysisBase):
             self.networking_solvents = networking_solvents
 
     @staticmethod
-    def from_atoms(solute_atoms, solvents, rename_solutes=None, **kwargs):
+    def from_atoms(
+        solute_atoms: mda.AtomGroup,
+        solvents: dict[str, mda.AtomGroup],
+        rename_solutes: Optional[dict[str, str]] = None,
+        **kwargs: Any
+    ) -> 'Solute':
         """
         Create a Solute from a single AtomGroup. The solute_atoms AtomGroup must
         should contain identical residues and identical atoms on each residue.
@@ -346,7 +352,11 @@ class Solute(AnalysisBase):
         return Solute.from_atoms_dict(solute_atom_group_dict_renamed, solvents, **kwargs)
 
     @staticmethod
-    def from_atoms_dict(solute_atoms_dict, solvents, **kwargs):
+    def from_atoms_dict(
+        solute_atoms_dict: dict[str, mda.AtomGroup],
+        solvents: dict[str, mda.AtomGroup],
+        **kwargs: Any
+    ) -> 'Solute':
         """
         Create a Solute object from a dictionary of solute atoms.
 
@@ -393,7 +403,11 @@ class Solute(AnalysisBase):
         return solute
 
     @staticmethod
-    def from_solute_list(solutes, solvents, **kwargs):
+    def from_solute_list(
+            solutes: list['Solute'],
+            solvents: dict[str, mda.AtomGroup],
+            **kwargs: Any
+    ) -> 'Solute':
         """
         Create a Solute from a list of Solutes. All Solutes must have only a
         single solute atom on each solute residue. Essentially, from_solute_list
@@ -443,7 +457,13 @@ class Solute(AnalysisBase):
            solute.run = solute._run_solute_atoms
         return solute
 
-    def _run_solute_atoms(self, start=None, stop=None, step=None, verbose=None):
+    def _run_solute_atoms(
+            self,
+            start: Optional[int] = None,
+            stop: Optional[int] = None,
+            step: Optional[int] = None,
+            verbose: Optional[bool] = None
+    ):
         # like prepare
         atom_solutes = {}
         rdf_data = {}
@@ -623,7 +643,11 @@ class Solute(AnalysisBase):
                 setattr(self, analysis_class, analysis_classes[analysis_class].from_solute(self))
 
     @staticmethod
-    def _plot_solvation_radius(bins, data, radius):
+    def _plot_solvation_radius(
+            bins: np.ndarray,
+            data: np.ndarray,
+            radius: float
+    ) -> tuple[plt.Figure, plt.Axes]:
         """
         Plot a solvation radius on an RDF.
 
@@ -651,7 +675,11 @@ class Solute(AnalysisBase):
         ax.legend()
         return fig, ax
 
-    def plot_solvation_radius(self, solute_name, solvent_name):
+    def plot_solvation_radius(
+            self,
+            solute_name: str,
+            solvent_name: str
+    ) -> tuple[plt.Figure, plt.Axes]:
         """
         Plot the RDF of a solvent molecule
 
@@ -678,7 +706,11 @@ class Solute(AnalysisBase):
         ax.set_title(f"{self.solute_name} solvation distance for {solvent_name}")
         return fig, ax
 
-    def draw_molecule(self, residue, filename=None):
+    def draw_molecule(
+            self,
+            residue: Union[str, mda.core.groups.Residue],
+            filename: Optional[str] = None
+    ) -> 'rdkit.Chem.rdchem.Mol':
         """
         Returns
 
@@ -724,7 +756,14 @@ class Solute(AnalysisBase):
         rdCoordGen.AddCoords(mol)
         return mol
 
-    def get_shell(self, solute_index, frame, as_df=False, remove_mols=None, closest_n_only=None):
+    def get_shell(
+            self,
+            solute_index: int,
+            frame: int,
+            as_df: bool = False,
+            remove_mols: Optional[dict[str, int]] = None,
+            closest_n_only: Optional[int] = None
+    ) -> Union[mda.AtomGroup, pd.DataFrame]:
         """
         Select the solvation shell of the solute.
 
@@ -790,16 +829,16 @@ class Solute(AnalysisBase):
 
     def get_closest_n_mol(
             self,
-            solute_atom_ix,
-            n_mol,
-            guess_radius=3,
-            return_ordered_resix=False,
-            return_radii=False,
-    ):
+            solute_atom_ix: int,
+            n_mol: int,
+            guess_radius: Union[float, int] = 3,
+            return_ordered_resix: bool = False,
+            return_radii: bool = False,
+    ) -> Union[mda.AtomGroup, tuple[mda.AtomGroup, np.ndarray], tuple[mda.AtomGroup, np.ndarray, np.ndarray]]:
         """
         Select the n closest mols to the solute.
 
-        The solute is specified by it's index within solvation_data.
+        The solute is specified by its index within solvation_data.
         n is specified with the n_mol argument. Optionally returns
         an array of their resids and an array of the distance of
         the closest atom in each molecule.
@@ -836,7 +875,11 @@ class Solute(AnalysisBase):
             return_radii,
         )
 
-    def radial_shell(self, solute_atom_ix, radius):
+    def radial_shell(
+            self,
+            solute_atom_ix: int,
+            radius: Union[float, int]
+    ) -> mda.AtomGroup:
         """
         Select all residues with atoms within r of the solute.
 
@@ -857,7 +900,11 @@ class Solute(AnalysisBase):
         """
         return get_radial_shell(self.solute_atoms[solute_atom_ix], radius)
 
-    def _df_to_atom_group(self, df, solute_index=None):
+    def _df_to_atom_group(
+            self,
+            df: pd.DataFrame,
+            solute_index: Optional[int] = None
+    ) -> mda.AtomGroup:
         """
         Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with solvent.
 

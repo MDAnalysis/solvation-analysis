@@ -17,6 +17,7 @@ solvation data a non-issue.
 """
 
 import pandas as pd
+import MDAnalysis as mda
 
 from solvation_analysis._column_names import *
 
@@ -62,7 +63,14 @@ class Coordination:
 
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes, solvent_counts, atom_group):
+    def __init__(
+        self,
+        solvation_data: pd.DataFrame,
+        n_frames: int,
+        n_solutes: int,
+        solvent_counts: dict[str, int],
+        atom_group: mda.core.groups.AtomGroup
+    ) -> None:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
@@ -73,7 +81,7 @@ class Coordination:
         self._coordination_vs_random = self._calculate_coordination_vs_random()
 
     @staticmethod
-    def from_solute(solute):
+    def from_solute(solute: 'Solute') -> 'Coordination':
         """
         Generate a Coordination object from a solute.
 
@@ -94,7 +102,7 @@ class Coordination:
             solute.u.atoms,
         )
 
-    def _mean_cn(self):
+    def _mean_cn(self) -> tuple[dict[str, float], pd.DataFrame]:
         counts = self.solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT]).count()[SOLVENT_IX]
         cn_series = counts.groupby([SOLVENT, FRAME]).sum() / (
                 self.n_solutes * self.n_frames
@@ -103,7 +111,7 @@ class Coordination:
         cn_dict = cn_series.groupby([SOLVENT]).sum().to_dict()
         return cn_dict, cn_by_frame
 
-    def _calculate_coordinating_atoms(self, tol=0.005):
+    def _calculate_coordinating_atoms(self, tol: float = 0.005) -> pd.DataFrame:
         """
         Determine which atom types are actually coordinating
         return the types of those atoms
@@ -131,7 +139,7 @@ class Coordination:
         )
         return type_fractions[type_fractions[FRACTION] > tol]
 
-    def _calculate_coordination_vs_random(self):
+    def _calculate_coordination_vs_random(self) -> dict[str, float]:
         """
         Calculate the coordination number relative to random coordination.
 
@@ -150,7 +158,7 @@ class Coordination:
         return coordination_vs_random
 
     @property
-    def coordination_numbers(self):
+    def coordination_numbers(self) -> dict[str, float]:
         """
         A dictionary where keys are residue names (str) and values are the
         mean coordination number of that residue (float).
@@ -158,21 +166,21 @@ class Coordination:
         return self._cn_dict
 
     @property
-    def coordination_numbers_by_frame(self):
+    def coordination_numbers_by_frame(self) -> pd.DataFrame:
         """
         A DataFrame of the mean coordination number of in each frame of the trajectory.
         """
         return self._cn_dict_by_frame
 
     @property
-    def coordinating_atoms(self):
+    def coordinating_atoms(self) -> pd.DataFrame:
         """
         Fraction of each atom_type participating in solvation, calculated for each solvent.
         """
         return self._coordinating_atoms
 
     @property
-    def coordination_vs_random(self):
+    def coordination_vs_random(self) -> dict[str, float]:
         """
         Coordination number relative to random coordination.
 

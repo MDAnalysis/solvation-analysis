@@ -56,7 +56,13 @@ class Pairing:
         {'BN': 1.0, 'FEC': 0.210, 'PF6': 0.120}
     """
 
-    def __init__(self, solvation_data, n_frames, n_solutes, n_solvents):
+    def __init__(
+        self,
+        solvation_data: pd.DataFrame,
+        n_frames: int,
+        n_solutes: int,
+        n_solvents: dict[str, int]
+    ) -> None:
         self.solvation_data = solvation_data
         self.n_frames = n_frames
         self.n_solutes = n_solutes
@@ -66,7 +72,7 @@ class Pairing:
         self._diluent_composition, self._diluent_composition_by_frame, self._diluent_counts = self._diluent_composition()
 
     @staticmethod
-    def from_solute(solute):
+    def from_solute(solute: 'Solute') -> 'Pairing':
         """
         Generate a Pairing object from a solute.
 
@@ -86,7 +92,7 @@ class Pairing:
             solute.solvent_counts
         )
 
-    def _fraction_coordinated(self):
+    def _fraction_coordinated(self) -> tuple[dict[str, float], pd.DataFrame]:
         # calculate the fraction of solute coordinated with each solvent
         counts = self.solvation_data.groupby([FRAME, SOLUTE_IX, SOLVENT]).count()[SOLVENT_IX]
         pairing_series = counts.astype(bool).groupby([SOLVENT, FRAME]).sum() / (
@@ -97,7 +103,7 @@ class Pairing:
         pairing_dict = pairing_normalized.groupby([SOLVENT]).sum().to_dict()
         return pairing_dict, pairing_by_frame
 
-    def _fraction_free_solvent(self):
+    def _fraction_free_solvent(self) -> dict[str, float]:
         # calculate the fraction of each solvent NOT coordinated with the solute
         counts = self.solvation_data.groupby([FRAME, SOLVENT_IX, SOLVENT]).count()[DISTANCE]
         totals = counts.groupby([SOLVENT]).count() / self.n_frames
@@ -105,7 +111,7 @@ class Pairing:
         free_solvents = np.ones(len(totals)) - totals / n_solvents
         return free_solvents.to_dict()
 
-    def _diluent_composition(self):
+    def _diluent_composition(self) -> tuple[dict[str, float], pd.DataFrame, pd.DataFrame]:
         coordinated_solvents = self.solvation_data.groupby([FRAME, SOLVENT]).nunique()[SOLVENT_IX]
         solvent_counts = pd.Series(self.solvent_counts)
         total_solvents = solvent_counts.reindex(coordinated_solvents.index, level=1)
@@ -117,7 +123,7 @@ class Pairing:
         return diluent_dict, diluent_by_frame, diluent_counts
 
     @property
-    def solvent_pairing(self):
+    def solvent_pairing(self) -> dict[str, float]:
         """
         A dictionary where keys are residue names (str) and values are the
         fraction of solutes that contain that residue (float).
@@ -125,14 +131,14 @@ class Pairing:
         return self._solvent_pairing
 
     @property
-    def pairing_by_frame(self):
+    def pairing_by_frame(self) -> pd.DataFrame:
         """
         A pd.Dataframe tracking the mean fraction of each residue across frames.
         """
         return self._pairing_by_frame
 
     @property
-    def fraction_free_solvents(self):
+    def fraction_free_solvents(self) -> dict[str, float]:
         """
         A dictionary containing the fraction of each solvent that is free. e.g.
         not coordinated to a solute.
@@ -140,7 +146,7 @@ class Pairing:
         return self._fraction_free_solvents
 
     @property
-    def diluent_composition(self):
+    def diluent_composition(self) -> dict[str, float]:
         """
         The fraction of the diluent constituted by each solvent. The diluent is
         defined as everything that is not coordinated with the solute.
@@ -148,14 +154,14 @@ class Pairing:
         return self._diluent_composition
 
     @property
-    def diluent_composition_by_frame(self):
+    def diluent_composition_by_frame(self) -> pd.DataFrame:
         """
         A DataFrame of the diluent composition in each frame of the trajectory.
         """
         return self._diluent_composition_by_frame
 
     @property
-    def diluent_counts(self):
+    def diluent_counts(self) -> pd.DataFrame:
         """
         A DataFrame of the raw solvent counts in the diluent in each frame of the trajectory.
         """

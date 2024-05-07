@@ -10,19 +10,21 @@ The plotting functions are a convenient way to visualize data by taking solution
 as their input and generating a Plotly.Figure object.
 """
 
+from typing import Union, Optional, Any, Callable
+from copy import deepcopy
+
 import plotly
 import plotly.graph_objects as go
 import plotly.express as px
-import matplotlib
-from copy import deepcopy
-from solvation_analysis.solute import Solute
-
-import numpy as np
 import pandas as pd
+
+from solvation_analysis.solute import Solute
+from solvation_analysis.networking import Networking
+from solvation_analysis.speciation import Speciation
 
 
 # single solution
-def plot_network_size_histogram(networking):
+def plot_network_size_histogram(networking: Union[Networking, Solute]) -> go.Figure:
     """
     Plot a histogram of network sizes.
 
@@ -54,7 +56,7 @@ def plot_network_size_histogram(networking):
     return fig
 
 
-def plot_shell_composition_by_size(speciation):
+def plot_shell_composition_by_size(speciation: Union[Speciation, Solute]) -> go.Figure:
     """
     Plot the composition of shells broken down by shell size.
 
@@ -90,7 +92,7 @@ def plot_shell_composition_by_size(speciation):
     return fig
 
 
-def plot_co_occurrence(speciation, colorscale=None):
+def plot_co_occurrence(speciation: Union[Speciation, Solute], colorscale: Optional[Any] = None) -> go.Figure:
     """
     Plot the co-occurrence matrix of the solute using Plotly.
 
@@ -176,13 +178,13 @@ def plot_co_occurrence(speciation, colorscale=None):
 
 
 def compare_solvent_dicts(
-    property_dict,
-    rename_solvent_dict,
-    solvents_to_plot,
-    legend_label,
-    x_axis="solvent",
-    series=False,
-):
+    property_dict: dict[str, dict[str, float]],
+    rename_solvent_dict: dict[str, str],
+    solvents_to_plot: list[str],
+    legend_label: str,
+    x_axis: str = "solvent",
+    series: bool = False,
+) -> go.Figure:
     """
     A generic plotting function that can compare dictionary data between multiple solutes.
 
@@ -282,11 +284,11 @@ def compare_solvent_dicts(
 
 
 def _compare_function_generator(
-    analysis_object,
-    attribute,
-    title,
-    top_level_docstring,
-):
+    analysis_object: str,
+    attribute: str,
+    title: str,
+    top_level_docstring: str,
+) -> Callable:
     def compare_func(
         solutions,
         rename_solvent_dict=None,

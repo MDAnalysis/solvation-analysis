@@ -83,7 +83,7 @@ class Residence:
         {'BN': 4.02, 'FEC': 3.79, 'PF6': 1.15}
     """
 
-    def __init__(self, solvation_data, step):
+    def __init__(self, solvation_data: pd.DataFrame, step: int) -> None:
         self.solvation_data = solvation_data
         self._auto_covariances = self._calculate_auto_covariance_dict()
         self._residence_times_cutoff = self._calculate_residence_times_with_cutoff(self._auto_covariances, step)
@@ -93,7 +93,7 @@ class Residence:
         )
 
     @staticmethod
-    def from_solute(solute):
+    def from_solute(solute: 'Solute') -> 'Residence':
         """
         Generate a Residence object from a solute.
 
@@ -111,7 +111,7 @@ class Residence:
             solute.step
         )
 
-    def _calculate_auto_covariance_dict(self):
+    def _calculate_auto_covariance_dict(self) -> dict[str, np.ndarray]:
         partial_index = self.solvation_data.index.droplevel(SOLVENT_ATOM_IX)
         unique_indices = np.unique(partial_index)
         frame_solute_index = pd.MultiIndex.from_tuples(unique_indices, names=partial_index.names)
@@ -128,7 +128,7 @@ class Residence:
         return auto_covariance_dict
 
     @staticmethod
-    def _calculate_residence_times_with_cutoff(auto_covariances, step, convergence_cutoff=0.1):
+    def _calculate_residence_times_with_cutoff(auto_covariances: dict[str, np.ndarray], step: int, convergence_cutoff: float = 0.1) -> dict[str, float]:
         residence_times = {}
         for res_name, auto_covariance in auto_covariances.items():
             if np.min(auto_covariance) > convergence_cutoff:
@@ -147,7 +147,7 @@ class Residence:
         return residence_times
 
     @staticmethod
-    def _calculate_residence_times_with_fit(auto_covariances, step):
+    def _calculate_residence_times_with_fit(auto_covariances: dict[str, np.ndarray], step: int) -> tuple[dict[str, float], dict[str, tuple[float, float, float]]]:
         # calculate the residence times
         residence_times = {}
         fit_parameters = {}
@@ -156,7 +156,7 @@ class Residence:
             residence_times[res_name], fit_parameters[res_name] = round(res_time * step, 2), params
         return residence_times, fit_parameters
 
-    def plot_auto_covariance(self, res_name):
+    def plot_auto_covariance(self, res_name: str) -> tuple[plt.Figure, plt.Axes]:
         """
         Plot the autocovariance of a solvent on the solute.
 
@@ -192,7 +192,7 @@ class Residence:
         return fig, ax
 
     @staticmethod
-    def _exponential_decay(x, a, b, c):
+    def _exponential_decay(x: np.ndarray, a: float, b: float, c: float) -> np.ndarray:
         """
         An exponential decay function.
 
@@ -208,7 +208,7 @@ class Residence:
         return a * np.exp(-b * x) + c
 
     @staticmethod
-    def _fit_exponential(auto_covariance, res_name):
+    def _fit_exponential(auto_covariance: np.ndarray, res_name: str) -> tuple[float, tuple[float, float, float]]:
         auto_covariance_norm = auto_covariance / auto_covariance[0]
         try:
             params, param_covariance = curve_fit(
@@ -226,7 +226,7 @@ class Residence:
         return tau, params
 
     @staticmethod
-    def _calculate_auto_covariance(adjacency_matrix):
+    def _calculate_auto_covariance(adjacency_matrix: pd.DataFrame) -> np.ndarray:
         auto_covariances = []
         timesteps = adjacency_matrix.index.levels[0]
 
@@ -249,7 +249,7 @@ class Residence:
         return auto_covariance
 
     @property
-    def auto_covariances(self):
+    def auto_covariances(self) -> dict[str, np.ndarray]:
         """
         A dictionary where keys are residue names and values are the
         autocovariance of the that residue on the solute.
@@ -257,7 +257,7 @@ class Residence:
         return self._auto_covariances
 
     @property
-    def residence_times_cutoff(self):
+    def residence_times_cutoff(self) -> dict[str, float]:
         """
         A dictionary where keys are residue names and values are the
         residence times of the that residue on the solute, calculated
@@ -266,7 +266,7 @@ class Residence:
         return self._residence_times_cutoff
 
     @property
-    def residence_times_fit(self):
+    def residence_times_fit(self) -> dict[str, float]:
         """
         A dictionary where keys are residue names and values are the
         residence times of the that residue on the solute, calculated
@@ -275,7 +275,7 @@ class Residence:
         return self._residence_times_fit
 
     @property
-    def fit_parameters(self):
+    def fit_parameters(self) -> dict[str, tuple[float, float, float]]:
         """
         A dictionary where keys are residue names and values are the
         arameters for the exponential fit to the autocorrelation function.

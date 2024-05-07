@@ -16,6 +16,8 @@ While ``networking`` can be used in isolation, it is meant to be used
 as an attribute of the Solute class. This makes instantiating it and calculating the
 solvation data a non-issue.
 """
+from typing import Union
+
 import pandas as pd
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -61,7 +63,13 @@ class Networking:
         >>> networking = Networking.from_solute(solute, 'PF6')
     """
 
-    def __init__(self, solvents, solvation_data, solute_res_ix, res_name_map):
+    def __init__(
+        self,
+        solvents: Union[str, list[str]],
+        solvation_data: pd.DataFrame,
+        solute_res_ix: np.ndarray,
+        res_name_map: pd.Series
+    ) -> None:
         self.solvents = solvents
         self.solvation_data = solvation_data
         solvent_present = np.isin(self.solvents, self.solvation_data[SOLVENT].unique())
@@ -77,7 +85,7 @@ class Networking:
         self._solute_status = self._solute_status.to_dict()
 
     @staticmethod
-    def from_solute(solute, solvents):
+    def from_solute(solute: 'Solute', solvents: Union[str, list[str]]) -> 'Networking':
         """
         Generate a Networking object from a solute and solvent names.
 
@@ -102,7 +110,7 @@ class Networking:
         )
 
     @staticmethod
-    def _unwrap_adjacency_dataframe(df):
+    def _unwrap_adjacency_dataframe(df: pd.DataFrame) -> csr_matrix:
         # this class will transform the biadjacency matrix into a proper adjacency matrix
         connections = df.reset_index(FRAME).drop(columns=FRAME)
         idx = connections.columns.append(connections.index)
@@ -111,7 +119,7 @@ class Networking:
         adjacency_matrix = csr_matrix(undirected)
         return adjacency_matrix
 
-    def _generate_networks(self):
+    def _generate_networks(self) -> pd.DataFrame:
         """
         This function generates a dataframe containing all the solute-solvent networks
         in every frame of the simulation. The rough approach is as follows:
@@ -158,7 +166,7 @@ class Networking:
         )
         return cluster_df
 
-    def _calculate_network_sizes(self):
+    def _calculate_network_sizes(self) -> pd.DataFrame:
         # This utility calculates the network sizes and returns a convenient dataframe.
         cluster_df = self.network_df
         cluster_sizes = cluster_df.groupby([FRAME, NETWORK]).count()
@@ -166,7 +174,7 @@ class Networking:
         size_counts.columns = size_counts.columns.droplevel(None)  # the column value is None
         return size_counts
 
-    def _calculate_solute_status(self):
+    def _calculate_solute_status(self) -> tuple[pd.Series, pd.DataFrame]:
         """
         This utility calculates the fraction of each solute with a given "status".
         Namely, whether the solvent is "isolated", "paired" (with a single solvent), or
@@ -182,7 +190,7 @@ class Networking:
         solute_status = solute_status_by_frame.mean()
         return solute_status, solute_status_by_frame
 
-    def get_network_res_ix(self, network_index, frame):
+    def get_network_res_ix(self, network_index: int, frame: int) -> np.ndarray:
         """
         Return the indexes of all residues in a selected network.
 
@@ -217,7 +225,7 @@ class Networking:
         return res_ix.astype(int)
 
     @property
-    def network_df(self):
+    def network_df(self) -> pd.DataFrame:
         """
         The dataframe containing all networking data. the indices are the frame and
         network index, respectively. the columns are the solvent_name and res_ix.
@@ -225,7 +233,7 @@ class Networking:
         return self._network_df
 
     @property
-    def network_sizes(self):
+    def network_sizes(self) -> pd.DataFrame:
         """
         A dataframe of network sizes. the index is the frame. the column headers
         are network sizes, or the number of solutes + solvents in the network, so
@@ -235,7 +243,7 @@ class Networking:
         return self._network_sizes
 
     @property
-    def solute_status(self):
+    def solute_status(self) -> dict[str, float]:
         """
         A dictionary where the keys are the "status" of the solute and the values
         are the fraction of solute with that status, averaged over all frames.
@@ -250,7 +258,7 @@ class Networking:
         return self._solute_status
 
     @property
-    def solute_status_by_frame(self):
+    def solute_status_by_frame(self) -> pd.DataFrame:
         """
         As described above, except organized into a dataframe where each
         row is a unique frame and the columns are "isolated", "paired", and "networked".

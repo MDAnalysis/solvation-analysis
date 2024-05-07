@@ -1,13 +1,16 @@
-import numpy as np
 from collections import defaultdict
 from functools import reduce
+from typing import Union
+
+import numpy as np
+import pandas as pd
 import MDAnalysis as mda
 from MDAnalysis.analysis import distances
 
 from solvation_analysis._column_names import *
 
 
-def verify_solute_atoms(solute_atom_group):
+def verify_solute_atoms(solute_atom_group: mda.AtomGroup) -> dict[int, mda.AtomGroup]:
     # we presume that the solute_atoms has the same number of atoms on each residue
     # and that they all have the same indices on those residues
     # and that the residues are all the same length
@@ -39,7 +42,7 @@ def verify_solute_atoms(solute_atom_group):
     return solute_atom_group_dict
 
 
-def verify_solute_atoms_dict(solute_atoms_dict):
+def verify_solute_atoms_dict(solute_atoms_dict: dict[str, mda.AtomGroup]) -> mda.AtomGroup:
     # first we verify the input format
     atom_group_lengths = []
     for solute_name, solute_atom_group in solute_atoms_dict.items():
@@ -69,7 +72,7 @@ def verify_solute_atoms_dict(solute_atoms_dict):
     return solute_atom_group
 
 
-def get_atom_group(selection):
+def get_atom_group(selection: Union[mda.core.groups.Residue, mda.core.groups.ResidueGroup, mda.core.groups.Atom, mda.core.groups.AtomGroup]) -> mda.AtomGroup:
     """
     Cast an MDAnalysis.Atom, MDAnalysis.Residue, or MDAnalysis.ResidueGroup to AtomGroup.
 
@@ -100,13 +103,14 @@ def get_atom_group(selection):
     return selection
 
 
+
 def get_closest_n_mol(
-    central_species,
-    n_mol,
-    guess_radius=3,
-    return_ordered_resix=False,
-    return_radii=False,
-):
+    central_species: Union[mda.core.groups.Residue, mda.core.groups.ResidueGroup, mda.core.groups.Atom, mda.core.groups.AtomGroup],
+    n_mol: int,
+    guess_radius: Union[float, int] = 3,
+    return_ordered_resix: bool = False,
+    return_radii: bool = False,
+) -> Union[mda.AtomGroup, tuple[mda.AtomGroup, np.ndarray], tuple[mda.AtomGroup, np.ndarray, np.ndarray]]:
     """
     Returns the closest n molecules to the central species, an array of their resix,
     and an array of the distance of the closest atom in each molecule.
@@ -174,7 +178,10 @@ def get_closest_n_mol(
         return full_shell
 
 
-def get_radial_shell(central_species, radius):
+def get_radial_shell(
+    central_species: Union[mda.core.groups.Residue, mda.core.groups.ResidueGroup, mda.core.groups.Atom, mda.core.groups.AtomGroup],
+    radius: Union[float, int]
+) -> mda.AtomGroup:
     """
     Returns all molecules with atoms within the radius of the central species.
     (specifically, within the radius of the COM of central species).
@@ -199,7 +206,7 @@ def get_radial_shell(central_species, radius):
     return full_shell
 
 
-def calculate_adjacency_dataframe(solvation_data):
+def calculate_adjacency_dataframe(solvation_data: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate a frame-by-frame adjacency matrix from the solvation data.
 
