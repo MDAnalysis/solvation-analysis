@@ -29,4 +29,4 @@ PAIRED = "paired"
 NETWORKED = "networked"
 
 # for speciation
-COUNT = "count"
+COUNT = "fraction"
