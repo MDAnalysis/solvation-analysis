@@ -14,8 +14,8 @@ dependencies:
   - ipython
   - plotly
   - sphinx_rtd_theme
+  - scipy==1.12.0
 
 
     # Pip-only installs
   #- pip:
-
