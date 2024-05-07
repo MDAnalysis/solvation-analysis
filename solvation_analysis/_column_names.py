@@ -8,7 +8,6 @@ To change the variable name of a variable:
 1. change the variable name in all files
 """
 
-
 # for solvation_data
 FRAME = "frame"
 SOLUTE_IX = "solute_ix"

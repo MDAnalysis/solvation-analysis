@@ -15,6 +15,7 @@ While ``residence`` can be used in isolation, it is meant to be used
 as an attribute of the Solute class. This makes instantiating it and calculating the
 solvation data a non-issue.
 """
+
 import math
 import warnings
 
@@ -24,7 +25,13 @@ import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import acovf
 from scipy.optimize import curve_fit
 
-from solvation_analysis._column_names import *
+import solvation_analysis
+from solvation_analysis._column_names import (
+    SOLVENT,
+    SOLUTE_ATOM_IX,
+    SOLVENT_ATOM_IX,
+    SOLUTE_IX,
+)
 from solvation_analysis._utils import calculate_adjacency_dataframe
 
 
@@ -86,14 +93,15 @@ class Residence:
     def __init__(self, solvation_data: pd.DataFrame, step: int) -> None:
         self.solvation_data = solvation_data
         self._auto_covariances = self._calculate_auto_covariance_dict()
-        self._residence_times_cutoff = self._calculate_residence_times_with_cutoff(self._auto_covariances, step)
-        self._residence_times_fit, self._fit_parameters = self._calculate_residence_times_with_fit(
-            self._auto_covariances,
-            step
+        self._residence_times_cutoff = self._calculate_residence_times_with_cutoff(
+            self._auto_covariances, step
+        )
+        self._residence_times_fit, self._fit_parameters = (
+            self._calculate_residence_times_with_fit(self._auto_covariances, step)
         )
 
     @staticmethod
-    def from_solute(solute: 'Solute') -> 'Residence':
+    def from_solute(solute: "solvation_analysis.Solute") -> "Residence":
         """
         Generate a Residence object from a solute.
 
@@ -106,15 +114,14 @@ class Residence:
         Residence
         """
         assert solute.has_run, "The solute must be run before calling from_solute"
-        return Residence(
-            solute.solvation_data,
-            solute.step
-        )
+        return Residence(solute.solvation_data, solute.step)
 
     def _calculate_auto_covariance_dict(self) -> dict[str, np.ndarray]:
         partial_index = self.solvation_data.index.droplevel(SOLVENT_ATOM_IX)
         unique_indices = np.unique(partial_index)
-        frame_solute_index = pd.MultiIndex.from_tuples(unique_indices, names=partial_index.names)
+        frame_solute_index = pd.MultiIndex.from_tuples(
+            unique_indices, names=partial_index.names
+        )
         auto_covariance_dict = {}
         for res_name, res_solvation_data in self.solvation_data.groupby([SOLVENT]):
             if isinstance(res_name, tuple):
@@ -128,14 +135,20 @@ class Residence:
         return auto_covariance_dict
 
     @staticmethod
-    def _calculate_residence_times_with_cutoff(auto_covariances: dict[str, np.ndarray], step: int, convergence_cutoff: float = 0.1) -> dict[str, float]:
+    def _calculate_residence_times_with_cutoff(
+        auto_covariances: dict[str, np.ndarray],
+        step: int,
+        convergence_cutoff: float = 0.1,
+    ) -> dict[str, float]:
         residence_times = {}
         for res_name, auto_covariance in auto_covariances.items():
             if np.min(auto_covariance) > convergence_cutoff:
                 residence_times[res_name] = np.nan
-                warnings.warn(f'the autocovariance for {res_name} does not converge to zero '
-                              'so a residence time cannot be calculated. A longer simulation '
-                              'is required to get a valid estimate of the residence time.')
+                warnings.warn(
+                    f"the autocovariance for {res_name} does not converge to zero "
+                    "so a residence time cannot be calculated. A longer simulation "
+                    "is required to get a valid estimate of the residence time."
+                )
             unassigned = True
             for frame, val in enumerate(auto_covariance):
                 if val < 1 / math.e:
@@ -147,13 +160,18 @@ class Residence:
         return residence_times
 
     @staticmethod
-    def _calculate_residence_times_with_fit(auto_covariances: dict[str, np.ndarray], step: int) -> tuple[dict[str, float], dict[str, tuple[float, float, float]]]:
+    def _calculate_residence_times_with_fit(
+        auto_covariances: dict[str, np.ndarray], step: int
+    ) -> tuple[dict[str, float], dict[str, tuple[float, float, float]]]:
         # calculate the residence times
         residence_times = {}
         fit_parameters = {}
         for res_name, auto_covariance in auto_covariances.items():
             res_time, params = Residence._fit_exponential(auto_covariance, res_name)
-            residence_times[res_name], fit_parameters[res_name] = round(res_time * step, 2), params
+            residence_times[res_name], fit_parameters[res_name] = (
+                round(res_time * step, 2),
+                params,
+            )
         return residence_times, fit_parameters
 
     def plot_auto_covariance(self, res_name: str) -> tuple[plt.Figure, plt.Axes]:
@@ -175,16 +193,22 @@ class Residence:
         auto_covariance = self.auto_covariances[res_name]
         frames = np.arange(len(auto_covariance))
         params = self.fit_parameters[res_name]
-        exp_func = lambda x: self._exponential_decay(x, *params)
+
+        def exp_func(x):
+            return self._exponential_decay(x, *params)
+
         exp_fit = np.array(map(exp_func, frames))
         fig, ax = plt.subplots()
         ax.plot(frames, auto_covariance, "b-", label="auto covariance")
         try:
             ax.scatter(frames, exp_fit, label="exponential fit")
-        except:
-            warnings.warn(f'The fit for {res_name} failed so the exponential '
-                          f'fit will not be plotted.')
-        ax.hlines(y=1/math.e, xmin=frames[0], xmax=frames[-1], label='1/e cutoff')
+        # TODO:check this
+        except RuntimeError:
+            warnings.warn(
+                f"The fit for {res_name} failed so the exponential "
+                f"fit will not be plotted."
+            )
+        ax.hlines(y=1 / math.e, xmin=frames[0], xmax=frames[-1], label="1/e cutoff")
         ax.set_xlabel("Timestep (frames)")
         ax.set_ylabel("Normalized Autocovariance")
         ax.set_ylim(0, 1)
@@ -208,7 +232,9 @@ class Residence:
         return a * np.exp(-b * x) + c
 
     @staticmethod
-    def _fit_exponential(auto_covariance: np.ndarray, res_name: str) -> tuple[float, tuple[float, float, float]]:
+    def _fit_exponential(
+        auto_covariance: np.ndarray, res_name: str
+    ) -> tuple[float, tuple[float, float, float]]:
         auto_covariance_norm = auto_covariance / auto_covariance[0]
         try:
             params, param_covariance = curve_fit(
@@ -219,9 +245,11 @@ class Residence:
             )
             tau = 1 / params[1]  # p
         except RuntimeError:
-            warnings.warn(f'The fit for {res_name} failed so its values in'
-                          f'residence_time_fits and fit_parameters will be'
-                          f'set to np.nan.')
+            warnings.warn(
+                f"The fit for {res_name} failed so its values in"
+                f"residence_time_fits and fit_parameters will be"
+                f"set to np.nan."
+            )
             tau, params = np.nan, (np.nan, np.nan, np.nan)
         return tau, params
 
@@ -230,17 +258,21 @@ class Residence:
         auto_covariances = []
         timesteps = adjacency_matrix.index.levels[0]
 
-        for solute_ix, solute_df in adjacency_matrix.groupby([SOLUTE_IX, SOLUTE_ATOM_IX]):
+        for solute_ix, solute_df in adjacency_matrix.groupby(
+            [SOLUTE_IX, SOLUTE_ATOM_IX]
+        ):
             # this is needed to make sure auto-covariances can be concatenated later
-            new_solute_df = solute_df.droplevel([SOLUTE_IX, SOLUTE_ATOM_IX]).reindex(timesteps, fill_value=0)
+            new_solute_df = solute_df.droplevel([SOLUTE_IX, SOLUTE_ATOM_IX]).reindex(
+                timesteps, fill_value=0
+            )
             non_zero_cols = new_solute_df.loc[:, (solute_df != 0).any(axis=0)]
             auto_covariance_df = non_zero_cols.apply(
                 acovf,
                 axis=0,
-                result_type='expand',
+                result_type="expand",
                 demean=False,
                 adjusted=True,
-                fft=True
+                fft=True,
             )
             # timesteps with no binding are getting skipped, we need to make sure to include all timesteps
             auto_covariances.append(auto_covariance_df.values)
@@ -278,6 +310,6 @@ class Residence:
     def fit_parameters(self) -> dict[str, tuple[float, float, float]]:
         """
         A dictionary where keys are residue names and values are the
-        arameters for the exponential fit to the autocorrelation function.
+        parameters for the exponential fit to the autocorrelation function.
         """
         return self._fit_parameters

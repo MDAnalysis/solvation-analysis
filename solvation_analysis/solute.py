@@ -105,6 +105,7 @@ Solute also provides several functions to select a particular solute and its
 solvation shell, returning an AtomGroup for visualization or further analysis.
 This is covered in the visualization tutorial.
 """
+
 from collections import defaultdict
 from functools import reduce
 from typing import Any, Callable, Optional, Union
@@ -119,7 +120,12 @@ from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
 import numpy as np
 
-from solvation_analysis._utils import verify_solute_atoms, verify_solute_atoms_dict, get_closest_n_mol, get_radial_shell
+from solvation_analysis._utils import (
+    verify_solute_atoms,
+    verify_solute_atoms_dict,
+    get_closest_n_mol,
+    get_radial_shell,
+)
 from solvation_analysis.rdf_parser import identify_cutoff_scipy
 from solvation_analysis.coordination import Coordination
 from solvation_analysis.networking import Networking
@@ -127,7 +133,25 @@ from solvation_analysis.pairing import Pairing
 from solvation_analysis.residence import Residence
 from solvation_analysis.speciation import Speciation
 
-from solvation_analysis._column_names import *
+from solvation_analysis._column_names import (
+    FRAME,
+    DISTANCE,
+    SOLUTE,
+    SOLUTE_IX,
+    SOLVENT,
+    SOLVENT_IX,
+    SOLVENT_ATOM_IX,
+    SOLUTE_ATOM_IX,
+)
+
+try:
+    import rdkit
+    from rdkit.Chem import Draw
+    from rdkit.Chem import rdCoordGen
+    from rdkit.Chem.Draw.MolDrawing import DrawingOptions
+
+except ImportError:
+    rdkit = None
 
 
 class Solute(AnalysisBase):
@@ -239,7 +263,7 @@ class Solute(AnalysisBase):
         self,
         solute_atoms: mda.AtomGroup,
         solvents: dict[str, mda.AtomGroup],
-        atom_solutes: Optional[dict[str, 'Solute']] = None,
+        atom_solutes: Optional[dict[str, "Solute"]] = None,
         radii: Optional[dict[str, float]] = None,
         rdf_kernel: Optional[Callable[[np.ndarray, np.ndarray], float]] = None,
         kernel_kwargs: Optional[dict[str, Any]] = None,
@@ -257,8 +281,10 @@ class Solute(AnalysisBase):
         ``from_atoms``, ``from_atoms_dict`` or ``from_solute_list`` to create a Solute.
         """
         if not internal_call:
-            raise RuntimeError("Please use Solute.from_atoms, Solute.from_atoms_dict, or "
-                               "Solute.from_solute_list instead of the default constructor.")
+            raise RuntimeError(
+                "Please use Solute.from_atoms, Solute.from_atoms_dict, or "
+                "Solute.from_solute_list instead of the default constructor."
+            )
         super(Solute, self).__init__(solute_atoms.universe.trajectory, verbose=verbose)
 
         self.solute_atoms = solute_atoms  # TODO: this shit!
@@ -266,7 +292,9 @@ class Solute(AnalysisBase):
         if self.atom_solutes is None or len(atom_solutes) <= 1:
             self.atom_solutes = {solute_name: self}
         self.radii = radii or {}
-        self.solvent_counts = {name: atoms.n_residues for name, atoms in solvents.items()}
+        self.solvent_counts = {
+            name: atoms.n_residues for name, atoms in solvents.items()
+        }
         self.kernel = rdf_kernel or identify_cutoff_scipy
         self.kernel_kwargs = kernel_kwargs or {}
         self.rdf_init_kwargs = rdf_init_kwargs or {}
@@ -274,17 +302,19 @@ class Solute(AnalysisBase):
         self.has_run = False
         self.u = solute_atoms.universe
         self.n_solutes = solute_atoms.n_residues
-        self.solute_res_ix = pd.Series(solute_atoms.atoms.resindices, solute_atoms.atoms.ix)
+        self.solute_res_ix = pd.Series(
+            solute_atoms.atoms.resindices, solute_atoms.atoms.ix
+        )
         self.solute_name = solute_name
         self.solvents = solvents
         if skip_rdf:
-            assert set(self.radii.keys()) >= set(self.solvents.keys()), (
-                "To skip RDF generation, all solvent radii must be specified."
-            )
+            assert set(self.radii.keys()) >= set(
+                self.solvents.keys()
+            ), "To skip RDF generation, all solvent radii must be specified."
         self.skip_rdf = skip_rdf
 
         # instantiate the res_name_map
-        self.res_name_map = pd.Series(['none'] * len(self.u.residues))
+        self.res_name_map = pd.Series(["none"] * len(self.u.residues))
         self.res_name_map[solute_atoms.residues.ix] = self.solute_name
         for name, solvent in solvents.items():
             self.res_name_map[solvent.residues.ix] = name
@@ -292,8 +322,14 @@ class Solute(AnalysisBase):
         # instantiate analysis classes.
         if analysis_classes is None:
             self.analysis_classes = ["pairing", "coordination", "speciation"]
-        elif analysis_classes == 'all':
-            self.analysis_classes = ["pairing", "coordination", "speciation", "residence", "networking"]
+        elif analysis_classes == "all":
+            self.analysis_classes = [
+                "pairing",
+                "coordination",
+                "speciation",
+                "residence",
+                "networking",
+            ]
         else:
             self.analysis_classes = [cls.lower() for cls in analysis_classes]
         if "networking" in self.analysis_classes and networking_solvents is None:
@@ -308,8 +344,8 @@ class Solute(AnalysisBase):
         solute_atoms: mda.AtomGroup,
         solvents: dict[str, mda.AtomGroup],
         rename_solutes: Optional[dict[str, str]] = None,
-        **kwargs: Any
-    ) -> 'Solute':
+        **kwargs: Any,
+    ) -> "Solute":
         """
         Create a Solute from a single AtomGroup. The solute_atoms AtomGroup must
         should contain identical residues and identical atoms on each residue.
@@ -349,14 +385,16 @@ class Solute(AnalysisBase):
             rename_solutes.get(f"solute_{i}") or f"solute_{i}": atom_group
             for i, atom_group in solute_atom_group_dict.items()
         }
-        return Solute.from_atoms_dict(solute_atom_group_dict_renamed, solvents, **kwargs)
+        return Solute.from_atoms_dict(
+            solute_atom_group_dict_renamed, solvents, **kwargs
+        )
 
     @staticmethod
     def from_atoms_dict(
         solute_atoms_dict: dict[str, mda.AtomGroup],
         solvents: dict[str, mda.AtomGroup],
-        **kwargs: Any
-    ) -> 'Solute':
+        **kwargs: Any,
+    ) -> "Solute":
         """
         Create a Solute object from a dictionary of solute atoms.
 
@@ -378,7 +416,7 @@ class Solute(AnalysisBase):
 
         """
         # all solute AtomGroups in one AtomGroup + verification
-        assert isinstance(solute_atoms_dict, dict), ("Solute_atoms_dict must be a dict.")
+        assert isinstance(solute_atoms_dict, dict), "Solute_atoms_dict must be a dict."
         solute_atom_group = verify_solute_atoms_dict(solute_atoms_dict)
 
         # create the solutes for each atom
@@ -388,7 +426,7 @@ class Solute(AnalysisBase):
                 atoms,
                 solvents,
                 internal_call=True,
-                **{**kwargs, "solute_name": solute_name}
+                **{**kwargs, "solute_name": solute_name},
             )
         # create the solute for the whole solute
         solute = Solute(
@@ -396,18 +434,16 @@ class Solute(AnalysisBase):
             solvents,
             atom_solutes=atom_solutes,
             internal_call=True,
-            **kwargs
+            **kwargs,
         )
         if len(atom_solutes) > 1:
-           solute.run = solute._run_solute_atoms
+            solute.run = solute._run_solute_atoms
         return solute
 
     @staticmethod
     def from_solute_list(
-            solutes: list['Solute'],
-            solvents: dict[str, mda.AtomGroup],
-            **kwargs: Any
-    ) -> 'Solute':
+        solutes: list["Solute"], solvents: dict[str, mda.AtomGroup], **kwargs: Any
+    ) -> "Solute":
         """
         Create a Solute from a list of Solutes. All Solutes must have only a
         single solute atom on each solute residue. Essentially, from_solute_list
@@ -434,15 +470,17 @@ class Solute(AnalysisBase):
         # check types and name uniqueness
         for solute in solutes:
             assert type(solute) == Solute, "solutes must be a list of Solute objects."
-            assert len(solute.solute_atoms.atoms) == len(solute.solute_atoms.atoms.residues), (
-                "Each Solute in solutes must have only a single atom per residue."
-            )
+            assert len(solute.solute_atoms.atoms) == len(
+                solute.solute_atoms.atoms.residues
+            ), "Each Solute in solutes must have only a single atom per residue."
         solute_names = [solute.solute_name for solute in solutes]
-        assert len(np.unique(solute_names)) == len(solute_names), (
-            "The solute_name for each solute must be unique."
-        )
+        assert len(np.unique(solute_names)) == len(
+            solute_names
+        ), "The solute_name for each solute must be unique."
 
-        solute_atom_group = reduce(lambda x, y: x | y, [solute.solute_atoms for solute in solutes])
+        solute_atom_group = reduce(
+            lambda x, y: x | y, [solute.solute_atoms for solute in solutes]
+        )
         verify_solute_atoms(solute_atom_group)
 
         atom_solutes = {solute.solute_name: solute for solute in solutes}
@@ -451,18 +489,18 @@ class Solute(AnalysisBase):
             solvents,
             atom_solutes=atom_solutes,
             internal_call=True,
-            **kwargs
+            **kwargs,
         )
         if len(atom_solutes) > 1:
-           solute.run = solute._run_solute_atoms
+            solute.run = solute._run_solute_atoms
         return solute
 
     def _run_solute_atoms(
-            self,
-            start: Optional[int] = None,
-            stop: Optional[int] = None,
-            step: Optional[int] = None,
-            verbose: Optional[bool] = None
+        self,
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
+        step: Optional[int] = None,
+        verbose: Optional[bool] = None,
     ):
         # like prepare
         atom_solutes = {}
@@ -478,13 +516,17 @@ class Solute(AnalysisBase):
             if not solute.has_run:
                 solute.run(start=start, stop=stop, step=step, verbose=verbose)
             if (start, stop, step) != (solute.start, solute.stop, solute.step):
-                warnings.warn(f"The start, stop, or step for {solute.solute_name} do not"
-                              f"match the start, stop, or step for the run command so it "
-                              f"is being re-run.")
+                warnings.warn(
+                    f"The start, stop, or step for {solute.solute_name} do not"
+                    f"match the start, stop, or step for the run command so it "
+                    f"is being re-run."
+                )
                 solute.run(start=start, stop=stop, step=step, verbose=verbose)
             if self.solvents != solute.solvents:
-                warnings.warn(f"The solvents for {solute.solute_name} do not match the "
-                              f"solvents for the run command so it is being re-run.")
+                warnings.warn(
+                    f"The solvents for {solute.solute_name} do not match the "
+                    f"solvents for the run command so it is being re-run."
+                )
                 solute.run(start=start, stop=stop, step=step, verbose=verbose)
             atom_solutes[solute.solute_name] = solute
             rdf_data[solute.solute_name] = solute.rdf_data[solute.solute_name]
@@ -498,17 +540,25 @@ class Solute(AnalysisBase):
 
         # like conclude
         analysis_classes = {
-            'speciation': Speciation,
-            'pairing': Pairing,
-            'coordination': Coordination,
-            'residence': Residence,
-            'networking': Networking,
+            "speciation": Speciation,
+            "pairing": Pairing,
+            "coordination": Coordination,
+            "residence": Residence,
+            "networking": Networking,
         }
         for analysis_class in self.analysis_classes:
-            if analysis_class == 'networking':
-                setattr(self, 'networking', Networking.from_solute(self, self.networking_solvents))
+            if analysis_class == "networking":
+                setattr(
+                    self,
+                    "networking",
+                    Networking.from_solute(self, self.networking_solvents),
+                )
             else:
-                setattr(self, analysis_class, analysis_classes[analysis_class].from_solute(self))
+                setattr(
+                    self,
+                    analysis_class,
+                    analysis_classes[analysis_class].from_solute(self),
+                )
 
     def _prepare(self):
         """
@@ -523,14 +573,22 @@ class Solute(AnalysisBase):
                 self.rdf_data = None
                 break
             # set kwargs with defaults
-            self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (0, 7.5)
+            self.rdf_init_kwargs["range"] = self.rdf_init_kwargs.get("range") or (
+                0,
+                7.5,
+            )
             self.rdf_init_kwargs["norm"] = self.rdf_init_kwargs.get("norm") or "density"
             self.rdf_run_kwargs["stop"] = self.rdf_run_kwargs.get("stop") or self.stop
             self.rdf_run_kwargs["step"] = self.rdf_run_kwargs.get("step") or self.step
-            self.rdf_run_kwargs["start"] = self.rdf_run_kwargs.get("start") or self.start
+            self.rdf_run_kwargs["start"] = (
+                self.rdf_run_kwargs.get("start") or self.start
+            )
             # generate and save RDFs
             rdf = InterRDF(
-                self.solute_atoms, solvent, **self.rdf_init_kwargs, exclude_same="residue"
+                self.solute_atoms,
+                solvent,
+                **self.rdf_init_kwargs,
+                exclude_same="residue",
             )
             rdf.run(**self.rdf_run_kwargs)
             bins, data = rdf.results.bins, rdf.results.rdf
@@ -538,10 +596,11 @@ class Solute(AnalysisBase):
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
-        calculated_radii = set([name for name, radius in self.radii.items()
-                                if not np.isnan(radius)])
+        calculated_radii = set(
+            [name for name, radius in self.radii.items() if not np.isnan(radius)]
+        )
         missing_solvents = set(self.solvents.keys()) - calculated_radii
-        missing_solvents_str = ' '.join([str(i) for i in missing_solvents])
+        missing_solvents_str = " ".join([str(i) for i in missing_solvents])
         assert len(missing_solvents) == 0, (
             f"Solute could not identify a solvation radius for "
             f"{missing_solvents_str}. Please manually enter missing radii "
@@ -565,7 +624,10 @@ class Solute(AnalysisBase):
                 box=self.u.dimensions,
             )
             # make sure pairs don't include intra-molecular interactions
-            filter = self.solute_atoms.resindices[pairs[:, 0]] == solvent.resindices[pairs[:, 1]]
+            filter = (
+                self.solute_atoms.resindices[pairs[:, 0]]
+                == solvent.resindices[pairs[:, 1]]
+            )
             pairs = pairs[~filter]
             dist = dist[~filter]
             # replace local ids with absolute ids
@@ -593,7 +655,7 @@ class Solute(AnalysisBase):
                 dist_array,
                 solute_res_name_array,
                 solvent_res_name_array,
-                solvent_res_ix_array
+                solvent_res_ix_array,
             )
         )
         # add the current frame to the growing list of solvation arrays
@@ -615,38 +677,59 @@ class Solute(AnalysisBase):
                 DISTANCE,
                 SOLUTE,
                 SOLVENT,
-                SOLVENT_IX
-            ]
+                SOLVENT_IX,
+            ],
         )
         # clean up solvation_data df
-        for column in [FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX, DISTANCE, SOLVENT_IX]:
+        for column in [
+            FRAME,
+            SOLUTE_IX,
+            SOLUTE_ATOM_IX,
+            SOLVENT_ATOM_IX,
+            DISTANCE,
+            SOLVENT_IX,
+        ]:
             solvation_data_df[column] = pd.to_numeric(solvation_data_df[column])
-        solvation_data_df = solvation_data_df.sort_values([FRAME, SOLUTE_ATOM_IX, DISTANCE])
-        solvation_data_duplicates = solvation_data_df.duplicated(subset=[FRAME, SOLUTE_ATOM_IX, SOLVENT_IX])
+        solvation_data_df = solvation_data_df.sort_values(
+            [FRAME, SOLUTE_ATOM_IX, DISTANCE]
+        )
+        solvation_data_duplicates = solvation_data_df.duplicated(
+            subset=[FRAME, SOLUTE_ATOM_IX, SOLVENT_IX]
+        )
         solvation_data = solvation_data_df[~solvation_data_duplicates]
-        self.solvation_data = solvation_data.set_index([FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX])
+        self.solvation_data = solvation_data.set_index(
+            [FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX]
+        )
         duplicates = solvation_data_df[solvation_data_duplicates]
-        self.solvation_data_duplicates = duplicates.set_index([FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX])
+        self.solvation_data_duplicates = duplicates.set_index(
+            [FRAME, SOLUTE_IX, SOLUTE_ATOM_IX, SOLVENT_ATOM_IX]
+        )
         # instantiate analysis classes
         self.has_run = True
         analysis_classes = {
-            'speciation': Speciation,
-            'pairing': Pairing,
-            'coordination': Coordination,
-            'residence': Residence,
-            'networking': Networking,
+            "speciation": Speciation,
+            "pairing": Pairing,
+            "coordination": Coordination,
+            "residence": Residence,
+            "networking": Networking,
         }
         for analysis_class in self.analysis_classes:
-            if analysis_class == 'networking':
-                setattr(self, 'networking', Networking.from_solute(self, self.networking_solvents))
+            if analysis_class == "networking":
+                setattr(
+                    self,
+                    "networking",
+                    Networking.from_solute(self, self.networking_solvents),
+                )
             else:
-                setattr(self, analysis_class, analysis_classes[analysis_class].from_solute(self))
+                setattr(
+                    self,
+                    analysis_class,
+                    analysis_classes[analysis_class].from_solute(self),
+                )
 
     @staticmethod
     def _plot_solvation_radius(
-            bins: np.ndarray,
-            data: np.ndarray,
-            radius: float
+        bins: np.ndarray, data: np.ndarray, radius: float
     ) -> tuple[plt.Figure, plt.Axes]:
         """
         Plot a solvation radius on an RDF.
@@ -676,9 +759,7 @@ class Solute(AnalysisBase):
         return fig, ax
 
     def plot_solvation_radius(
-            self,
-            solute_name: str,
-            solvent_name: str
+        self, solute_name: str, solvent_name: str
     ) -> tuple[plt.Figure, plt.Axes]:
         """
         Plot the RDF of a solvent molecule
@@ -707,10 +788,10 @@ class Solute(AnalysisBase):
         return fig, ax
 
     def draw_molecule(
-            self,
-            residue: Union[str, mda.core.groups.Residue],
-            filename: Optional[str] = None
-    ) -> 'rdkit.Chem.rdchem.Mol':
+        self,
+        residue: Union[str, mda.core.groups.Residue],
+        filename: Optional[str] = None,
+    ) -> "rdkit.Chem.rdchem.Mol":
         """
         Returns
 
@@ -724,17 +805,22 @@ class Solute(AnalysisBase):
         RDKit.Chem.rdchem.Mol
 
         """
-        from rdkit.Chem import Draw
-        from rdkit.Chem import rdCoordGen
-        from rdkit.Chem.Draw.MolDrawing import DrawingOptions
+        if rdkit is None:
+            raise ImportError(
+                "The RDKit package is required to use this function. "
+                "Please install RDKit with `conda install -c conda-forge rdkit`."
+            )
+
         DrawingOptions.atomLabelFontSize = 100
 
         if isinstance(residue, str):
             if residue in [self.solute_name, "solute"]:
                 mol = self.solute_atoms.residues[0].atoms.convert_to("RDKIT")
                 mol_mda_ix = self.solute_atoms.residues[0].atoms.ix
-                solute_atoms_ix0 = {solute.solute_atoms.atoms.ix[0]: solute_name
-                                    for solute_name, solute in self.atom_solutes.items()}
+                solute_atoms_ix0 = {
+                    solute.solute_atoms.atoms.ix[0]: solute_name
+                    for solute_name, solute in self.atom_solutes.items()
+                }
                 for i, atom in enumerate(mol.GetAtoms()):
                     atom_name = solute_atoms_ix0.get(mol_mda_ix[i])
                     label = f"{i}, " + atom_name if atom_name else str(i)
@@ -744,8 +830,10 @@ class Solute(AnalysisBase):
                 for i, atom in enumerate(mol.GetAtoms()):
                     atom.SetProp("atomNote", str(i))
             else:
-                raise ValueError("If the residue is a string, it must be the name of a solute, "
-                             "the name of a solvent, or 'solute'.")
+                raise ValueError(
+                    "If the residue is a string, it must be the name of a solute, "
+                    "the name of a solvent, or 'solute'."
+                )
         else:
             assert isinstance(residue, mda.core.groups.Residue)
             mol = residue.atoms.convert_to("RDKIT")
@@ -757,12 +845,12 @@ class Solute(AnalysisBase):
         return mol
 
     def get_shell(
-            self,
-            solute_index: int,
-            frame: int,
-            as_df: bool = False,
-            remove_mols: Optional[dict[str, int]] = None,
-            closest_n_only: Optional[int] = None
+        self,
+        solute_index: int,
+        frame: int,
+        as_df: bool = False,
+        remove_mols: Optional[dict[str, int]] = None,
+        closest_n_only: Optional[int] = None,
     ) -> Union[mda.AtomGroup, pd.DataFrame]:
         """
         Select the solvation shell of the solute.
@@ -800,8 +888,9 @@ class Solute(AnalysisBase):
 
         """
         assert self.has_run, "Solute.run() must be called first."
-        assert frame in self.frames, ("The requested frame must be one "
-                                      "of an analyzed frames in self.frames.")
+        assert frame in self.frames, (
+            "The requested frame must be one " "of an analyzed frames in self.frames."
+        )
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
         shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLUTE_IX))
@@ -813,7 +902,7 @@ class Solute(AnalysisBase):
             mol_count = len(res_ix)
             n_remove = min(mol_count, n_remove)
             # then truncate resnames to remove mols
-            remove_ix = res_ix[(mol_count - n_remove):]
+            remove_ix = res_ix[(mol_count - n_remove) :]
             # then apply to original shell
             remove = shell[SOLVENT_IX].isin(remove_ix)
             shell = shell[np.invert(remove)]
@@ -821,20 +910,24 @@ class Solute(AnalysisBase):
         if closest_n_only:
             assert closest_n_only > 0, "closest_n_only must be at least 1"
             closest_n_only = min(len(shell), closest_n_only)
-            shell = shell[0: closest_n_only]
+            shell = shell[0:closest_n_only]
         if as_df:
             return shell
         else:
             return self._df_to_atom_group(shell, solute_index=solute_index)
 
     def get_closest_n_mol(
-            self,
-            solute_atom_ix: int,
-            n_mol: int,
-            guess_radius: Union[float, int] = 3,
-            return_ordered_resix: bool = False,
-            return_radii: bool = False,
-    ) -> Union[mda.AtomGroup, tuple[mda.AtomGroup, np.ndarray], tuple[mda.AtomGroup, np.ndarray, np.ndarray]]:
+        self,
+        solute_atom_ix: int,
+        n_mol: int,
+        guess_radius: Union[float, int] = 3,
+        return_ordered_resix: bool = False,
+        return_radii: bool = False,
+    ) -> Union[
+        mda.AtomGroup,
+        tuple[mda.AtomGroup, np.ndarray],
+        tuple[mda.AtomGroup, np.ndarray, np.ndarray],
+    ]:
         """
         Select the n closest mols to the solute.
 
@@ -876,9 +969,7 @@ class Solute(AnalysisBase):
         )
 
     def radial_shell(
-            self,
-            solute_atom_ix: int,
-            radius: Union[float, int]
+        self, solute_atom_ix: int, radius: Union[float, int]
     ) -> mda.AtomGroup:
         """
         Select all residues with atoms within r of the solute.
@@ -901,9 +992,7 @@ class Solute(AnalysisBase):
         return get_radial_shell(self.solute_atoms[solute_atom_ix], radius)
 
     def _df_to_atom_group(
-            self,
-            df: pd.DataFrame,
-            solute_index: Optional[int] = None
+        self, df: pd.DataFrame, solute_index: Optional[int] = None
     ) -> mda.AtomGroup:
         """
         Selects an MDAnalysis.AtomGroup from a pandas.DataFrame with solvent.
