@@ -46,7 +46,7 @@ setup(
 
     install_requires=[
         'numpy>=1.20.0',
-        'mdanalysis>=2.0.0',
+        'mdanalysis>=2.7.0',
         'pandas',
         'matplotlib',
         'scipy',
