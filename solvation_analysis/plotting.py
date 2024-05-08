@@ -178,45 +178,68 @@ def plot_co_occurrence(
     return fig
 
 
-def plot_speciation_bar(speciation: Union[Speciation, Solute]) -> go.Figure:
+def _make_rectangle(x: float, y: float, color: str) -> dict:
+    """
+    Create a rectangle shape for Plotly.
+
+    Parameters
+    ----------
+    x : float
+        The x-coordinate of the center of the rectangle.
+    y : float
+        The y-coordinate of the center of the rectangle.
+    color : str
+        The color of the rectangle.
+
+    Returns
+    -------
+    go.layout.Shape
+        The rectangle shape for Plotly.
+    """
+
+    x0 = x - 0.18
+    y0 = y - 0.43
+    x1 = x + 0.18
+    y1 = y + 0.43
+    h = 0.09
+    rounded_bottom_left = f" M {x0 + h}, {y0} Q {x0}, {y0} {x0}, {y0 + h}"  #
+    rounded_top_left = f" L {x0}, {y1 - h} Q {x0}, {y1} {x0 + h}, {y1}"
+    rounded_top_right = f" L {x1 - h}, {y1} Q {x1}, {y1} {x1}, {y1 - h}"
+    rounded_bottom_right = f" L {x1}, {y0 + h} Q {x1}, {y0} {x1 - h}, {y0}Z"
+    path = (
+        rounded_bottom_left
+        + rounded_top_left
+        + rounded_top_right
+        + rounded_bottom_right
+    )
+
+    return dict(
+        type="path",
+        path=path,
+        line=dict(color=color, width=2),
+        fillcolor=color,
+        layer="between",
+    )
+
+
+def _get_shell_name(row):
+    result = []
+    for column, value in row.items():
+        result.append(f"{column} {value}")
+    return "<br>".join(result)
+
+
+def plot_speciation(
+    speciation: Union[Speciation, Solute], shells: int = 10
+) -> go.Figure:
     if isinstance(speciation, Solute):
         if not hasattr(speciation, "speciation"):
             raise ValueError("Solute speciation analysis class must be instantiated.")
         speciation = speciation.speciation
-    # Create a stacked bar chart
-    df = speciation.speciation_fraction
-    df = df.drop("fraction", axis=1)
 
-    fig = go.Figure(
-        layout=dict(
-            barcornerradius=15,
-        )
-    )
-    # Add a bar for each solvent column
-    for solvent in df.columns:
-        fig.add_trace(go.Bar(x=df.index, y=df[solvent], name=solvent))
-
-    # Update layout for the stacked bar chart
-    fig.update_layout(
-        barmode="stack",
-        title="Stacked Bar Chart of Solvents per Solute_ix",
-        xaxis_title="Solute Index",
-        yaxis_title="Count of Solvents",
-    )
-
-    # Show the figure
-    fig.show()
-
-
-def plot_speciation(speciation: Union[Speciation, Solute]) -> go.Figure:
-    if isinstance(speciation, Solute):
-        if not hasattr(speciation, "speciation"):
-            raise ValueError("Solute speciation analysis class must be instantiated.")
-        speciation = speciation.speciation
-
-    # Assuming this pulls the relevant DataFrame
-    df = speciation.speciation_fraction.head(5)
-    fraction_data = df["fraction"]  # Extract the fraction column
+    # Extract relevant data
+    df = speciation.speciation_fraction.head(shells)
+    fraction_data = df["fraction"]
     df = df.drop("fraction", axis=1)
 
     # Get unique solvents and assign colors
@@ -228,7 +251,6 @@ def plot_speciation(speciation: Union[Speciation, Solute]) -> go.Figure:
         colors = colors * (
             len(solvents) // len(colors) + 1
         )  # Repeat color list as needed
-
     color_map = dict(zip(solvents, colors))  # Create a color map for solvents
 
     # Prepare data for the plot
@@ -236,21 +258,25 @@ def plot_speciation(speciation: Union[Speciation, Solute]) -> go.Figure:
     y_vals = []
     solvent_names = []
     marker_colors = []  # To store color for each marker
+    shell_names = []
 
     # Process each row to create stacks of points
     for index, row in df.iterrows():
+        shell_names.append(_get_shell_name(row))
         total_count = 0
         for solvent, count in row.items():
             for i in range(count):
                 x_vals.append(index)
-                y_vals.append(0.5 + i)  # Place each solvent count at different y-levels
+                y_vals.append(
+                    0.5 + i + total_count
+                )  # Place each solvent count at different y-levels
                 solvent_names.append(solvent)
                 marker_colors.append(
                     color_map[solvent]
                 )  # Use the dynamically assigned color
-            total_count += 1
+            total_count += count
 
-    # Create the scatter plot
+    # Create scatter plot of solvent squares,
     trace1 = go.Scatter(
         x=x_vals,
         y=y_vals,
@@ -291,51 +317,44 @@ def plot_speciation(speciation: Union[Speciation, Solute]) -> go.Figure:
 
     # Add squares with rounded corners on top of the points using the shapes API
     for x, y, color in zip(x_vals, y_vals, marker_colors):
-        fig.add_shape(
-            type="rect",
-            xref="x",
-            yref="y",
-            x0=x - 0.15,
-            y0=y - 0.4,
-            x1=x + 0.15,
-            y1=y + 0.4,
-            line=dict(color=color, width=2),
-            fillcolor=color,
-            layer="between",
-        )
+        fig.add_shape(**_make_rectangle(x, y, color))
 
     # Update layout
     fig.update_layout(
-        title="Categorical Scatter Plot of Solvents per Solute_ix",
-        xaxis_title="Solute Index",
+        title="Top Solvation Shell Compositions",
+        xaxis_title="Solvation Shell",
+        # xaxis=dict(tickmode="linear", tick0=0, dtick=1),  # Set x-axis ticks to integers
+        xaxis=dict(
+            tickmode="array",
+            tickvals=df.index,
+            ticktext=shell_names,
+        ),
         yaxis=dict(
-            title="Stacked Points",
+            title="Shell Size",
             tickmode="array",
             tickvals=list(range(1, int(max(y_vals)) + 1)),
             range=[0, max(y_vals) + 1],  # Scale the top of the y-axis
-        ),
-        xaxis=dict(tickmode="linear", tick0=0, dtick=1),  # Set x-axis ticks to integers
-        template="plotly_white",
-        margin=dict(l=20, r=20, t=60, b=20),  # Add padding to the edges of the plot
-        yaxis2=dict(
-            title="Fraction",
-            overlaying="y",
+            showgrid=False,
             side="right",
+        ),
+        yaxis2=dict(
+            title="Shell Fraction",
+            overlaying="y",
+            side="left",
             range=[0, max(fraction_data) * 1.1],  # Scale the fraction axis
         ),
+        template="plotly_white",
+        margin=dict(l=20, r=20, t=60, b=20),  # Add padding to the edges of the plot
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.02,
+            y=1,
             xanchor="right",
             x=1,
         ),  # Add legend at the top
     )
 
-    # Show the figure
-    return fig  # Return the figure instead of showing it, to allow for more flexibilityurn the figure instead of showing it, to allow for more flexibility
-
-    # def plot_rdfs(solute, x_axis, clasp=None):
+    return fig
 
 
 #     rdf_data = solute.rdf_data
