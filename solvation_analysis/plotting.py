@@ -230,7 +230,7 @@ def _get_shell_name(row):
 
 
 def plot_speciation(
-    speciation: Union[Speciation, Solute], shells: int = 10
+    speciation: Union[Speciation, Solute], shells: int = 6
 ) -> go.Figure:
     if isinstance(speciation, Solute):
         if not hasattr(speciation, "speciation"):
