@@ -597,9 +597,7 @@ class Solute(AnalysisBase):
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
-        calculated_radii = set(
-            [name for name, radius in self.radii.items() if not np.isnan(radius)]
-        )
+        calculated_radii = set([name for name, radius in self.radii.items() if radius])
         missing_solvents = set(self.solvents.keys()) - calculated_radii
         missing_solvents_str = " ".join([str(i) for i in missing_solvents])
         assert len(missing_solvents) == 0, (
