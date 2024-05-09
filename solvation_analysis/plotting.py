@@ -13,8 +13,11 @@ as their input and generating a Plotly.Figure object.
 from typing import Union, Optional, Any, Callable
 from copy import deepcopy
 
+import plotly
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
+
 import pandas as pd
 
 from solvation_analysis.solute import Solute
@@ -232,6 +235,7 @@ def _get_shell_name(row):
 def plot_speciation(
     speciation: Union[Speciation, Solute], shells: int = 6
 ) -> go.Figure:
+    print("hi")
     if isinstance(speciation, Solute):
         if not hasattr(speciation, "speciation"):
             raise ValueError("Solute speciation analysis class must be instantiated.")
@@ -281,7 +285,7 @@ def plot_speciation(
         x=x_vals,
         y=y_vals,
         mode="markers",
-        marker=dict(size=10, color=marker_colors),  # Apply colors to markers
+        marker=dict(size=25, color=marker_colors, opacity=0),  # Apply colors to markers
         text=solvent_names,
         hoverinfo="text",
         name="Solvents",
@@ -357,84 +361,127 @@ def plot_speciation(
     return fig
 
 
-#     rdf_data = solute.rdf_data
-#     df = pd.DataFrame()
-#     dataframes = {}
-#     for atom_solute_name in rdf_data:
-#         for solvent in rdf_data[atom_solute_name]:
-#             temp = pd.DataFrame(data=rdf_data[atom_solute_name][solvent]).transpose()
-#             temp.columns = ["bins", "rdf"]
-#             temp["solvent"] = solvent
-#             temp["atom solute"] = atom_solute_name
-#             dataframes[(atom_solute_name, solvent)] = temp[["bins", "rdf"]]
-#             df = pd.concat([df, temp])
-#
-#     atom_solutes, solvents = zip(*dataframes.keys());
-#
-#     atom_solutes = set(atom_solutes)
-#     solvents = set(solvents)
-#
-#     # TODO: check subset of df
-#     fig = go.Figure()
-#     # 2x3 grid --> 2x1 grid, each graph has three traces
-#     if clasp == "x" and x_axis == "atom solute":
-#         fig = make_subplots(rows=len(atom_solutes), cols=1, x_title="Atom Solute")
-#         r = 1
-#         for atom_solute in atom_solutes:
-#             temp = df.loc[df["atom solute"] == atom_solute]
-#             fig.add_trace(go.Scatter(x=temp["bins"], y=temp["rdf"]), row=r, col=1)
-#             fig.update_xaxes(title_text=atom_solute, row=r, col=1)
-#             r += 1
-#     # 3x2 grid --> 3x1 grid, each graph has two traces
-#     elif clasp == "x" and x_axis == "solvent":
-#         fig = make_subplots(rows=1, cols=len(atom_solutes), x_title="Solvent")
-#         c = 1
-#         for solvent in solvents:
-#             temp = df.loc[df["solvent"] == solvent]
-#             fig.add_trace(go.Scatter(x=temp["bins"], y=temp["rdf"]), row=1, col=c)
-#             fig.update_xaxes(title_text=solvent, row=1, col=c)
-#             c += 1
-#     # 2x3 grid --> 1x3 grid, each graph has two traces
-#     elif clasp == "y" and x_axis == "atom solute":
-#         fig = make_subplots(rows=len(solvents), cols=len(atom_solutes), x_title="Atom Solute")
-#         c = 1
-#         for atom_solute in atom_solutes:
-#             temp = df.loc[df["atom solute"] == atom_solute]
-#             fig.add_trace(go.Scatter(x=temp["bins"], y=temp["rdf"]), row=1, col=c)
-#             fig.update_xaxes(title_text=atom_solute, row=1, col=c)
-#             c += 1
-#     # 3x2 grid --> 1x2 grid, each graph has three traces
-#     elif clasp == "y" and x_axis == "solvent":
-#         print("need to work on this")
-#     elif x_axis == "atom solute":
-#         fig = make_subplots(rows=len(solvents), cols=len(atom_solutes), shared_xaxes=True, shared_yaxes=True, x_title="Atom Solute", y_title="Solvent")
-#
-#         r = 1
-#         for solvent in solvents:
-#             c = 1
-#             for atom_solute in atom_solutes:
-#                 data = dataframes[(atom_solute, solvent)]
-#                 fig.add_trace(go.Scatter(x=data["bins"], y=data["rdf"]), row=r, col=c)
-#                 fig.update_xaxes(title_text=atom_solute, row=r, col=c)
-#                 fig.update_yaxes(title_text=solvent, row=r, col=c)
-#                 c += 1
-#             r += 1
-#     elif x_axis == "solvent":
-#         fig = make_subplots(rows=len(atom_solutes), cols=len(solvents), shared_xaxes=True, shared_yaxes=True, x_title="Solvent", y_title="Atom Solute")
-#
-#         r = 1
-#         for atom_solute in atom_solutes:
-#             c = 1
-#             for solvent in solvents:
-#                 data = dataframes[(atom_solute, solvent)]
-#                 fig.add_trace(go.Scatter(x=data["bins"], y=data["rdf"]), row=r, col=c)
-#                 fig.update_xaxes(title_text=solvent, row=r, col=c)
-#                 fig.update_yaxes(title_text=atom_solute, row=r, col=c)
-#                 c += 1
-#             r += 1
-#
-#     fig.update_layout(showlegend=False, template="simple_white")
-#     return fig
+def plot_rdfs(
+    solute, show_cutoff=True, solute_on_x=False, merge_on_x=False, merge_on_y=False
+):
+    # Determine the grid dimensions based on merge settings
+    data = solute.rdf_data
+    n_cols = 1 if merge_on_y else len(data)
+    n_rows = 1 if merge_on_x else len(data[list(data.keys())[0]])
+
+    x_title, y_title = "Solvent", "Solute"
+
+    if solute_on_x:
+        n_rows, n_cols = n_cols, n_rows
+        x_title, y_title = y_title, x_title
+
+    # Create subplots
+    fig = make_subplots(
+        rows=n_rows,
+        cols=n_cols,
+        shared_xaxes=True,
+        shared_yaxes=True,
+        x_title=x_title,
+        y_title=y_title,
+    )
+
+    # Create a color mapping dictionary
+    color_map = {}
+    colors = plotly.colors.qualitative.Plotly
+
+    # Iterate over the data and add traces to the subplots
+    for i, (key, values) in enumerate(data.items()):
+        for j, (sub_key, sub_values) in enumerate(values.items()):
+            x, y = sub_values
+            col = i * (not merge_on_y) + 1
+            row = j * (not merge_on_x) + 1
+
+            if solute_on_x:
+                row, col = col, row
+
+            # Assign a color to the sub-key if not already assigned
+            if sub_key not in color_map:
+                show_legend = True
+                color_map[sub_key] = colors[len(color_map) % len(colors)]
+            else:
+                show_legend = False
+
+            fig.add_trace(
+                go.Scatter(
+                    x=x,
+                    y=y,
+                    name=sub_key,
+                    line=dict(color=color_map[sub_key]),
+                    legendgroup=sub_key,
+                    showlegend=show_legend,
+                ),
+                row=row,
+                col=col,
+            )
+            fig.update_yaxes(title_text=key, row=row, col=1)
+            fig.update_xaxes(title_text=sub_key, row=n_rows, col=col)
+
+    # Update the layout
+    fig.update_layout(
+        title_text="Radial Distribution Functions of Solute-Solvent Pairs",
+        template="plotly_white",
+        margin=dict(
+            l=100,
+            b=80,
+        ),
+    )
+    fig.update_annotations(x=0.5, y=-0.05, selector={"text": x_title})
+    fig.update_annotations(y=0.5, x=-0.03, selector={"text": y_title})
+
+    if not (merge_on_x or merge_on_y) and show_cutoff:
+        for col, solute in enumerate(solute.atom_solutes.values()):
+            for row, (solvent, radius) in enumerate(solute.radii.items()):
+                if solute_on_x:
+                    row, col = col, row
+                fig.add_vline(
+                    x=radius,
+                    row=row,
+                    col=col,
+                    label=dict(
+                        text="solvation radius",
+                        textposition="top center",
+                        yanchor="top",
+                    ),
+                )
+
+    return fig
+
+
+def compare_networking(solutions, series=False):
+    # valid_x_axis = set(["solvent", "solute"])
+    # assert x_axis in valid_x_axis, "x_axis must be equal to 'solute' or 'solvent'."
+    # x_label = x_label or x_axis
+    # legend_label = legend_label or (valid_x_axis - {x_axis}).pop()
+
+    property_dict = {}
+    for solute_name, solute in solutions.items():
+        if not hasattr(solute, "networking"):
+            raise ValueError("Solute networking analysis class must be instantiated.")
+        property_dict[solute_name] = solute.networking.solute_status
+
+    solvents_to_plot = ["isolated", "paired", "networked"]
+
+    fig = compare_solvent_dicts(
+        property_dict=property_dict,
+        rename_solvent_dict={},
+        solvents_to_plot=solvents_to_plot,
+        legend_label="Solute Status",
+        x_axis="solute",
+        series=series,
+    )
+
+    fig.update_layout(
+        xaxis_title_text="Solute",
+        yaxis_title_text="Solute Status Fraction",
+        title="Fraction of Solutes Isolated, Paired, and Networked",
+        template="plotly_white",
+    )
+    return fig
 
 
 def compare_solvent_dicts(
@@ -654,6 +701,13 @@ compare_coordination_numbers = _compare_function_generator(
     "Compare the coordination numbers.",
 )
 
+
+compare_coordination_vs_random = _compare_function_generator(
+    "coordination",
+    "coordination_vs_random",
+    "Coordination Compare to Random Distribution of Solvents",
+    "Compare the coordination numbers.",
+)
 
 compare_residence_times_cutoff = _compare_function_generator(
     "residence",

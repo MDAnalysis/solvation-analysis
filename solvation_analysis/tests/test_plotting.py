@@ -4,6 +4,7 @@ from solvation_analysis.plotting import (
     plot_shell_composition_by_size,
     plot_co_occurrence,
     plot_speciation,
+    plot_rdfs,
     _compare_function_generator,
     compare_free_solvents,
     compare_pairing,
@@ -11,6 +12,7 @@ from solvation_analysis.plotting import (
     compare_residence_times_cutoff,
     compare_residence_times_fit,
     compare_diluent,
+    compare_networking,
 )
 
 from solvation_analysis.networking import Networking
@@ -32,9 +34,21 @@ def test_plot_shell_size_histogram(run_solute):
 
 
 def test_plot_speciation(run_solute):
-    plot_speciation(run_solute)
+    plot_speciation(run_solute).show()
     plot_speciation(run_solute.speciation)
     assert True
+
+
+def test_plot_rdfs(run_solute, iba_small_solute):
+    plot_rdfs(iba_small_solute).show()
+    plot_rdfs(iba_small_solute, merge_on_x=True)
+    plot_rdfs(iba_small_solute, merge_on_y=True)
+    plot_rdfs(iba_small_solute, merge_on_x=True, merge_on_y=True)
+    plot_rdfs(iba_small_solute, solute_on_x=True)
+    plot_rdfs(iba_small_solute, solute_on_x=True, merge_on_y=True)
+    plot_rdfs(iba_small_solute, solute_on_x=True, merge_on_x=True)
+    plot_rdfs(iba_small_solute, solute_on_x=True, merge_on_x=True, merge_on_y=True)
+    plot_rdfs(run_solute).show()
 
 
 # compare_solvent_dicts tests
@@ -75,6 +89,10 @@ def test_compare_solvent_dicts_sensitivity(eax_solutes):
             y_label="Pairing",
             title="Graph",
         )
+
+
+def test_compare_networking(eax_solutes):
+    compare_networking(eax_solutes)
 
 
 # compare_pairing tests
