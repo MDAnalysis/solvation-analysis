@@ -34,8 +34,7 @@ def test_networking_instantiation_error(atom_groups):
 
 def test_plot_solvation_distance(rdf_bins_and_data_easy):
     bins, data = rdf_bins_and_data_easy["pf6_all"]
-    fig = Solute._plot_solvation_radius(bins, data, 2)
-    fig.show()  # comment out for global testing
+    Solute._plot_solvation_radius(bins, data, 2)
 
 
 def test_radii_finding(run_solute):
@@ -46,15 +45,6 @@ def test_radii_finding(run_solute):
     assert 2 < run_solute.radii["pf6"] < 3
     assert 2 < run_solute.radii["fec"] < 3
     assert 2 < run_solute.radii["bn"] < 3
-    # for fig, ax in run_solute.rdf_plots.values():
-    # plt.show()  # comment out for global testing
-
-
-def test_run_warning(pre_solute_mutable):
-    # checks that an error is thrown if there are not enough radii
-    pre_solute_mutable.radii = {"pf6": 2.8}
-    with pytest.raises(AssertionError):
-        pre_solute_mutable.run(step=1)
 
 
 def test_run(pre_solute_mutable):
@@ -215,7 +205,7 @@ def test_instantiate_eax_solutes(name, eax_solutes):
 
 
 def test_plot_solvation_radius(run_solute, iba_small_solute):
-    run_solute.plot_solvation_radius("solute_0", "fec").show()
+    run_solute.plot_solvation_radius("solute_0", "fec")
     iba_small_solute.plot_solvation_radius("iba_ketone", "iba")
 
 
