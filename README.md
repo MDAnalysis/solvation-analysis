@@ -21,7 +21,7 @@ and visualize solvation information.
 
 ![summary](docs/tutorials/images/summary_figure.png)
 
-Find documentation and tutorials on [readthedocs].
+Find documentation and tutorials on [readthedocs](https://solvation-analysis.readthedocs.io/en/latest/).
 
 ### Installing SolvationAnalysis
 
