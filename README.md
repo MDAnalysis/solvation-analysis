@@ -46,7 +46,6 @@ properties within and between solvent systems. A few examples are shown below.
 
 ![solvation_analysis.plotting.plot_rdfs](docs/tutorials/images/rdf_plot.png)
 
-```python
 
 ### Contributing
 
