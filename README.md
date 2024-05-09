@@ -15,13 +15,11 @@ SolvationAnalysis
 ---
 
 Solvation analysis implements a robust, cohesive, and fast set of methods
-for analyzing the solvation structure of a liquid. It seamlessly integrates with
-[MDAnalysis](https://www.mdanalysis.org/), making use of the core AtomGroup
-and Universe data structures to parse solvation information. If you are interested
-in understanding the solvation structure of a liquid, this package is for you!
+for analyzing the solvation structure of a liquid. It integrates with
+[MDAnalysis](https://www.mdanalysis.org/) to seamlessly calculate, query,
+and visualize solvation information.
 
-
-Find documentation and tutorials on [readthedocs].
+Find documentation and tutorials on [readthedocs](https://solvation-analysis.readthedocs.io/en/latest/).
 
 ### Installing SolvationAnalysis
 
@@ -34,6 +32,23 @@ pip install solvation-analysis
 
 conda install -c conda-forge solvation_analysis
 ```
+
+### Solvation Analysis Summarized
+
+![summary](docs/tutorials/images/summary_figure.png)
+
+
+### Visualization
+
+With just a few lines of code, solvation analysis can calculate detailed
+properties within and between solvent systems. A few examples are shown below.
+
+![solvation_analysis.plotting.compare_coordination_numbers](docs/tutorials/images/coordination_plot.png)
+
+![solvation_analysis.plotting.plot_speciation](docs/tutorials/images/speciation_plot.png)
+
+![solvation_analysis.plotting.plot_rdfs](docs/tutorials/images/rdf_plot.png)
+
 
 ### Contributing
 

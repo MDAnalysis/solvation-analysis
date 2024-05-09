@@ -49,7 +49,7 @@ class Coordination:
     Parameters
     ----------
     solvation_data : pandas.DataFrame
-        The solvation data frame output by Solute.
+        The solvation dataframe output by Solute.
     n_frames : int
         The number of frames in solvation_data.
     n_solutes : int

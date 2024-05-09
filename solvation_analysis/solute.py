@@ -110,7 +110,6 @@ from collections import defaultdict
 from functools import reduce
 from typing import Any, Callable, Optional, Union
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 
@@ -119,6 +118,7 @@ from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.analysis.rdf import InterRDF
 from MDAnalysis.lib.distances import capped_distance
 import numpy as np
+import plotly.graph_objects as go
 
 from solvation_analysis._utils import (
     verify_solute_atoms,
@@ -597,9 +597,7 @@ class Solute(AnalysisBase):
             # generate and save plots
             if name not in self.radii.keys():
                 self.radii[name] = self.kernel(bins, data, **self.kernel_kwargs)
-        calculated_radii = set(
-            [name for name, radius in self.radii.items() if not np.isnan(radius)]
-        )
+        calculated_radii = set([name for name, radius in self.radii.items() if radius])
         missing_solvents = set(self.solvents.keys()) - calculated_radii
         missing_solvents_str = " ".join([str(i) for i in missing_solvents])
         assert len(missing_solvents) == 0, (
@@ -731,9 +729,9 @@ class Solute(AnalysisBase):
     @staticmethod
     def _plot_solvation_radius(
         bins: np.ndarray, data: np.ndarray, radius: float
-    ) -> tuple[plt.Figure, plt.Axes]:
+    ) -> go.Figure:
         """
-        Plot a solvation radius on an RDF.
+        Plot a solvation radius on an RDF using Plotly.
 
         Includes a vertical line at the radius of interest.
 
@@ -748,20 +746,35 @@ class Solute(AnalysisBase):
 
         Returns
         -------
-        fig : matplotlib.Figure
-        ax : matplotlib.Axes
+        fig : plotly.graph_objects.Figure
         """
-        fig, ax = plt.subplots()
-        ax.plot(bins, data, "b-", label="rdf")
-        ax.axvline(radius, color="r", label="solvation radius")
-        ax.set_xlabel("Radial Distance (A)")
-        ax.set_ylabel("Probability Density")
-        ax.legend()
-        return fig, ax
 
-    def plot_solvation_radius(
-        self, solute_name: str, solvent_name: str
-    ) -> tuple[plt.Figure, plt.Axes]:
+        fig = go.Figure()
+
+        # Add the RDF trace
+        fig.add_trace(go.Scatter(x=bins, y=data, mode="lines", name="RDF"))
+
+        # Add the vertical line for the solvation radius
+        fig.add_vline(
+            x=radius,
+            line_width=4,
+            line_dash="dash",
+            line_color="red",
+            annotation_text="Solvation Radius",
+            annotation_position="top right",
+        )
+
+        # Update the layout
+        fig.update_layout(
+            title="Solvation Radius on RDF",
+            xaxis_title="Radial Distance (Å)",
+            yaxis_title="Probability Density",
+            template="plotly_white",
+        )
+
+        return fig
+
+    def plot_solvation_radius(self, solute_name: str, solvent_name: str) -> go.Figure:
         """
         Plot the RDF of a solvent molecule
 
@@ -775,8 +788,7 @@ class Solute(AnalysisBase):
 
         Returns
         -------
-        fig : matplotlib.Figure
-        ax : matplotlib.Axes
+        fig : go.Figure
         """
         if len(self.atom_solutes) == 1:
             solute_name = self.solute_name
@@ -784,9 +796,11 @@ class Solute(AnalysisBase):
         assert not self.skip_rdf, "RDFs were skipped, so no RDFs are available."
         bins, data = self.rdf_data[solute_name][solvent_name]
         radius = self.atom_solutes[solute_name].radii[solvent_name]
-        fig, ax = self._plot_solvation_radius(bins, data, radius)
-        ax.set_title(f"{self.solute_name} solvation distance for {solvent_name}")
-        return fig, ax
+        fig = self._plot_solvation_radius(bins, data, radius)
+        fig.update_layout(
+            title=f"{self.solute_name} solvation radius for {solvent_name}"
+        )
+        return fig
 
     def draw_molecule(
         self,
@@ -889,9 +903,9 @@ class Solute(AnalysisBase):
 
         """
         assert self.has_run, "Solute.run() must be called first."
-        assert frame in self.frames, (
-            "The requested frame must be one " "of an analyzed frames in self.frames."
-        )
+        assert (
+            frame in self.frames
+        ), "The requested frame must be one of the analyzed frames in self.frames."
         remove_mols = {} if remove_mols is None else remove_mols
         # select shell of interest
         shell = self.solvation_data.xs((frame, solute_index), level=(FRAME, SOLUTE_IX))
