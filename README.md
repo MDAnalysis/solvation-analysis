@@ -19,8 +19,6 @@ for analyzing the solvation structure of a liquid. It integrates with
 [MDAnalysis](https://www.mdanalysis.org/) to seamlessly calculate, query,
 and visualize solvation information.
 
-![summary](docs/tutorials/images/summary_figure.png)
-
 Find documentation and tutorials on [readthedocs](https://solvation-analysis.readthedocs.io/en/latest/).
 
 ### Installing SolvationAnalysis
@@ -35,7 +33,12 @@ pip install solvation-analysis
 conda install -c conda-forge solvation_analysis
 ```
 
-### Select Features
+### Solvation Analysis Summarized
+
+![summary](docs/tutorials/images/summary_figure.png)
+
+
+### Visualization
 
 With just a few lines of code, solvation analysis can calculate detailed
 properties within and between solvent systems. A few examples are shown below.
