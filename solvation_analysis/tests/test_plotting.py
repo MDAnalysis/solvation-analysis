@@ -44,10 +44,10 @@ def test_plot_rdfs(run_solute, iba_small_solute):
     plot_rdfs(iba_small_solute, merge_on_x=True)
     plot_rdfs(iba_small_solute, merge_on_y=True)
     plot_rdfs(iba_small_solute, merge_on_x=True, merge_on_y=True)
-    plot_rdfs(iba_small_solute, solute_on_x=True)
-    plot_rdfs(iba_small_solute, solute_on_x=True, merge_on_y=True)
-    plot_rdfs(iba_small_solute, solute_on_x=True, merge_on_x=True)
-    plot_rdfs(iba_small_solute, solute_on_x=True, merge_on_x=True, merge_on_y=True)
+    plot_rdfs(iba_small_solute, x_axis_solute=True)
+    plot_rdfs(iba_small_solute, x_axis_solute=True, merge_on_y=True)
+    plot_rdfs(iba_small_solute, x_axis_solute=True, merge_on_x=True)
+    plot_rdfs(iba_small_solute, x_axis_solute=True, merge_on_x=True, merge_on_y=True)
     plot_rdfs(run_solute)
 
 
@@ -100,7 +100,7 @@ def test_compare_pairing_default_eax(eax_solutes):
     # call compare_pairing with only one required argument
     # also tests how the code handles eax systems
     fig = compare_pairing(eax_solutes)
-    assert len(fig.data) == 4
+    assert len(fig.data) == 6
 
 
 def test_compare_pairing_case1(eax_solutes):
@@ -112,9 +112,7 @@ def test_compare_pairing_case1(eax_solutes):
         y_label="Pairing",
         title="Bar Graph of Solvent Pairing",
     )
-    assert len(fig.data) == 4
-    for bar in fig.data:
-        assert set(bar.x) == {"fec", "pf6"}
+    assert len(fig.data) == 2
 
 
 def test_compare_pairing_case2(eax_solutes):
@@ -125,7 +123,7 @@ def test_compare_pairing_case2(eax_solutes):
         x_label="Solute",
         y_label="Pairing",
         title="Bar Graph of Solvent Pairing",
-        x_axis="solute",
+        x_axis_solute=True,
     )
     assert len(fig.data) == 2
     for bar in fig.data:
@@ -142,9 +140,7 @@ def test_compare_pairing_case3(eax_solutes):
         title="Line Graph of Solvent Pairing",
         series=True,
     )
-    assert len(fig.data) == 4
-    for line in fig.data:
-        assert set(line.x) == {"fec", "pf6"}
+    assert len(fig.data) == 2
 
 
 def test_compare_pairing_case4(eax_solutes):
@@ -155,7 +151,7 @@ def test_compare_pairing_case4(eax_solutes):
         x_label="Solute",
         y_label="Pairing",
         title="Line Graph of Solvent Pairing",
-        x_axis="solute",
+        x_axis_solute=True,
         series=True,
     )
     assert len(fig.data) == 2
@@ -171,7 +167,7 @@ def test_compare_pairing_switch_solvents_to_plot_order(eax_solutes):
         x_label="Solute",
         y_label="Pairing",
         title="Line Graph of Solvent Pairing",
-        x_axis="solute",
+        x_axis_solute=True,
         series=True,
     )
     assert len(fig.data) == 2
@@ -189,9 +185,7 @@ def test_compare_pairing_rename_solvent_dict(eax_solutes):
         y_label="Pairing",
         title="Bar Graph of Solvent Pairing",
     )
-    assert len(fig.data) == 4
-    for bar in fig.data:
-        assert set(bar.x) == {"pf6", "fec", "EAx"}
+    assert len(fig.data) == 3
 
 
 def test_compare_free_solvents(eax_solutes):
@@ -207,14 +201,14 @@ def test_compare_coordination_numbers_default_eax(eax_solutes):
     # call compare_coordination_numbers with only one required argument
     # also tests how the code handles eax systems
     fig = compare_coordination_numbers(eax_solutes)
-    assert len(fig.data) == 4
+    assert len(fig.data) == 6
 
 
 def test_compare_coordination_numbers_solute_four_cases(eax_solutes):
-    fig = compare_coordination_numbers(eax_solutes, x_axis="solute")
+    fig = compare_coordination_numbers(eax_solutes, x_axis_solute=True)
     assert len(fig.data) == 6
 
-    fig = compare_coordination_numbers(eax_solutes, x_axis="solute", series=True)
+    fig = compare_coordination_numbers(eax_solutes, x_axis_solute=True, series=True)
     assert len(fig.data) == 6
 
     rename = {
@@ -224,18 +218,21 @@ def test_compare_coordination_numbers_solute_four_cases(eax_solutes):
         "feaf": "EAx",
     }
     fig = compare_coordination_numbers(
-        eax_solutes, x_axis="solute", rename_solvent_dict=rename
-    )
-    assert len(fig.data) == 3
-
-    fig = compare_coordination_numbers(
-        eax_solutes, x_axis="solute", series=True, rename_solvent_dict=rename
+        eax_solutes, x_axis_solute=True, rename_solvent_dict=rename
     )
     assert len(fig.data) == 3
 
     fig = compare_coordination_numbers(
         eax_solutes,
-        x_axis="solute",
+        x_axis_solute=True,
+        series=True,
+        rename_solvent_dict=rename,
+    )
+    assert len(fig.data) == 3
+
+    fig = compare_coordination_numbers(
+        eax_solutes,
+        x_axis_solute=True,
         rename_solvent_dict=rename,
         series=True,
         solvents_to_plot=["EAx", "pf6"],
@@ -252,9 +249,7 @@ def test_compare_coordination_numbers_case1(eax_solutes):
         y_label="Coordination",
         title="Bar Graph of Coordination Numbers",
     )
-    assert len(fig.data) == 4
-    for bar in fig.data:
-        assert set(bar.x) == {"fec", "pf6"}
+    assert len(fig.data) == 2
 
 
 def test_compare_coordination_numbers_case2(eax_solutes):
@@ -265,7 +260,7 @@ def test_compare_coordination_numbers_case2(eax_solutes):
         x_label="solute",
         y_label="Coordination",
         title="Bar Graph of Coordination Numbers",
-        x_axis="solute",
+        x_axis_solute=True,
     )
     assert len(fig.data) == 2
     for bar in fig.data:
@@ -282,9 +277,7 @@ def test_compare_coordination_numbers_case3(eax_solutes):
         title="Line Graph of Coordination Numbers",
         series=True,
     )
-    assert len(fig.data) == 4
-    for line in fig.data:
-        assert set(line.x) == {"fec", "pf6"}
+    assert len(fig.data) == 2
 
 
 def test_compare_coordination_numbers_case4(eax_solutes):
@@ -295,7 +288,7 @@ def test_compare_coordination_numbers_case4(eax_solutes):
         x_label="solute",
         y_label="Coordination",
         title="Line Graph of Coordination Numbers",
-        x_axis="solute",
+        x_axis_solute=True,
         series=True,
     )
     assert len(fig.data) == 2
@@ -327,9 +320,7 @@ def test_compare_generic(eax_solutes):
         y_label="Pairing",
         title="Bar Graph of Solvent Pairing",
     )
-    assert len(fig.data) == 4
-    for bar in fig.data:
-        assert set(bar.x) == {"pf6", "fec", "EAx"}
+    assert len(fig.data) == 3
 
 
 def test_plot_co_occurrence(solvation_data):

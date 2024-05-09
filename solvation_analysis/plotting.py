@@ -362,7 +362,7 @@ def plot_speciation(
 
 
 def plot_rdfs(
-    solute, show_cutoff=True, solute_on_x=False, merge_on_x=False, merge_on_y=False
+    solute, show_cutoff=True, x_axis_solute=False, merge_on_x=False, merge_on_y=False
 ):
     # Determine the grid dimensions based on merge settings
     data = solute.rdf_data
@@ -371,7 +371,7 @@ def plot_rdfs(
 
     x_title, y_title = "Solvent", "Solute"
 
-    if solute_on_x:
+    if x_axis_solute:
         n_rows, n_cols = n_cols, n_rows
         x_title, y_title = y_title, x_title
 
@@ -396,7 +396,7 @@ def plot_rdfs(
             col = i * (not merge_on_y) + 1
             row = j * (not merge_on_x) + 1
 
-            if solute_on_x:
+            if x_axis_solute:
                 row, col = col, row
 
             # Assign a color to the sub-key if not already assigned
@@ -436,7 +436,7 @@ def plot_rdfs(
     if not (merge_on_x or merge_on_y) and show_cutoff:
         for col, solute in enumerate(solute.atom_solutes.values()):
             for row, (solvent, radius) in enumerate(solute.radii.items()):
-                if solute_on_x:
+                if x_axis_solute:
                     row, col = col, row
                 fig.add_vline(
                     x=radius,
@@ -471,7 +471,7 @@ def compare_networking(solutions, series=False):
         rename_solvent_dict={},
         solvents_to_plot=solvents_to_plot,
         legend_label="Solute Status",
-        x_axis="solute",
+        x_axis_solute=True,
         series=series,
     )
 
@@ -489,7 +489,7 @@ def compare_solvent_dicts(
     rename_solvent_dict: dict[str, str],
     solvents_to_plot: list[str],
     legend_label: str,
-    x_axis: str = "solvent",
+    x_axis_solute: str = False,
     series: bool = False,
 ) -> go.Figure:
     """
@@ -553,7 +553,7 @@ def compare_solvent_dicts(
     df = pd.DataFrame(data=property_dict.values())
     df.index = list(property_dict.keys())
 
-    if series and x_axis == "solvent":
+    if series and not x_axis_solute:
         # each solution is a line
         df = df.transpose()
         fig = px.line(
@@ -564,11 +564,11 @@ def compare_solvent_dicts(
             markers=True,
         )
         fig.update_xaxes(type="category")
-    elif series and x_axis == "solute":
+    elif series and x_axis_solute:
         # each solvent is a line
         fig = px.line(df, y=df.columns, labels={"variable": legend_label}, markers=True)
         fig.update_xaxes(type="category")
-    elif not series and x_axis == "solvent":
+    elif not series and not x_axis_solute:
         # each solution is a bar
         df = df.transpose()
         fig = px.bar(
@@ -578,7 +578,7 @@ def compare_solvent_dicts(
             barmode="group",
             labels={"variable": legend_label},
         )
-    elif not series and x_axis == "solute":
+    elif not series and x_axis_solute:
         # each solvent is a bar
         fig = px.bar(
             df,
@@ -599,17 +599,16 @@ def _compare_function_generator(
         solutions,
         rename_solvent_dict=None,
         solvents_to_plot=None,
-        x_axis="solvent",
+        x_axis_solute=False,
         series=False,
         title=title,
         x_label=None,
         y_label=attribute.replace("_", " ").title(),
         legend_label=None,
     ):
-        valid_x_axis = set(["solvent", "solute"])
-        assert x_axis in valid_x_axis, "x_axis must be equal to 'solute' or 'solvent'."
+        x_axis = "solute" if x_axis_solute else "solvent"
         x_label = x_label or x_axis
-        legend_label = legend_label or (valid_x_axis - {x_axis}).pop()
+        legend_label = legend_label or x_axis
 
         property = {}
         for solute_name, solute in solutions.items():
