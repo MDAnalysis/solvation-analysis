@@ -235,7 +235,21 @@ def _get_shell_name(row):
 def plot_speciation(
     speciation: Union[Speciation, Solute], shells: int = 6
 ) -> go.Figure:
-    print("hi")
+    """
+    Plot the solvation shell composition and fraction for the top solvation shells.
+
+    Parameters
+    ----------
+    speciation : Speciation or Solute
+        The Speciation or Solute object containing the speciation data.
+    shells : int, optional
+        The number of top solvation shells to plot. Default is 6.
+
+    Returns
+    -------
+    fig : plotly.graph_objs.Figure
+        The plot of the solvation shell composition and fraction.
+    """
     if isinstance(speciation, Solute):
         if not hasattr(speciation, "speciation"):
             raise ValueError("Solute speciation analysis class must be instantiated.")
@@ -362,8 +376,33 @@ def plot_speciation(
 
 
 def plot_rdfs(
-    solute, show_cutoff=True, x_axis_solute=False, merge_on_x=False, merge_on_y=False
+    solute: Solute,
+    show_cutoff: bool = True,
+    x_axis_solute: bool = False,
+    merge_on_x: bool = False,
+    merge_on_y: bool = False,
 ):
+    """
+    Plot the radial distribution functions (RDFs) of solute-solvent pairs.
+
+    Parameters
+    ----------
+    solute : Solute
+        The Solute object containing the RDF data.
+    show_cutoff : bool, optional
+        Whether to display the solvation radius cutoff lines. Default is True.
+    x_axis_solute : bool, optional
+        Whether to place the solute on the x-axis. Default is False.
+    merge_on_x : bool, optional
+        Whether to merge subplots along the x-axis. Default is False.
+    merge_on_y : bool, optional
+        Whether to merge subplots along the y-axis. Default is False.
+
+    Returns
+    -------
+    fig : plotly.graph_objs.Figure
+        The plot of the radial distribution functions.
+    """
     # Determine the grid dimensions based on merge settings
     data = solute.rdf_data
     n_cols = 1 if merge_on_y else len(data)
