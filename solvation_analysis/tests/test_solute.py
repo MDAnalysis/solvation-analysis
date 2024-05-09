@@ -34,8 +34,8 @@ def test_networking_instantiation_error(atom_groups):
 
 def test_plot_solvation_distance(rdf_bins_and_data_easy):
     bins, data = rdf_bins_and_data_easy["pf6_all"]
-    fig, ax = Solute._plot_solvation_radius(bins, data, 2)
-    # fig.show()  # comment out for global testing
+    fig = Solute._plot_solvation_radius(bins, data, 2)
+    fig.show()  # comment out for global testing
 
 
 def test_radii_finding(run_solute):
@@ -215,7 +215,7 @@ def test_instantiate_eax_solutes(name, eax_solutes):
 
 
 def test_plot_solvation_radius(run_solute, iba_small_solute):
-    run_solute.plot_solvation_radius("solute_0", "fec")
+    run_solute.plot_solvation_radius("solute_0", "fec").show()
     iba_small_solute.plot_solvation_radius("iba_ketone", "iba")
 
 
