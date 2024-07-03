@@ -20,6 +20,7 @@ import warnings
 from scipy.signal import find_peaks
 from scipy.signal.windows import gaussian
 
+
 def interpolate_rdf(
     bins: np.ndarray, rdf: np.ndarray, floor: float = 0.05, cutoff: float = 5
 ) -> tuple[UnivariateSpline, tuple[float, float]]:
