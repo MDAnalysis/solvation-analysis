@@ -53,7 +53,7 @@ properties within and between solvent systems. A few examples are shown below.
 ### Contributing
 
 Contributions, both issues and PRs, are welcome. If you'd like to contribute, we ask that you
-follow the community guidelines outlined in the [MDAnalysis Code of Conduct](https://www.mdanalysis.org/pages/conduct/).
+follow the community guidelines outlined in the [MDAnalysis Code of Conduct](https://www.mdanalysis.org/conduct/).
 
 Solvation Analysis uses [pre-commit](https://pre-commit.com/) for linting. Make sure to install
 the pre-commit hooks if you are working on a contribution.
