@@ -375,10 +375,10 @@ def identify_cutoff_poly(
     cr_pts, cr_vals = identify_minima(f)
     if not good_cutoff(cutoff_region, cr_pts, cr_vals):
         if failure_behavior == "silent":
-            return np.NaN
+            return np.nan
         if failure_behavior == "warn":
             warnings.warn("No solvation shell detected.")
-            return np.NaN
+            return np.nan
         if failure_behavior == "exception":
             raise RuntimeError(
                 "Solute could not identify a solvation radius for at least one solvent. "

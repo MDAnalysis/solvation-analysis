@@ -85,7 +85,7 @@ def test_good_cutoff(cutoff_region, cr_pts, cr_vals, expected):
 @pytest.mark.parametrize(
     "rdf_tag, cutoff",
     [
-        ("fec_F", np.NaN),
+        ("fec_F", np.nan),
         ("fec_O", 3.30),
         ("fec_all", 2.74),
         ("bn_all", 2.64),
@@ -108,7 +108,7 @@ def test_identify_cutoff_poly_easy(
 @pytest.mark.parametrize(
     "rdf_tag, cutoff",
     [
-        ("fec_F", np.NaN),
+        ("fec_F", np.nan),
         ("fec_O", 3.30),
         ("fec_all", 2.74),
         ("bn_all", 2.64),
@@ -122,7 +122,7 @@ def test_identify_cutoff_scipy_easy(
 ):
     bins, rdf = rdf_bins_and_data_easy[rdf_tag]
     np.testing.assert_allclose(
-        identify_cutoff_scipy(bins, rdf, failure_behavior="warn", default=np.NaN),
+        identify_cutoff_scipy(bins, rdf, failure_behavior="warn", default=np.nan),
         cutoff,
         atol=0.2,
         equal_nan=True,
@@ -148,8 +148,8 @@ def test_identify_scipy_hard(
     bins_ez, rdf_ez = rdf_bins_and_data_easy[rdf_tag]
     bins_hd, rdf_hd = rdf_bins_and_data_hard[rdf_tag]
     np.testing.assert_allclose(
-        identify_cutoff_scipy(bins_hd, rdf_hd, failure_behavior="warn", default=np.NaN),
-        identify_cutoff_scipy(bins_ez, rdf_ez, failure_behavior="warn", default=np.NaN),
+        identify_cutoff_scipy(bins_hd, rdf_hd, failure_behavior="warn", default=np.nan),
+        identify_cutoff_scipy(bins_ez, rdf_ez, failure_behavior="warn", default=np.nan),
         atol=0.2,
         equal_nan=True,
     )
@@ -201,11 +201,11 @@ def test_identify_cutoff_non_solv(rdf_tag, rdf_bins_and_data_non_solv):
     bins, rdf = rdf_bins_and_data_non_solv[rdf_tag]
     np.testing.assert_allclose(
         identify_cutoff_poly(bins, rdf, failure_behavior="warn"),
-        np.NaN,
+        np.nan,
         equal_nan=True,
     )
     np.testing.assert_allclose(
-        identify_cutoff_scipy(bins, rdf, failure_behavior="warn", default=np.NaN),
-        np.NaN,
+        identify_cutoff_scipy(bins, rdf, failure_behavior="warn", default=np.nan),
+        np.nan,
         equal_nan=True,
     )
