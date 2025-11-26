@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - "main"
+  workflow_dispatch:
   schedule:
     # Midnight Tuesdays and Fridays
     - cron: "0 0 * * 2,5"
