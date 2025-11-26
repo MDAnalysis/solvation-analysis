@@ -4,17 +4,17 @@ channels:
   - defaults
 dependencies:
     # Base depends
-  - python
+  - python>=3.11
   - pip
-  - numpy
+  - numpy>=2.2
   - pytest
-  - mdanalysis
+  - mdanalysis>=2.8
   - nglview
   - nbsphinx
   - ipython
   - plotly
   - sphinx_rtd_theme
-  - scipy==1.12.0
+  - scipy
 
 
     # Pip-only installs
