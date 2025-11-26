@@ -4,11 +4,12 @@ channels:
   - defaults
 dependencies:
     # Base depends
-  - python>=3.11
+  - python=3.12
   - pip
   - numpy>=2.2
   - pytest
   - mdanalysis>=2.8
+  - pandas>=2.2
   - nglview
   - nbsphinx
   - ipython
